@@ -1,0 +1,13 @@
+^lactater\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^README\.Rmd$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^data-raw$
+^\.github$
+^codecov\.yml$
+^cran-comments\.md$
+^CRAN-RELEASE$
+^man/figures/readme$

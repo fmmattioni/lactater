@@ -1,0 +1,19 @@
+#info_swimming {
+  padding: 2em 1em 1em 7em;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  border-radius: 25px;
+  background-color: #e6f0ff;
+  position:relative;
+}
+
+#info_swimming:before {
+  font-family: "Font Awesome 5 Free";
+   font-weight: 900;
+   content: "\f129";
+   top: 50%;
+   transform: translateY(-50%);
+   left: 30px;
+   position:absolute;
+   font-size: 45px;
+ }

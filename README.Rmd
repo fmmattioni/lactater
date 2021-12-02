@@ -1,0 +1,218 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/readme/README-",
+  out.width = "100%",
+  dpi = 300,
+  fig.align = "center",
+  warning = FALSE,
+  message = FALSE
+)
+```
+
+# lactater <img src='man/figures/logo.png' align="right" height="240" />
+
+<!-- badges: start -->
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![CRAN status](https://www.r-pkg.org/badges/version/lactater)](https://CRAN.R-project.org/package=lactater)
+[![R-CMD-check](https://github.com/fmmattioni/lactater/workflows/R-CMD-check/badge.svg)](https://github.com/fmmattioni/lactater/actions)
+<!-- badges: end -->
+
+The goal of `lactater` is to provide tools for making it easier to analyze **lactate thresholds**.
+
+## Installation
+
+You can install the development version of `lactater` from [Github](https://github.com/fmmattioni/lactater) with:
+
+``` r
+# install.packages("remotes")
+remotes::install_github("fmmattioni/lactater")
+```
+
+## Demo data
+
+```{r}
+library(lactater)
+
+demo_data
+```
+
+## Usage
+
+With `lactater` you can easily estimate lactate thresholds using one or multiple methods:
+
+```{r}
+results_overall <- lactate_threshold(
+  .data = demo_data, 
+  intensity_column = "intensity", 
+  lactate_column = "lactate", 
+  heart_rate_column = "heart_rate",
+  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"),
+  fit = "3rd degree polynomial", 
+  include_baseline = TRUE, 
+  sport = "cycling",
+  plot = TRUE
+)
+```
+
+```{r echo=FALSE}
+results_overall
+```
+
+```{r echo=FALSE, fig.width=16, fig.height=11}
+plot_methods(results_overall$plot)
+```
+
+
+## You can also choose one method:
+
+### Log-log
+
+```{r}
+results_loglog <- lactate_threshold(
+  .data = demo_data, 
+  intensity_column = "intensity", 
+  lactate_column = "lactate", 
+  heart_rate_column = "heart_rate",
+  method = "Log-log",
+  fit = "3rd degree polynomial", 
+  include_baseline = TRUE, 
+  sport = "cycling",
+  plot = TRUE
+)
+```
+
+```{r echo=FALSE}
+results_loglog
+```
+
+```{r echo=FALSE}
+plot_methods(results_loglog$plot)
+```
+
+### OBLA
+
+```{r}
+results_obla <- lactate_threshold(
+  .data = demo_data, 
+  intensity_column = "intensity", 
+  lactate_column = "lactate", 
+  heart_rate_column = "heart_rate",
+  method = "OBLA",
+  fit = "3rd degree polynomial", 
+  include_baseline = TRUE, 
+  sport = "cycling",
+  plot = TRUE
+)
+```
+
+```{r echo=FALSE}
+results_obla
+```
+
+```{r echo=FALSE, fig.width=10, fig.height=7}
+plot_methods(results_obla$plot)
+```
+
+### Bsln+
+
+```{r}
+results_bsln_plus <- lactate_threshold(
+  .data = demo_data, 
+  intensity_column = "intensity", 
+  lactate_column = "lactate", 
+  heart_rate_column = "heart_rate",
+  method = "Bsln+",
+  fit = "3rd degree polynomial", 
+  include_baseline = TRUE, 
+  sport = "cycling",
+  plot = TRUE
+)
+```
+
+```{r echo=FALSE}
+results_bsln_plus
+```
+
+```{r echo=FALSE, fig.width=6, fig.height=6}
+plot_methods(results_bsln_plus$plot, ncol = 2)
+```
+
+### Dmax
+
+```{r}
+results_dmax <- lactate_threshold(
+  .data = demo_data, 
+  intensity_column = "intensity", 
+  lactate_column = "lactate", 
+  heart_rate_column = "heart_rate",
+  method = "Dmax",
+  fit = "3rd degree polynomial", 
+  include_baseline = TRUE, 
+  sport = "cycling",
+  plot = TRUE
+)
+```
+
+```{r echo=FALSE}
+results_dmax
+```
+
+```{r echo=FALSE, fig.width=10, fig.height=6}
+plot_methods(results_dmax$plot)
+```
+
+### LTP
+
+```{r}
+results_ltp <- lactate_threshold(
+  .data = demo_data, 
+  intensity_column = "intensity", 
+  lactate_column = "lactate", 
+  heart_rate_column = "heart_rate",
+  method = "LTP",
+  fit = "3rd degree polynomial", 
+  include_baseline = TRUE, 
+  sport = "cycling",
+  plot = TRUE
+)
+```
+
+```{r echo=FALSE}
+results_ltp
+```
+
+```{r echo=FALSE, fig.width=10, fig.height=5}
+plot_methods(results_ltp$plot)
+```
+
+### LTratio
+
+```{r}
+results_ltratio <- lactate_threshold(
+  .data = demo_data, 
+  intensity_column = "intensity", 
+  lactate_column = "lactate", 
+  heart_rate_column = "heart_rate",
+  method = "LTratio",
+  fit = "3rd degree polynomial", 
+  include_baseline = TRUE, 
+  sport = "cycling",
+  plot = TRUE
+)
+```
+
+```{r echo=FALSE}
+results_ltratio
+```
+
+```{r echo=FALSE}
+plot_methods(results_ltratio$plot)
+```

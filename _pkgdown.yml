@@ -1,0 +1,72 @@
+destination: docs
+
+template:
+  bootstrap: 5
+  bootswatch: simplex
+  bslib:
+    primary: "#0054AD"
+    border-radius: 0.5rem
+    btn-border-radius: 0.25rem
+    base_font: {google: "Montserrat"}
+    heading_font: {google: "Montserrat"}
+    code_font: {google: "JetBrains Mono"}
+  opengraph:
+    image:
+      src: man/figures/logo.png
+      alt: "Tools for Analyzing Lactate Thresholds"
+    twitter:
+      creator: "@felipe_mattioni"
+      card: summary_large_image
+
+authors:
+  Felipe Mattioni Maturana:
+    href: https://fmattioni.me
+
+toc:
+  depth: 3
+
+development:
+  mode: auto
+
+navbar:
+  bg: dark
+  type: dark
+  title: ~
+  left:
+    - icon: fa-home fa-lg
+      href: index.html
+    - text: Reference
+      icon: fa-balance-scale
+      href: reference/index.html
+    - text: News
+      icon: fa-newspaper
+      menu:
+      - text: "Change log"
+        href: news/index.html
+  right:
+  - icon: fa-github fa-lg
+    href: https://github.com/fmmattioni/lactater
+  - icon: fa-twitter fa-lg
+    href: https://twitter.com/felipe_mattioni
+
+reference:
+- title: Demo data
+  desc: >
+    Data for demonstration purposes
+  contents:
+  - demo_data
+- title: Lactate threshold estimations
+  desc: >
+    Function that estimates different lactate threshold methods
+  contents:
+  - lactate_threshold
+- title: Plot methods
+  desc: >
+    Combine different methods into a single plot
+  contents:
+  - plot_methods
+- title: Input the data interactively
+  desc: >
+    Widget to input the data in an interactive way
+  contents:
+  - run_data_input
