@@ -23,6 +23,16 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v1
         with:
-          extra-packages: rcmdcheck
+          extra-packages: |
+            rcmdcheck
+            pkgdown
 
       - uses: r-lib/actions/check-r-package@v1
+
+      - name: Install package
+        run: R CMD INSTALL .
+
+      - name: Deploy package
+        run: |
+          pkgdown::deploy_to_branch()
+        shell: Rscript {0}
