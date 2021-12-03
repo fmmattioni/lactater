@@ -11,7 +11,7 @@ template:
     btn-border-radius: 0.25rem
   opengraph:
     image:
-      src: man/figures/logo.png
+      src: man/figures/header.png
       alt: "Tools for Analyzing Lactate Thresholds"
     twitter:
       creator: "@felipe_mattioni"
