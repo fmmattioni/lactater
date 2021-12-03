@@ -17,6 +17,8 @@ template:
     twitter:
       creator: "@felipe_mattioni"
       card: summary_large_image
+  params:
+    ganalytics: UA-126092763-1
 
 authors:
   Felipe Mattioni Maturana:
