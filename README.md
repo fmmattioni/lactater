@@ -10,12 +10,23 @@ stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://
 [![CRAN
 status](https://www.r-pkg.org/badges/version/lactater)](https://CRAN.R-project.org/package=lactater)
 [![R-CMD-check](https://github.com/fmmattioni/lactater/workflows/R-CMD-check/badge.svg)](https://github.com/fmmattioni/lactater/actions)
+[![Monthly downloads
+badge](https://cranlogs.r-pkg.org/badges/last-month/lactater?color=blue)](https://CRAN.R-project.org/package=lactater)
+[![Total downloads
+badge](https://cranlogs.r-pkg.org/badges/grand-total/lactater?color=blue)](https://CRAN.R-project.org/package=lactater)
 <!-- badges: end -->
 
 The goal of `lactater` is to provide tools for making it easier to
 analyze **lactate thresholds**.
 
 ## Installation
+
+You can install the released version of `lactater` from
+[CRAN](https://CRAN.R-project.org/package=lactater) with:
+
+``` r
+install.packages("lactater")
+```
 
 You can install the development version of `lactater` from
 [Github](https://github.com/fmmattioni/lactater) with:
@@ -234,3 +245,9 @@ results_ltratio <- lactate_threshold(
     #> 1 LTratio         LTratio B-Spline (default)      71.2     1.2        132 <gg>
 
 <img src="man/figures/readme/README-unnamed-chunk-23-1.png" width="100%" style="display: block; margin: auto;" />
+
+## Related work
+
+-   [lactate-R](http://www.uiginn.com/lactate/lactate-r.html)
+-   [cycleRtools](https://github.com/cran/cycleRtools)
+-   [exPhysR](https://github.com/dhammarstrom/exPhysR)
