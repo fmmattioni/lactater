@@ -30,8 +30,8 @@
 <link rel="apple-touch-icon" type="image/png" sizes="76x76" href="apple-touch-icon-76x76.png">
 <link rel="apple-touch-icon" type="image/png" sizes="60x60" href="apple-touch-icon-60x60.png">
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="deps/bootstrap-5.1.0/bootstrap.min.css" rel="stylesheet">
-<script src="deps/bootstrap-5.1.0/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link href="deps/bootstrap-5.1.3/bootstrap.min.css" rel="stylesheet">
+<script src="deps/bootstrap-5.1.3/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.rawgit.com/afeld/bootstrap-toc/v1.0.1/dist/bootstrap-toc.min.js"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="pkgdown.js"></script><link href="extra.css" rel="stylesheet">
 <meta property="og:title" content="Tools for Analyzing Lactate Thresholds">
@@ -76,14 +76,14 @@
     
     <a class="navbar-brand me-2" href="index.html">lactater</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Released version">0.1.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
 
-    <div id="navbar" class="collapse navbar-collapse ms-2">
+    <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
 <li class="active nav-item">
   <a class="nav-link" href="index.html">
@@ -139,52 +139,51 @@
 </h1>
 </div>
 <!-- badges: start -->
-
 <p>The goal of <code>lactater</code> is to provide tools for making it easier to analyze <strong>lactate thresholds</strong>.</p>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
 <p>You can install the released version of <code>lactater</code> from <a href="https://CRAN.R-project.org/package=lactater" class="external-link">CRAN</a> with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"lactater"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"lactater"</span><span class="op">)</span></span></code></pre></div>
 <p>You can install the development version of <code>lactater</code> from <a href="https://github.com/fmmattioni/lactater" class="external-link">Github</a> with:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="co"># install.packages("remotes")</span>
-<span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"fmmattioni/lactater"</span><span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"fmmattioni/lactater"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="demo-data">Demo data<a class="anchor" aria-label="anchor" href="#demo-data"></a>
 </h2>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">lactater</span><span class="op">)</span>
-
-<span class="va">demo_data</span>
-<span class="co">#&gt;   step length intensity lactate heart_rate</span>
-<span class="co">#&gt; 1    0      0         0    0.93         96</span>
-<span class="co">#&gt; 2    1      3        50    0.98        114</span>
-<span class="co">#&gt; 3    2      3        75    1.23        134</span>
-<span class="co">#&gt; 4    3      3       100    1.88        154</span>
-<span class="co">#&gt; 5    4      3       125    2.80        170</span>
-<span class="co">#&gt; 6    5      3       150    4.21        182</span>
-<span class="co">#&gt; 7    6      3       175    6.66        193</span>
-<span class="co">#&gt; 8    7      2       191    8.64        198</span></code></pre></div>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">lactater</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">demo_data</span></span>
+<span><span class="co">#&gt;   step length intensity lactate heart_rate</span></span>
+<span><span class="co">#&gt; 1    0      0         0    0.93         96</span></span>
+<span><span class="co">#&gt; 2    1      3        50    0.98        114</span></span>
+<span><span class="co">#&gt; 3    2      3        75    1.23        134</span></span>
+<span><span class="co">#&gt; 4    3      3       100    1.88        154</span></span>
+<span><span class="co">#&gt; 5    4      3       125    2.80        170</span></span>
+<span><span class="co">#&gt; 6    5      3       150    4.21        182</span></span>
+<span><span class="co">#&gt; 7    6      3       175    6.66        193</span></span>
+<span><span class="co">#&gt; 8    7      2       191    8.64        198</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
 </h2>
 <p>With <code>lactater</code> you can easily estimate lactate thresholds using one or multiple methods:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">results_overall</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span>
-  .data <span class="op">=</span> <span class="va">demo_data</span>, 
-  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, 
-  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, 
-  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,
-  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Log-log"</span>, <span class="st">"OBLA"</span>, <span class="st">"Bsln+"</span>, <span class="st">"Dmax"</span>, <span class="st">"LTP"</span>, <span class="st">"LTratio"</span><span class="op">)</span>,
-  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, 
-  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, 
-  sport <span class="op">=</span> <span class="st">"cycling"</span>,
-  plot <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">results_overall</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span></span>
+<span>  .data <span class="op">=</span> <span class="va">demo_data</span>, </span>
+<span>  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, </span>
+<span>  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, </span>
+<span>  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Log-log"</span>, <span class="st">"OBLA"</span>, <span class="st">"Bsln+"</span>, <span class="st">"Dmax"</span>, <span class="st">"LTP"</span>, <span class="st">"LTratio"</span><span class="op">)</span>,</span>
+<span>  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, </span>
+<span>  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>  sport <span class="op">=</span> <span class="st">"cycling"</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb5"><pre class="sourceCode R"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" title="1"><span class="co">#&gt; # A tibble: 17 × 7</span></a>
 <a class="sourceLine" id="cb5-2" title="2"><span class="co">#&gt;    method_category method           fitting   intensity lactate heart_rate plot </span></a>
 <a class="sourceLine" id="cb5-3" title="3"><span class="co">#&gt;    &lt;fct&gt;           &lt;fct&gt;            &lt;chr&gt;         &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt; &lt;lis&gt;</span></a>
@@ -214,17 +213,17 @@
 <h3 id="log-log">Log-log<a class="anchor" aria-label="anchor" href="#log-log"></a>
 </h3>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">results_loglog</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span>
-  .data <span class="op">=</span> <span class="va">demo_data</span>, 
-  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, 
-  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, 
-  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,
-  method <span class="op">=</span> <span class="st">"Log-log"</span>,
-  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, 
-  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, 
-  sport <span class="op">=</span> <span class="st">"cycling"</span>,
-  plot <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">results_loglog</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span></span>
+<span>  .data <span class="op">=</span> <span class="va">demo_data</span>, </span>
+<span>  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, </span>
+<span>  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, </span>
+<span>  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"Log-log"</span>,</span>
+<span>  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, </span>
+<span>  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>  sport <span class="op">=</span> <span class="st">"cycling"</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb7"><pre class="sourceCode R"><code class="sourceCode r"><a class="sourceLine" id="cb7-1" title="1"><span class="co">#&gt; # A tibble: 1 × 7</span></a>
 <a class="sourceLine" id="cb7-2" title="2"><span class="co">#&gt;   method_category method  fitting             intensity lactate heart_rate plot </span></a>
 <a class="sourceLine" id="cb7-3" title="3"><span class="co">#&gt;   &lt;fct&gt;           &lt;fct&gt;   &lt;chr&gt;                   &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt; &lt;lis&gt;</span></a>
@@ -235,17 +234,17 @@
 <h3 id="obla">OBLA<a class="anchor" aria-label="anchor" href="#obla"></a>
 </h3>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">results_obla</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span>
-  .data <span class="op">=</span> <span class="va">demo_data</span>, 
-  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, 
-  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, 
-  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,
-  method <span class="op">=</span> <span class="st">"OBLA"</span>,
-  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, 
-  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, 
-  sport <span class="op">=</span> <span class="st">"cycling"</span>,
-  plot <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">results_obla</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span></span>
+<span>  .data <span class="op">=</span> <span class="va">demo_data</span>, </span>
+<span>  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, </span>
+<span>  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, </span>
+<span>  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"OBLA"</span>,</span>
+<span>  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, </span>
+<span>  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>  sport <span class="op">=</span> <span class="st">"cycling"</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb9"><pre class="sourceCode R"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1"><span class="co">#&gt; # A tibble: 5 × 7</span></a>
 <a class="sourceLine" id="cb9-2" title="2"><span class="co">#&gt;   method_category method   fitting            intensity lactate heart_rate plot </span></a>
 <a class="sourceLine" id="cb9-3" title="3"><span class="co">#&gt;   &lt;fct&gt;           &lt;fct&gt;    &lt;chr&gt;                  &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt; &lt;lis&gt;</span></a>
@@ -260,17 +259,17 @@
 <h3 id="bsln">Bsln+<a class="anchor" aria-label="anchor" href="#bsln"></a>
 </h3>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">results_bsln_plus</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span>
-  .data <span class="op">=</span> <span class="va">demo_data</span>, 
-  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, 
-  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, 
-  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,
-  method <span class="op">=</span> <span class="st">"Bsln+"</span>,
-  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, 
-  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, 
-  sport <span class="op">=</span> <span class="st">"cycling"</span>,
-  plot <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">results_bsln_plus</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span></span>
+<span>  .data <span class="op">=</span> <span class="va">demo_data</span>, </span>
+<span>  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, </span>
+<span>  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, </span>
+<span>  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"Bsln+"</span>,</span>
+<span>  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, </span>
+<span>  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>  sport <span class="op">=</span> <span class="st">"cycling"</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb11"><pre class="sourceCode R"><code class="sourceCode r"><a class="sourceLine" id="cb11-1" title="1"><span class="co">#&gt; # A tibble: 3 × 7</span></a>
 <a class="sourceLine" id="cb11-2" title="2"><span class="co">#&gt;   method_category method     fitting          intensity lactate heart_rate plot </span></a>
 <a class="sourceLine" id="cb11-3" title="3"><span class="co">#&gt;   &lt;fct&gt;           &lt;fct&gt;      &lt;chr&gt;                &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt; &lt;lis&gt;</span></a>
@@ -283,17 +282,17 @@
 <h3 id="dmax">Dmax<a class="anchor" aria-label="anchor" href="#dmax"></a>
 </h3>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">results_dmax</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span>
-  .data <span class="op">=</span> <span class="va">demo_data</span>, 
-  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, 
-  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, 
-  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,
-  method <span class="op">=</span> <span class="st">"Dmax"</span>,
-  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, 
-  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, 
-  sport <span class="op">=</span> <span class="st">"cycling"</span>,
-  plot <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">results_dmax</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span></span>
+<span>  .data <span class="op">=</span> <span class="va">demo_data</span>, </span>
+<span>  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, </span>
+<span>  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, </span>
+<span>  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"Dmax"</span>,</span>
+<span>  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, </span>
+<span>  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>  sport <span class="op">=</span> <span class="st">"cycling"</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb13"><pre class="sourceCode R"><code class="sourceCode r"><a class="sourceLine" id="cb13-1" title="1"><span class="co">#&gt; # A tibble: 5 × 7</span></a>
 <a class="sourceLine" id="cb13-2" title="2"><span class="co">#&gt;   method_category method           fitting    intensity lactate heart_rate plot </span></a>
 <a class="sourceLine" id="cb13-3" title="3"><span class="co">#&gt;   &lt;fct&gt;           &lt;fct&gt;            &lt;chr&gt;          &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt; &lt;lis&gt;</span></a>
@@ -308,17 +307,17 @@
 <h3 id="ltp">LTP<a class="anchor" aria-label="anchor" href="#ltp"></a>
 </h3>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">results_ltp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span>
-  .data <span class="op">=</span> <span class="va">demo_data</span>, 
-  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, 
-  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, 
-  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,
-  method <span class="op">=</span> <span class="st">"LTP"</span>,
-  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, 
-  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, 
-  sport <span class="op">=</span> <span class="st">"cycling"</span>,
-  plot <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">results_ltp</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span></span>
+<span>  .data <span class="op">=</span> <span class="va">demo_data</span>, </span>
+<span>  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, </span>
+<span>  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, </span>
+<span>  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"LTP"</span>,</span>
+<span>  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, </span>
+<span>  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>  sport <span class="op">=</span> <span class="st">"cycling"</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb15"><pre class="sourceCode R"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" title="1"><span class="co">#&gt; # A tibble: 2 × 7</span></a>
 <a class="sourceLine" id="cb15-2" title="2"><span class="co">#&gt;   method_category method fitting              intensity lactate heart_rate plot </span></a>
 <a class="sourceLine" id="cb15-3" title="3"><span class="co">#&gt;   &lt;fct&gt;           &lt;fct&gt;  &lt;chr&gt;                    &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt; &lt;lis&gt;</span></a>
@@ -330,17 +329,17 @@
 <h3 id="ltratio">LTratio<a class="anchor" aria-label="anchor" href="#ltratio"></a>
 </h3>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span class="va">results_ltratio</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span>
-  .data <span class="op">=</span> <span class="va">demo_data</span>, 
-  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, 
-  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, 
-  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,
-  method <span class="op">=</span> <span class="st">"LTratio"</span>,
-  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, 
-  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, 
-  sport <span class="op">=</span> <span class="st">"cycling"</span>,
-  plot <span class="op">=</span> <span class="cn">TRUE</span>
-<span class="op">)</span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">results_ltratio</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/lactate_threshold.html">lactate_threshold</a></span><span class="op">(</span></span>
+<span>  .data <span class="op">=</span> <span class="va">demo_data</span>, </span>
+<span>  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>, </span>
+<span>  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>, </span>
+<span>  heart_rate_column <span class="op">=</span> <span class="st">"heart_rate"</span>,</span>
+<span>  method <span class="op">=</span> <span class="st">"LTratio"</span>,</span>
+<span>  fit <span class="op">=</span> <span class="st">"3rd degree polynomial"</span>, </span>
+<span>  include_baseline <span class="op">=</span> <span class="cn">TRUE</span>, </span>
+<span>  sport <span class="op">=</span> <span class="st">"cycling"</span>,</span>
+<span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb17"><pre class="sourceCode R"><code class="sourceCode r"><a class="sourceLine" id="cb17-1" title="1"><span class="co">#&gt; # A tibble: 1 × 7</span></a>
 <a class="sourceLine" id="cb17-2" title="2"><span class="co">#&gt;   method_category method  fitting            intensity lactate heart_rate plot  </span></a>
 <a class="sourceLine" id="cb17-3" title="3"><span class="co">#&gt;   &lt;fct&gt;           &lt;fct&gt;   &lt;chr&gt;                  &lt;dbl&gt;   &lt;dbl&gt;      &lt;dbl&gt; &lt;list&gt;</span></a>
@@ -389,16 +388,7 @@
 </ul>
 </div>
 
-<div class="dev-status">
-<h2 data-toc-skip>Dev status</h2>
-<ul class="list-unstyled">
-<li><a href="https://lifecycle.r-lib.org/articles/stages.html#stable" class="external-link"><img src="https://img.shields.io/badge/lifecycle-stable-brightgreen.svg" alt="Lifecycle: stable"></a></li>
-<li><a href="https://CRAN.R-project.org/package=lactater" class="external-link"><img src="https://www.r-pkg.org/badges/version/lactater" alt="CRAN status"></a></li>
-<li><a href="https://github.com/fmmattioni/lactater/actions" class="external-link"><img src="https://github.com/fmmattioni/lactater/workflows/R-CMD-check/badge.svg" alt="R-CMD-check"></a></li>
-<li><a href="https://CRAN.R-project.org/package=lactater" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/last-month/lactater?color=blue" alt="Monthly downloads badge"></a></li>
-<li><a href="https://CRAN.R-project.org/package=lactater" class="external-link"><img src="https://cranlogs.r-pkg.org/badges/grand-total/lactater?color=blue" alt="Total downloads badge"></a></li>
-</ul>
-</div>
+
 
   </aside>
 </div>
@@ -411,7 +401,7 @@
 
 <div class="pkgdown-footer-right">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.1.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.6.</p>
 </div>
 
     </footer>
