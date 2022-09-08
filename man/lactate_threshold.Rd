@@ -144,6 +144,7 @@ ratio, which attempts to describe the onset of the lactate increase (Dickhuth et
 }
 }
 \examples{
+\dontrun{
 lactate_threshold(
   .data = demo_data,
   intensity_column = "intensity",
@@ -155,6 +156,7 @@ lactate_threshold(
   loglog_restrainer = 1,
   plot = TRUE
 )
+}
 }
 \references{
 Beaver WL, Wasserman K, Whipp BJ. Improved detection of lactate threshold during exercise using a log-log transformation.

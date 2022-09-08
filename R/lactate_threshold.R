@@ -147,6 +147,7 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' lactate_threshold(
 #'   .data = demo_data,
 #'   intensity_column = "intensity",
@@ -158,6 +159,7 @@
 #'   loglog_restrainer = 1,
 #'   plot = TRUE
 #' )
+#' }
 lactate_threshold <- function(
   .data,
   intensity_column,
