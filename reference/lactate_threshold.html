@@ -146,7 +146,7 @@ only the first 50% of the data will be used. Default to <code>1</code>.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>a <a href="https://tibble.tidyverse.org/reference/tibble-package.html" class="external-link">tibble</a> with the following columns:</p>
+<p>a tibble with the following columns:</p>
 <dl><dt>method_category</dt>
 <dd><p>the category of the lactate threshold method.</p></dd>
 
@@ -315,7 +315,8 @@ Treadmill Running: Relationship and Reproducibility. International Journal of Sp
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="fu">lactate_threshold</span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
+<span class="r-in"><span><span class="fu">lactate_threshold</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  .data <span class="op">=</span> <span class="va">demo_data</span>,</span></span>
 <span class="r-in"><span>  intensity_column <span class="op">=</span> <span class="st">"intensity"</span>,</span></span>
 <span class="r-in"><span>  lactate_column <span class="op">=</span> <span class="st">"lactate"</span>,</span></span>
@@ -326,27 +327,7 @@ Treadmill Running: Relationship and Reproducibility. International Journal of Sp
 <span class="r-in"><span>  loglog_restrainer <span class="op">=</span> <span class="fl">1</span>,</span></span>
 <span class="r-in"><span>  plot <span class="op">=</span> <span class="cn">TRUE</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 17 × 7</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    method_category method           fitting        inten…¹ lactate heart…² plot </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;fct&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lis&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> Log-log         Log-log          3rd degree po…    68.3    1.2      131 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> OBLA            OBLA 2.0         3rd degree po…   105.     2        153 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> OBLA            OBLA 2.5         3rd degree po…   118.     2.5      160 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> OBLA            OBLA 3.0         3rd degree po…   129      3        167 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> OBLA            OBLA 3.5         3rd degree po…   137      3.5      171 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> OBLA            OBLA 4.0         3rd degree po…   145      4        176 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> Bsln+           Bsln + 0.5       3rd degree po…    82.5    1.43     139 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> Bsln+           Bsln + 1.0       3rd degree po…   104.     1.93     152 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> Bsln+           Bsln + 1.5       3rd degree po…   117.     2.43     159 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> Dmax            Dmax             3rd degree po…   132.     3.1      168 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span> Dmax            ModDmax          3rd degree po…   140.     3.6      173 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span> Dmax            Exp-Dmax         Exponential (…   135.     3.3      170 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span> Dmax            Log-Poly-ModDmax 3rd degree po…   137.     3.4      172 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span> Dmax            Log-Exp-ModDmax  Exponential (…   141.     3.6      174 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span> LTP             LTP1             3rd degree po…    88.9    1.5      143 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span> LTP             LTP2             3rd degree po…   148.     4.1      178 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span> LTratio         LTratio          B-Spline (def…    71.2    1.2      132 <span style="color: #949494;">&lt;gg&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># … with abbreviated variable names ¹​intensity, ²​heart_rate</span></span>
+<span class="r-in"><span><span class="op">}</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
