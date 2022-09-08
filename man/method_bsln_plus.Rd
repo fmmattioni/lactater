@@ -16,7 +16,7 @@ method_bsln_plus(data_prepared, fit, sport, plot)
 \item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
 }
 \value{
-a \link[tibble:tibble-package]{tibble} with the following columns:
+a tibble with the following columns:
 \item{method}{the method used to estimate the lactate threshold}
 \item{fitting}{the fitting method used to predict the lactate curve}
 \item{intensity}{the intensity associated with the estimated lactate threshold}

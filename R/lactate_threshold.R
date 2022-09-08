@@ -19,7 +19,7 @@
 #' only the first 50% of the data will be used. Default to `1`.
 #' @param plot A boolean to indicate whether to generate a plot from each one of the methods. Default to `TRUE`.
 #'
-#' @return a [tibble][tibble::tibble-package] with the following columns:
+#' @return a tibble with the following columns:
 #' \item{method_category}{the category of the lactate threshold method.}
 #' \item{method}{the method used to estimate the lactate threshold}
 #' \item{fitting}{the fitting method used to predict the lactate curve}

@@ -9,7 +9,7 @@
 #' @param include_baseline A boolean to indicate whether to include the baseline value in the fit.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
 #'
-#' @return a [tibble][tibble::tibble-package] with the following nested columns:
+#' @return a tibble with the following nested columns:
 #' \item{data}{The raw data.}
 #' \item{data_interpolated}{The interpolated data.}
 #' \item{model}{The model chosen in the `fit` parameter.}
@@ -126,7 +126,7 @@ prepare_fit <- function(
 #' @param intensity_to_start A double indicating the intensity to start the fit.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
 #'
-#' @return a [tibble][tibble::tibble-package] with the following nested columns:
+#' @return a tibble with the following nested columns:
 #' \item{data}{The raw data.}
 #' \item{data_interpolated}{The interpolated data.}
 #' \item{model}{The model chosen in the `fit` parameter.}

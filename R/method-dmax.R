@@ -20,7 +20,7 @@
 #' * Log-Poly-ModDmax = 3rd degree polynomial
 #' * Log-Exp-ModDmax = exponential
 #'
-#' @return a [tibble][tibble::tibble-package] with the following columns:
+#' @return a tibble with the following columns:
 #' \item{method}{the method used to estimate the lactate threshold}
 #' \item{fitting}{the fitting method used to predict the lactate curve}
 #' \item{intensity}{the intensity associated with the estimated lactate threshold}

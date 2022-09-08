@@ -22,7 +22,7 @@ Please, note that a few lactate thresholds have default methods for this and can
 \item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
 }
 \value{
-a \link[tibble:tibble-package]{tibble} with the following nested columns:
+a tibble with the following nested columns:
 \item{data}{The raw data.}
 \item{data_interpolated}{The interpolated data.}
 \item{model}{The model chosen in the \code{fit} parameter.}

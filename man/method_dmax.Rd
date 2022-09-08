@@ -30,7 +30,7 @@ The \code{method_dmax()} function does not have a \code{fit} argument because al
 }}
 }
 \value{
-a \link[tibble:tibble-package]{tibble} with the following columns:
+a tibble with the following columns:
 \item{method}{the method used to estimate the lactate threshold}
 \item{fitting}{the fitting method used to predict the lactate curve}
 \item{intensity}{the intensity associated with the estimated lactate threshold}

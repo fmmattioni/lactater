@@ -16,7 +16,7 @@ prepare_data(.data, intensity_column, lactate_column, heart_rate_column)
 \item{heart_rate_column}{The name of the heart rate column, if applicable.}
 }
 \value{
-a \link[tibble:tibble-package]{tibble} with the following columns:
+a tibble with the following columns:
 \item{intensity}{The intensity column.}
 \item{lactate}{The lactate column.}
 \item{heart_rate}{The heart rate column, if applicable.}

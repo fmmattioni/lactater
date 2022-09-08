@@ -7,7 +7,7 @@
 #' @param lactate_column The name of the lactate column.
 #' @param heart_rate_column The name of the heart rate column, if applicable.
 #'
-#' @return a [tibble][tibble::tibble-package] with the following columns:
+#' @return a tibble with the following columns:
 #' \item{intensity}{The intensity column.}
 #' \item{lactate}{The lactate column.}
 #' \item{heart_rate}{The heart rate column, if applicable.}
