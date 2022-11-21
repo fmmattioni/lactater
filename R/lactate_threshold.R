@@ -7,8 +7,8 @@
 #' @param lactate_column The name of the lactate column.
 #' @param heart_rate_column The name of the heart rate column, if applicable.
 #' @param method The lactate threshold method to calculate. It can be one or many of the following:
-#' `Log-log`, `OBLA`, `Bsln+`, `Dmax`, `LTP`, `LTratio`. See `Details` for more information.
-#' Default to `c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio")`.
+#' `Log-log`, `OBLA`, `Bsln+`, `Dmax`, `LTP`, `LTratio`, `IAT`. See `Details` for more information.
+#' Default to `c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT")`.
 #' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
 #' Please, note that a few lactate thresholds have default methods for this and cannot be changed.
 #' Options are `3rd degree polynomial`, `4th degree polynomial`, or `B-spline`. See `Details`.
@@ -165,7 +165,7 @@ lactate_threshold <- function(
   intensity_column,
   lactate_column,
   heart_rate_column,
-  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"),
+  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT"),
   fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
   include_baseline = FALSE,
   sport = c("cycling", "running", "swimming"),
@@ -229,11 +229,12 @@ lactate_threshold <- function(
         "Bsln+" = method_bsln_plus(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot) %>% list(),
         "Dmax" = method_dmax(data_prepared = data_fit_prepared, sport = sport, loglog_restrainer = loglog_restrainer, plot = plot) %>% list(),
         "LTP" = method_ltp(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot) %>% list(),
-        "LTratio" = method_ltratio(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot) %>% list()
+        "LTratio" = method_ltratio(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot) %>% list(),
+        "IAT" = method_iat(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot) %>% list()
       )
     ) %>%
     tidyr::unnest(results) %>%
-    dplyr::mutate(method_category = factor(method_category, levels = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"))) %>%
+    dplyr::mutate(method_category = factor(method_category, levels = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT"))) %>%
     dplyr::arrange(method_category) %>%
     dplyr::mutate(method = forcats::as_factor(method))
 
