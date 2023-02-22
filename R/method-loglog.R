@@ -23,7 +23,10 @@
 method_loglog <- function(data_prepared, fit, sport, loglog_restrainer = 1, plot) {
 
   data_interpolated <- data_prepared$data_interpolated[[1]] %>%
-    dplyr::mutate(lactate = log(lactate)) %>%
+    dplyr::mutate(
+      intensity = log(intensity),
+      lactate = log(lactate)
+    ) %>%
     ## filter data according to loglog_restrainer
     dplyr::slice(seq(loglog_restrainer * dplyr::n()))
 
@@ -36,6 +39,8 @@ method_loglog <- function(data_prepared, fit, sport, loglog_restrainer = 1, plot
   )
 
   method_intensity <- segmented_fit$psi[,2]
+
+  method_intensity <- exp(method_intensity)
 
   data_processed <- data_prepared %>%
     dplyr::mutate(

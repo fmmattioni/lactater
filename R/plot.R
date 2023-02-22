@@ -33,21 +33,43 @@ plot_lactate <- function(data_processed, method) {
 
     breakpoint_y_value <- predict(object = segmented_object, newdata = data.frame(intensity = method_intensity))
 
+    if(method == "Log-log") {
+      method_intensity <- log(method_intensity)
+      breakpoint_y_value <- predict(object = segmented_object, newdata = data.frame(intensity = method_intensity))
+    }
+
     fitted_values <- segmented::broken.line(ogg = segmented_object)$fit %>%
       dplyr::as_tibble() %>%
       dplyr::bind_cols(data_interpolated, .)
 
-    if(method == "Log-log")
+    x_axis_label <- "intensity"
+    y_axis_label <- "&#91;La<sup>-</sup>&#93; (mmol\u00b7L<sup>-1</sup>)"
+    if(method == "Log-log") {
+      fitted_values <- fitted_values %>%
+        dplyr::mutate(
+          intensity = log(intensity),
+          lactate = log(lactate)
+        )
       data <- data %>%
-      dplyr::mutate(lactate = log(lactate))
+        dplyr::mutate(
+          intensity = log(intensity),
+          lactate = log(lactate)
+        )
+
+      x_axis_label <- "Log intensity"
+      y_axis_label <- "&#91;La<sup>-</sup>&#93; (Log mmol\u00b7L<sup>-1</sup>)"
+    }
 
     p <- ggplot2::ggplot() +
       ggplot2::geom_point(data = data, ggplot2::aes(intensity, lactate), shape = 21, size = 4) +
       ggplot2::geom_line(data = fitted_values, ggplot2::aes(intensity, value), color = "red", alpha = 0.4) +
       ggplot2::geom_point(ggplot2::aes(x = method_intensity, y = breakpoint_y_value), color = "blue", alpha = 0.4, size = 4) +
       ggplot2::theme_light() +
-      ggplot2::labs(title = method,
-                    y = "&#91;La<sup>-</sup>&#93; (Log mmol\u00b7L<sup>-1</sup>)") +
+      ggplot2::labs(
+        title = method,
+        x = x_axis_label,
+        y = y_axis_label
+      ) +
       ggplot2::theme(axis.title.y = ggtext::element_markdown())
 
   } else if(method == "LTratio") {
