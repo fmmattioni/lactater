@@ -9,7 +9,7 @@
 stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![CRAN
 status](https://www.r-pkg.org/badges/version/lactater)](https://CRAN.R-project.org/package=lactater)
-[![R-CMD-check](https://github.com/fmmattioni/lactater/workflows/R-CMD-check/badge.svg)](https://github.com/fmmattioni/lactater/actions)
+[![R-CMD-check](https://github.com/fmmattioni/lactater/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/fmmattioni/lactater/actions/workflows/R-CMD-check.yaml)
 [![Monthly downloads
 badge](https://cranlogs.r-pkg.org/badges/last-month/lactater?color=blue)](https://CRAN.R-project.org/package=lactater)
 [![Total downloads
