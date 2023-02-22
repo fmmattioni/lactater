@@ -75,7 +75,7 @@ results_overall <- lactate_threshold(
     #> # A tibble: 17 × 7
     #>    method_category method           fitting   intensity lactate heart_rate plot 
     #>    <fct>           <fct>            <chr>         <dbl>   <dbl>      <dbl> <lis>
-    #>  1 Log-log         Log-log          3rd degr…      68.3    1.2         131 <gg> 
+    #>  1 Log-log         Log-log          3rd degr…      83.4    1.4         140 <gg> 
     #>  2 OBLA            OBLA 2.0         3rd degr…     105.     2           153 <gg> 
     #>  3 OBLA            OBLA 2.5         3rd degr…     118.     2.5         160 <gg> 
     #>  4 OBLA            OBLA 3.0         3rd degr…     129      3           167 <gg> 
@@ -87,8 +87,8 @@ results_overall <- lactate_threshold(
     #> 10 Dmax            Dmax             3rd degr…     132.     3.1         168 <gg> 
     #> 11 Dmax            ModDmax          3rd degr…     140.     3.6         173 <gg> 
     #> 12 Dmax            Exp-Dmax         Exponent…     135.     3.3         170 <gg> 
-    #> 13 Dmax            Log-Poly-ModDmax 3rd degr…     137.     3.4         172 <gg> 
-    #> 14 Dmax            Log-Exp-ModDmax  Exponent…     141.     3.6         174 <gg> 
+    #> 13 Dmax            Log-Poly-ModDmax 3rd degr…     143      3.8         175 <gg> 
+    #> 14 Dmax            Log-Exp-ModDmax  Exponent…     146.     4           177 <gg> 
     #> 15 LTP             LTP1             3rd degr…      88.9    1.5         143 <gg> 
     #> 16 LTP             LTP2             3rd degr…     148.     4.1         178 <gg> 
     #> 17 LTratio         LTratio          B-Spline…      71.2    1.2         132 <gg>
@@ -116,7 +116,7 @@ results_loglog <- lactate_threshold(
     #> # A tibble: 1 × 7
     #>   method_category method  fitting             intensity lactate heart_rate plot 
     #>   <fct>           <fct>   <chr>                   <dbl>   <dbl>      <dbl> <lis>
-    #> 1 Log-log         Log-log 3rd degree polynom…      68.3     1.2        131 <gg>
+    #> 1 Log-log         Log-log 3rd degree polynom…      83.4     1.4        140 <gg>
 
 <img src="man/figures/readme/README-unnamed-chunk-8-1.png" width="100%" style="display: block; margin: auto;" />
 
@@ -194,8 +194,8 @@ results_dmax <- lactate_threshold(
     #> 1 Dmax            Dmax             3rd degre…      132.     3.1        168 <gg> 
     #> 2 Dmax            ModDmax          3rd degre…      140.     3.6        173 <gg> 
     #> 3 Dmax            Exp-Dmax         Exponenti…      135.     3.3        170 <gg> 
-    #> 4 Dmax            Log-Poly-ModDmax 3rd degre…      137.     3.4        172 <gg> 
-    #> 5 Dmax            Log-Exp-ModDmax  Exponenti…      141.     3.6        174 <gg>
+    #> 4 Dmax            Log-Poly-ModDmax 3rd degre…      143      3.8        175 <gg> 
+    #> 5 Dmax            Log-Exp-ModDmax  Exponenti…      146.     4          177 <gg>
 
 <img src="man/figures/readme/README-unnamed-chunk-17-1.png" width="100%" style="display: block; margin: auto;" />
 
@@ -248,6 +248,6 @@ results_ltratio <- lactate_threshold(
 
 ## Related work
 
--   [lactate-R](http://www.uiginn.com/lactate/lactate-r.html)
--   [cycleRtools](https://github.com/cran/cycleRtools)
--   [exPhysR](https://github.com/dhammarstrom/exPhysR)
+- [lactate-R](http://www.uiginn.com/lactate/lactate-r.html)
+- [cycleRtools](https://github.com/cran/cycleRtools)
+- [exPhysR](https://github.com/dhammarstrom/exPhysR)
