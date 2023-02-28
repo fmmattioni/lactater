@@ -115,6 +115,13 @@ helper_dmax_dmax <- function(data_prepared, sport, plot) {
   model_intensity <- max(d_max[d_max <= max_intensity])
   model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
 
+  ## this is a workaround to avoid unplausible estimations
+  ## a more elegant and definitive solution needs to be done
+  if(model_lactate > 5) {
+    model_intensity <- min(d_max[d_max <= max_intensity])
+    model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
+  }
+
   if(plot) {
     ## get data for using in plot later on
     data_plot_line <- data_dmax %>%
@@ -214,6 +221,13 @@ helper_dmax_moddmax <- function(data_prepared, sport, plot) {
 
   model_intensity <- max(d_max[d_max <= max_intensity])
   model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
+
+  ## this is a workaround to avoid unplausible estimations
+  ## a more elegant and definitive solution needs to be done
+  if(model_lactate > 5) {
+    model_intensity <- min(d_max[d_max <= max_intensity])
+    model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
+  }
 
   if(plot) {
     ## get data for using in plot later on
@@ -383,6 +397,13 @@ helper_dmax_log_poly_moddmax <- function(data_prepared, sport, loglog_restrainer
 
   model_intensity <- max(d_max[d_max <= max_intensity])
   model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
+
+  ## this is a workaround to avoid unplausible estimations
+  ## a more elegant and definitive solution needs to be done
+  if(model_lactate > 5) {
+    model_intensity <- min(d_max[d_max <= max_intensity])
+    model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
+  }
 
   if(plot) {
     ## get data for using in plot later on
