@@ -111,13 +111,14 @@ helper_dmax_dmax <- function(data_prepared, sport, plot) {
   d_max <- c(model_coefficients[2] - lin_beta, 2 * model_coefficients[3], 3 * model_coefficients[4]) %>%
     polyroot() %>%
     Re()
+  d_max <- d_max[d_max > 0]
 
   model_intensity <- max(d_max[d_max <= max_intensity])
   model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
 
   ## this is a workaround to avoid unplausible estimations
   ## a more elegant and definitive solution needs to be done
-  if(model_lactate > 5) {
+  if(model_lactate > 8) {
     model_intensity <- min(d_max[d_max <= max_intensity])
     model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
   }
@@ -218,13 +219,14 @@ helper_dmax_moddmax <- function(data_prepared, sport, plot) {
   d_max <- c(model_coefficients[2] - lin_beta, 2 * model_coefficients[3], 3 * model_coefficients[4]) %>%
     polyroot() %>%
     Re()
+  d_max <- d_max[d_max > 0]
 
   model_intensity <- max(d_max[d_max <= max_intensity])
   model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
 
   ## this is a workaround to avoid unplausible estimations
   ## a more elegant and definitive solution needs to be done
-  if(model_lactate > 5) {
+  if(model_lactate > 8) {
     model_intensity <- min(d_max[d_max <= max_intensity])
     model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
   }
@@ -394,13 +396,14 @@ helper_dmax_log_poly_moddmax <- function(data_prepared, sport, loglog_restrainer
   d_max <- c(model_coefficients[2] - lin_beta, 2 * model_coefficients[3], 3 * model_coefficients[4]) %>%
     polyroot() %>%
     Re()
+  d_max <- d_max[d_max > 0]
 
   model_intensity <- max(d_max[d_max <= max_intensity])
   model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
 
   ## this is a workaround to avoid unplausible estimations
   ## a more elegant and definitive solution needs to be done
-  if(model_lactate > 5) {
+  if(model_lactate > 8) {
     model_intensity <- min(d_max[d_max <= max_intensity])
     model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
   }
