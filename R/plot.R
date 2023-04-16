@@ -28,6 +28,7 @@ plot_lactate <- function(data_processed, method) {
       loglog_restrainer <- data_processed$loglog_restrainer
 
       data_interpolated <- data_interpolated %>%
+        dplyr::filter(intensity > 0) %>%
         dplyr::slice(seq(loglog_restrainer * dplyr::n()))
     }
 
@@ -51,6 +52,7 @@ plot_lactate <- function(data_processed, method) {
           lactate = log(lactate)
         )
       data <- data %>%
+        dplyr::mutate(intensity = ifelse(intensity == 0, 0.1, intensity)) %>%
         dplyr::mutate(
           intensity = log(intensity),
           lactate = log(lactate)

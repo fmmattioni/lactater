@@ -23,6 +23,7 @@
 method_loglog <- function(data_prepared, fit, sport, loglog_restrainer = 1, plot) {
 
   data_interpolated <- data_prepared$data_interpolated[[1]] %>%
+    dplyr::filter(intensity > 0) %>%
     dplyr::mutate(
       intensity = log(intensity),
       lactate = log(lactate)
