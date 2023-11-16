@@ -37,7 +37,7 @@ interpolate_intensity <- function(.data, interpolation_factor) {
 
 #' Add external resources
 #'
-#' This function was copied from {golem}
+#' This function was copied from golem
 #'
 #' @keywords internal
 add_external_resources <- function(){

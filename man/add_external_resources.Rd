@@ -7,6 +7,6 @@
 add_external_resources()
 }
 \description{
-This function was copied from {golem}
+This function was copied from golem
 }
 \keyword{internal}
