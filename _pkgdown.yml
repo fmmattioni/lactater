@@ -66,6 +66,11 @@ reference:
     Combine different methods into a single plot
   contents:
   - plot_methods
+- title: Lactate curve
+  desc: >
+    Retrieve data for plotting the lactate curve
+  contents:
+  - lactate_curve
 - title: Input the data interactively
   desc: >
     Widget to input the data in an interactive way

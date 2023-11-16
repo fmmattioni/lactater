@@ -225,6 +225,96 @@ results_ltratio
 plot_methods(results_ltratio$plot)
 ```
 
+## Lactate curve
+
+In case you would like to retrieve the data for producing your own plots, you can use the `lactate_curve()` function:
+
+```{r}
+data_lactate_curve <- lactate_curve(
+  .data = demo_data,
+  intensity_column = "intensity",
+  lactate_column = "lactate",
+  heart_rate_column = "heart_rate",
+  fit = "3rd degree polynomial",
+  include_baseline = FALSE,
+  sport = "cycling"
+)
+
+data_lactate_curve
+```
+
+And then you easily produce plots like the following:
+
+```{r}
+library(ggplot2)
+
+ggplot() +
+  geom_path(data = data_lactate_curve$lactate_curve, aes(intensity, lactate)) +
+  geom_point(data = data_lactate_curve$data, aes(intensity, lactate), size = 4) +
+  theme_light()
+
+ggplot() +
+  geom_path(data = data_lactate_curve$heart_rate_response, aes(intensity, heart_rate)) +
+  geom_point(data = data_lactate_curve$data, aes(intensity, heart_rate), size = 4) +
+  theme_light()
+```
+
+You can also combine the results from the `lactate_threshold()` function to plot the results:
+
+```{r}
+ggplot() +
+  geom_path(data = data_lactate_curve$lactate_curve, aes(intensity, lactate)) +
+  geom_point(data = data_lactate_curve$data, aes(intensity, lactate), size = 4) +
+  geom_point(data = results_overall, aes(intensity, lactate, color = method), size = 3) +
+  theme_light()
+```
+
+You can also compare the lactate curves after a training period, for example:
+
+```{r}
+data_after_training <- tibble::tribble(
+  ~step, ~length, ~intensity, ~lactate, ~heart_rate,
+     0L,      0L,         0L,     0.93,         88L,
+     1L,      3L,        50L,     0.98,        108L,
+     2L,      3L,        75L,     1.12,        126L,
+     3L,      3L,       100L,     1.6,         138L,
+     4L,      3L,       125L,      2.1,        156L,
+     5L,      3L,       150L,     3.75,        169L,
+     6L,      3L,       175L,     4.98,        182L,
+     7L,      3L,       200L,     7.78,        190L,
+     8L,      3L,       225L,     10.12,       199L
+  )
+
+data_lactate_curve_after_training <- lactate_curve(
+  .data = data_after_training,
+  intensity_column = "intensity",
+  lactate_column = "lactate",
+  heart_rate_column = "heart_rate",
+  fit = "3rd degree polynomial",
+  include_baseline = FALSE,
+  sport = "cycling"
+)
+```
+
+
+```{r}
+ggplot() +
+  geom_path(data = data_lactate_curve$lactate_curve, aes(intensity, lactate, color = "before training")) +
+  geom_point(data = data_lactate_curve$data, aes(intensity, lactate, color = "before training"), size = 4) +
+  geom_path(data = data_lactate_curve_after_training$lactate_curve, aes(intensity, lactate, color = "after training")) +
+  geom_point(data = data_lactate_curve_after_training$data, aes(intensity, lactate, color = "after training"), size = 4) +
+  theme_light() +
+  labs(color = NULL)
+
+ggplot() +
+  geom_path(data = data_lactate_curve$heart_rate_response, aes(intensity, heart_rate, color = "before training")) +
+  geom_point(data = data_lactate_curve$data, aes(intensity, heart_rate, color = "before training"), size = 4) +
+  geom_path(data = data_lactate_curve_after_training$heart_rate_response, aes(intensity, heart_rate, color = "after training")) +
+  geom_point(data = data_lactate_curve_after_training$data, aes(intensity, heart_rate, color = "after training"), size = 4) +
+  theme_light() +
+  labs(color = NULL)
+```
+
 ## Related work
 
 * [lactate-R](http://www.uiginn.com/lactate/lactate-r.html)

@@ -246,6 +246,158 @@ results_ltratio <- lactate_threshold(
 
 <img src="man/figures/readme/README-unnamed-chunk-23-1.png" width="100%" style="display: block; margin: auto;" />
 
+## Lactate curve
+
+In case you would like to retrieve the data for producing your own
+plots, you can use the `lactate_curve()` function:
+
+``` r
+data_lactate_curve <- lactate_curve(
+  .data = demo_data,
+  intensity_column = "intensity",
+  lactate_column = "lactate",
+  heart_rate_column = "heart_rate",
+  fit = "3rd degree polynomial",
+  include_baseline = FALSE,
+  sport = "cycling"
+)
+
+data_lactate_curve
+#> $data
+#> # A tibble: 8 × 3
+#>   intensity lactate heart_rate
+#>       <int>   <dbl>      <int>
+#> 1        25    0.93         96
+#> 2        50    0.98        114
+#> 3        75    1.23        134
+#> 4       100    1.88        154
+#> 5       125    2.8         170
+#> 6       150    4.21        182
+#> 7       175    6.66        193
+#> 8       191    8.64        198
+#> 
+#> $lactate_curve
+#> # A tibble: 1,411 × 2
+#>    intensity lactate
+#>        <dbl>   <dbl>
+#>  1      50     0.957
+#>  2      50.1   0.959
+#>  3      50.2   0.960
+#>  4      50.3   0.961
+#>  5      50.4   0.963
+#>  6      50.5   0.964
+#>  7      50.6   0.965
+#>  8      50.7   0.966
+#>  9      50.8   0.968
+#> 10      50.9   0.969
+#> # ℹ 1,401 more rows
+#> 
+#> $heart_rate_response
+#> # A tibble: 1,411 × 2
+#>    intensity heart_rate
+#>        <dbl>      <dbl>
+#>  1      50         120.
+#>  2      50.1       120.
+#>  3      50.2       120.
+#>  4      50.3       120.
+#>  5      50.4       120.
+#>  6      50.5       120.
+#>  7      50.6       120.
+#>  8      50.7       120.
+#>  9      50.8       120.
+#> 10      50.9       120.
+#> # ℹ 1,401 more rows
+```
+
+And then you easily produce plots like the following:
+
+``` r
+library(ggplot2)
+
+ggplot() +
+  geom_path(data = data_lactate_curve$lactate_curve, aes(intensity, lactate)) +
+  geom_point(data = data_lactate_curve$data, aes(intensity, lactate), size = 4) +
+  theme_light()
+```
+
+<img src="man/figures/readme/README-unnamed-chunk-25-1.png" width="100%" style="display: block; margin: auto;" />
+
+``` r
+
+ggplot() +
+  geom_path(data = data_lactate_curve$heart_rate_response, aes(intensity, heart_rate)) +
+  geom_point(data = data_lactate_curve$data, aes(intensity, heart_rate), size = 4) +
+  theme_light()
+```
+
+<img src="man/figures/readme/README-unnamed-chunk-25-2.png" width="100%" style="display: block; margin: auto;" />
+
+You can also combine the results from the `lactate_threshold()` function
+to plot the results:
+
+``` r
+ggplot() +
+  geom_path(data = data_lactate_curve$lactate_curve, aes(intensity, lactate)) +
+  geom_point(data = data_lactate_curve$data, aes(intensity, lactate), size = 4) +
+  geom_point(data = results_overall, aes(intensity, lactate, color = method), size = 3) +
+  theme_light()
+```
+
+<img src="man/figures/readme/README-unnamed-chunk-26-1.png" width="100%" style="display: block; margin: auto;" />
+
+You can also compare the lactate curves after a training period, for
+example:
+
+``` r
+data_after_training <- tibble::tribble(
+  ~step, ~length, ~intensity, ~lactate, ~heart_rate,
+     0L,      0L,         0L,     0.93,         88L,
+     1L,      3L,        50L,     0.98,        108L,
+     2L,      3L,        75L,     1.12,        126L,
+     3L,      3L,       100L,     1.6,         138L,
+     4L,      3L,       125L,      2.1,        156L,
+     5L,      3L,       150L,     3.75,        169L,
+     6L,      3L,       175L,     4.98,        182L,
+     7L,      3L,       200L,     7.78,        190L,
+     8L,      3L,       225L,     10.12,       199L
+  )
+
+data_lactate_curve_after_training <- lactate_curve(
+  .data = data_after_training,
+  intensity_column = "intensity",
+  lactate_column = "lactate",
+  heart_rate_column = "heart_rate",
+  fit = "3rd degree polynomial",
+  include_baseline = FALSE,
+  sport = "cycling"
+)
+```
+
+``` r
+ggplot() +
+  geom_path(data = data_lactate_curve$lactate_curve, aes(intensity, lactate, color = "before training")) +
+  geom_point(data = data_lactate_curve$data, aes(intensity, lactate, color = "before training"), size = 4) +
+  geom_path(data = data_lactate_curve_after_training$lactate_curve, aes(intensity, lactate, color = "after training")) +
+  geom_point(data = data_lactate_curve_after_training$data, aes(intensity, lactate, color = "after training"), size = 4) +
+  theme_light() +
+  labs(color = NULL)
+```
+
+<img src="man/figures/readme/README-unnamed-chunk-28-1.png" width="100%" style="display: block; margin: auto;" />
+
+``` r
+
+ggplot() +
+  geom_path(data = data_lactate_curve$heart_rate_response, aes(intensity, heart_rate, color = "before training")) +
+  geom_point(data = data_lactate_curve$data, aes(intensity, heart_rate, color = "before training"), size = 4) +
+  geom_path(data = data_lactate_curve_after_training$heart_rate_response, aes(intensity, heart_rate, color = "after training")) +
+  geom_point(data = data_lactate_curve_after_training$data, aes(intensity, heart_rate, color = "after training"), size = 4) +
+  theme_light() +
+  labs(color = NULL)
+```
+
+<img src="man/figures/readme/README-unnamed-chunk-28-2.png" width="100%" style="display: block; margin: auto;" />
+
 ## Related work
 
 - [lactate-R](http://www.uiginn.com/lactate/lactate-r.html)

@@ -1,3 +1,7 @@
+# lactater 0.2.0
+
+* Added the function `lactate_curve()` to retrieve data for plotting the lactate curve and heart rate response.
+
 # lactater 0.1.4
 
 * Patched a modification to the `Dmax` method, which was producing negative values in a few edge cases.

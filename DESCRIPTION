@@ -1,6 +1,6 @@
 Package: lactater
 Title: Tools for Analyzing Lactate Thresholds
-Version: 0.1.4
+Version: 0.2.0
 Authors@R: 
     person(given = "Felipe",
            family = "Mattioni Maturana",
@@ -28,7 +28,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Suggests: 
     bsplus,
     covr,
