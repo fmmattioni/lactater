@@ -17,38 +17,41 @@
 #'
 #' @keywords internal
 method_bsln_plus <- function(data_prepared, fit, sport, plot) {
+  model_heart_rate <- NULL
+  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
+    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
+  }
 
-  data_processed <- data_prepared %>%
-    tidyr::crossing(method = c(0.5, 1, 1.5)) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(
-      results = bsln_plus_helper(
-        .data = data,
-        data_augmented = data_augmented,
+  plus_values <- c(0.5, 1, 1.5)
+  out <- dplyr::tibble(
+    method = plus_values,
+    results = lapply(plus_values, function(plus) {
+      bsln_plus_helper(
+        raw_data = data_prepared$data[[1]],
+        data_augmented = data_prepared$data_augmented[[1]],
         fit = fit,
-        model = model,
-        plus = method
-      ) %>% list()
-    ) %>%
-    dplyr::ungroup() %>%
+        model = data_prepared$model[[1]],
+        plus = plus,
+        model_heart_rate = model_heart_rate
+      )
+    })
+  ) %>%
     dplyr::mutate(method = sprintf("%.1f", round(method, 1)),
                   method = paste("Bsln +", method)) %>%
+    dplyr::bind_cols(data = data_prepared) %>%
     tidyr::unnest(cols = results) %>%
-    dplyr::mutate(fitting = paste(fit, "(user-defined)", sep = " ")) %>%
-    tidyr::nest(data = -method)
+    dplyr::mutate(fitting = paste(fit, "(user-defined)", sep = " "))
 
 
   if(plot) {
-    out <- data_processed %>%
-      dplyr::rowwise() %>%
+    out <- out %>%
       dplyr::mutate(
-        plot = list(plot_lactate(data_processed = data, method = method))
-      ) %>%
-      dplyr::ungroup() %>%
-      tidyr::unnest(cols = data)
-  } else {
-    out <- data_processed %>%
-      tidyr::unnest(cols = data)
+        plot = Map(
+          function(row_id, method_name) plot_lactate(data_processed = out[row_id, ], method = method_name),
+          seq_len(nrow(out)),
+          method
+        )
+      )
   }
 
   if(sport == "swimming") {
@@ -83,17 +86,18 @@ method_bsln_plus <- function(data_prepared, fit, sport, plot) {
 #' @keywords internal
 #' @importFrom utils head
 bsln_plus_helper <- function(
-  .data,
+  raw_data,
   data_augmented,
   fit,
   model,
-  plus
+  plus,
+  model_heart_rate = NULL
 ) {
 
-  bsln_plus <- head(.data$lactate, 1) + plus
+  bsln_plus <- head(raw_data$lactate, 1) + plus
 
   # check if fit is possible
-  if(bsln_plus > max(model$fitted.values) | bsln_plus < min(model$fitted.values)) {
+  if(bsln_plus > max(model$fitted.values) || bsln_plus < min(model$fitted.values)) {
     out <- dplyr::tibble(
       intensity = NA,
       lactate = bsln_plus
@@ -114,10 +118,10 @@ bsln_plus_helper <- function(
     lactate = bsln_plus
   )
 
-  if("heart_rate" %in% colnames(.data)) {
+  if("heart_rate" %in% colnames(raw_data)) {
     out <- out %>%
       dplyr::mutate(
-        heart_rate = retrieve_heart_rate(raw_data = {{ .data }}, intensity_value = intensity)
+        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 

@@ -21,6 +21,10 @@
 #' @keywords internal
 #' @importFrom stats lm
 method_loglog <- function(data_prepared, fit, sport, loglog_restrainer = 1, plot) {
+  model_heart_rate <- NULL
+  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
+    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
+  }
 
   data_interpolated <- data_prepared$data_interpolated[[1]] %>%
     dplyr::filter(intensity > 0) %>%
@@ -31,48 +35,46 @@ method_loglog <- function(data_prepared, fit, sport, loglog_restrainer = 1, plot
     ## filter data according to loglog_restrainer
     dplyr::slice(seq(loglog_restrainer * dplyr::n()))
 
+  if(nrow(data_interpolated) < 4) {
+    stop("Log-log method requires at least 4 interpolated data points after applying `loglog_restrainer`.", call. = FALSE)
+  }
+
   linear_fit <- lm(lactate ~ intensity, data = data_interpolated)
 
-  segmented_fit <- segmented::segmented(
-    obj = linear_fit,
-    npsi = 1, # 1 breakpoint
-    control = segmented::seg.control(it.max = 1000)
+  segmented_fit <- tryCatch(
+    segmented::segmented(
+      obj = linear_fit,
+      npsi = 1, # 1 breakpoint
+      control = segmented::seg.control(it.max = 1000)
+    ),
+    error = function(e) {
+      stop("Log-log breakpoint estimation failed. Try lowering `loglog_restrainer` or reviewing your data quality.", call. = FALSE)
+    }
   )
 
   method_intensity <- segmented_fit$psi[,2]
 
   method_intensity <- exp(method_intensity)
 
-  data_processed <- data_prepared %>%
+  out <- data_prepared %>%
     dplyr::mutate(
       method = "Log-log",
       fitting = paste({{ fit }}, "(user-defined)", sep = " "),
-      intensity = method_intensity
+      intensity = method_intensity,
+      lactate = retrieve_lactate(model = model[[1]], intensity_value = method_intensity)
     ) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(lactate = retrieve_lactate(model = model, intensity_value = intensity)) %>%
-    dplyr::ungroup() %>%
     dplyr::mutate(segmented_object = list(segmented_fit)) %>%
-    dplyr::mutate(loglog_restrainer = loglog_restrainer) %>%
-    tidyr::nest(data = -method)
+    dplyr::mutate(loglog_restrainer = loglog_restrainer)
 
   if(plot) {
-    out <- data_processed %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(
-        plot = list(plot_lactate(data_processed = data, method = method))
-      ) %>%
-      dplyr::ungroup() %>%
-      tidyr::unnest(cols = data)
-  } else {
-    out <- data_processed %>%
-      tidyr::unnest(cols = data)
+    out <- out %>%
+      dplyr::mutate(plot = list(plot_lactate(data_processed = ., method = method)))
   }
 
   if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
     out <- out %>%
       dplyr::mutate(
-        heart_rate = retrieve_heart_rate(raw_data = data_prepared$data[[1]], intensity_value = intensity)
+        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 

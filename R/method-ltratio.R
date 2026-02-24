@@ -17,13 +17,21 @@
 #'
 #' @keywords internal
 method_ltratio <- function(data_prepared, fit, sport, plot) {
+  model_heart_rate <- NULL
+  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
+    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
+  }
 
-  data_prepared_ltratio <- prepare_fit(
-    .data = data_prepared$data[[1]],
-    fit = "B-spline",
-    include_baseline = data_prepared$bsln,
-    sport = {{ sport }}
-  )
+  data_prepared_ltratio <- if(inherits(data_prepared$model[[1]], "glm")) {
+    data_prepared
+  } else {
+    prepare_fit(
+      .data = data_prepared$data[[1]],
+      fit = "B-spline",
+      include_baseline = data_prepared$bsln,
+      sport = {{ sport }}
+    )
+  }
 
   data_augmented <- data_prepared_ltratio$data_augmented[[1]]
 
@@ -43,11 +51,9 @@ method_ltratio <- function(data_prepared, fit, sport, plot) {
 
   if(plot) {
     out <- data_processed %>%
-      dplyr::rowwise() %>%
       dplyr::mutate(
-        plot = list(plot_lactate(data_processed = data, method = method))
+        plot = Map(function(data, method) plot_lactate(data_processed = data, method = method), data, method)
       ) %>%
-      dplyr::ungroup() %>%
       tidyr::unnest(cols = data)
   } else {
     out <- data_processed %>%
@@ -57,7 +63,7 @@ method_ltratio <- function(data_prepared, fit, sport, plot) {
   if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
     out <- out %>%
       dplyr::mutate(
-        heart_rate = retrieve_heart_rate(raw_data = data_prepared$data[[1]], intensity_value = intensity)
+        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 

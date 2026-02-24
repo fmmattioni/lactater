@@ -30,28 +30,87 @@
 #'
 #' @keywords internal
 method_dmax <- function(data_prepared, sport, loglog_restrainer = 1, plot) {
+  model_heart_rate <- NULL
+  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
+    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
+  }
+  data_prepared_poly <- prepare_fit(
+    .data = data_prepared$data[[1]],
+    fit = "3rd degree polynomial",
+    include_baseline = FALSE,
+    sport = {{ sport }}
+  )
+  data_prepared_exp <- prepare_fit(
+    .data = data_prepared$data[[1]],
+    fit = "Exponential",
+    include_baseline = FALSE,
+    sport = {{ sport }}
+  )
+  data_dmax <- data_prepared$data[[1]][-1, ]
+  data_first_rise <- data_dmax %>%
+    dplyr::mutate(diffs = dplyr::lead(lactate) - lactate) %>%
+    dplyr::filter(diffs >= 0.4) %>%
+    head(1)
 
-  data_processed <- dplyr::tibble(method = c("Dmax", "ModDmax", "Exp-Dmax", "Log-Poly-ModDmax", "Log-Exp-ModDmax")) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(
-      results = switch (
+  data_prepared_mod <- if(nrow(data_first_rise) > 0) {
+    prepare_fit_dmax_mods(
+      .data = data_prepared$data[[1]],
+      fit = "3rd degree polynomial",
+      intensity_to_start = data_first_rise$intensity,
+      sport = {{ sport }}
+    )
+  } else {
+    NULL
+  }
+
+  results_loglog_poly <- method_loglog(
+    data_prepared = {{ data_prepared }},
+    fit = "3rd degree polynomial",
+    sport = {{ sport }},
+    loglog_restrainer = {{ loglog_restrainer }},
+    plot = FALSE
+  )
+  data_prepared_log_poly <- prepare_fit_dmax_mods(
+    .data = data_prepared$data[[1]],
+    fit = "3rd degree polynomial",
+    intensity_to_start = results_loglog_poly$intensity,
+    sport = {{ sport }}
+  )
+
+  results_loglog_exp <- method_loglog(
+    data_prepared = {{ data_prepared }},
+    fit = "Exponential",
+    sport = {{ sport }},
+    loglog_restrainer = {{ loglog_restrainer }},
+    plot = FALSE
+  )
+  data_prepared_log_exp <- prepare_fit_dmax_mods(
+    .data = data_prepared$data[[1]],
+    fit = "Exponential",
+    intensity_to_start = results_loglog_exp$intensity,
+    sport = {{ sport }}
+  )
+
+  methods <- c("Dmax", "ModDmax", "Exp-Dmax", "Log-Poly-ModDmax", "Log-Exp-ModDmax")
+  data_processed <- dplyr::tibble(
+    method = methods,
+    results = lapply(methods, function(method) {
+      switch (
         method,
-        "Dmax" = helper_dmax_dmax(data_prepared = data_prepared, sport = sport, plot = plot) %>% list(),
-        "ModDmax" = helper_dmax_moddmax(data_prepared = data_prepared, sport = sport, plot = plot) %>% list(),
-        "Exp-Dmax" = helper_dmax_exp_dmax(data_prepared = data_prepared, sport = sport, plot = plot) %>% list(),
-        "Log-Poly-ModDmax" = helper_dmax_log_poly_moddmax(data_prepared = data_prepared, sport = sport,  loglog_restrainer = loglog_restrainer, plot = plot) %>% list(),
-        "Log-Exp-ModDmax" = helper_dmax_log_exp_moddmax(data_prepared = data_prepared, sport = sport,  loglog_restrainer = loglog_restrainer, plot = plot) %>% list()
+        "Dmax" = helper_dmax_dmax(data_prepared_dmax = data_prepared_poly, data_raw = data_prepared$data[[1]], sport = sport, plot = plot, model_heart_rate = model_heart_rate),
+        "ModDmax" = helper_dmax_moddmax(data_prepared = data_prepared, data_first_rise = data_first_rise, data_prepared_dmax = data_prepared_mod, sport = sport, plot = plot, model_heart_rate = model_heart_rate),
+        "Exp-Dmax" = helper_dmax_exp_dmax(data_prepared_dmax = data_prepared_exp, data_raw = data_prepared$data[[1]], sport = sport, plot = plot, model_heart_rate = model_heart_rate),
+        "Log-Poly-ModDmax" = helper_dmax_log_poly_moddmax(data_prepared = data_prepared, results_loglog = results_loglog_poly, data_prepared_dmax = data_prepared_log_poly, sport = sport, plot = plot, model_heart_rate = model_heart_rate),
+        "Log-Exp-ModDmax" = helper_dmax_log_exp_moddmax(data_prepared = data_prepared, results_loglog = results_loglog_exp, data_prepared_dmax = data_prepared_log_exp, sport = sport, plot = plot, model_heart_rate = model_heart_rate)
       )
-    ) %>%
-    dplyr::ungroup()
+    })
+  )
 
   if(plot) {
     out <- data_processed %>%
-      dplyr::rowwise() %>%
       dplyr::mutate(
-        plot = list(suppressWarnings(plot_lactate(data_processed = results, method = method)))
+        plot = Map(function(result, method) suppressWarnings(plot_lactate(data_processed = result, method = method)), results, method)
       ) %>%
-      dplyr::ungroup() %>%
       tidyr::unnest(cols = results) %>%
       dplyr::select(dplyr::any_of(c("method", "fitting", "intensity", "lactate", "heart_rate", "plot")))
   } else {
@@ -82,14 +141,7 @@ method_dmax <- function(data_prepared, sport, loglog_restrainer = 1, plot) {
 #' @param plot A boolean to indicate whether to generate a plot from each one of the methods.
 #'
 #' @keywords internal
-helper_dmax_dmax <- function(data_prepared, sport, plot) {
-
-  data_prepared_dmax <- prepare_fit(
-    .data = data_prepared$data[[1]],
-    fit = "3rd degree polynomial",
-    include_baseline = FALSE,
-    sport = {{ sport }}
-  )
+helper_dmax_dmax <- function(data_prepared_dmax, data_raw, sport, plot, model_heart_rate = NULL) {
 
   model_coefficients <- broom::tidy(data_prepared_dmax$model[[1]]) %>%
     dplyr::pull(estimate)
@@ -113,14 +165,26 @@ helper_dmax_dmax <- function(data_prepared, sport, plot) {
     Re()
   d_max <- d_max[d_max > 0]
 
-  model_intensity <- max(d_max[d_max <= max_intensity])
+  valid_candidates <- d_max[d_max <= max_intensity]
+  if(length(valid_candidates) == 0) {
+    out <- data_prepared_dmax %>%
+      dplyr::mutate(
+        fitting = "3rd degree polynomial (default)",
+        intensity = NA_real_,
+        lactate = NA_real_
+      )
+    return(out)
+  }
+
+  model_intensity <- max(valid_candidates)
   model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
 
   ## this is a workaround to avoid unplausible estimations
   ## a more elegant and definitive solution needs to be done
-  if(model_lactate > 8) {
-    model_intensity <- min(d_max[d_max <= max_intensity])
+  if(model_lactate > 8 && length(valid_candidates) > 1) {
+    model_intensity <- min(valid_candidates)
     model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
+    warning("Dmax estimate exceeded plausible lactate range; lower root selected.", call. = FALSE)
   }
 
   if(plot) {
@@ -147,10 +211,10 @@ helper_dmax_dmax <- function(data_prepared, sport, plot) {
 
   }
 
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
+  if("heart_rate" %in% colnames(data_raw)) {
     out <- out %>%
       dplyr::mutate(
-        heart_rate = retrieve_heart_rate(raw_data = data_prepared$data[[1]], intensity_value = intensity)
+        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 
@@ -174,17 +238,11 @@ helper_dmax_dmax <- function(data_prepared, sport, plot) {
 #'
 #' @keywords internal
 #' @importFrom utils head tail
-helper_dmax_moddmax <- function(data_prepared, sport, plot) {
+helper_dmax_moddmax <- function(data_prepared, data_first_rise, data_prepared_dmax, sport, plot, model_heart_rate = NULL) {
 
   data_dmax <- data_prepared$data[[1]][-1, ]
 
-  ## find the first rise in blood lactate greater than 0.4 mmol/L
-  data_first_rise <- data_dmax %>%
-    dplyr::mutate(diffs = dplyr::lead(lactate) - lactate) %>%
-    dplyr::filter(diffs >= 0.4) %>%
-    head(1)
-
-  if(nrow(data_first_rise) == 0) {
+  if(nrow(data_first_rise) == 0 || is.null(data_prepared_dmax)) {
     out <- dplyr::tibble(
       fitting = "3rd degree polynomial (default)",
       intensity = NA,
@@ -193,13 +251,6 @@ helper_dmax_moddmax <- function(data_prepared, sport, plot) {
 
     return(out)
   }
-
-  data_prepared_dmax <- prepare_fit_dmax_mods(
-    .data = data_prepared$data[[1]],
-    fit = "3rd degree polynomial",
-    intensity_to_start = data_first_rise$intensity,
-    sport = {{ sport }}
-  )
 
   model_coefficients <- broom::tidy(data_prepared_dmax$model[[1]]) %>%
     dplyr::pull(estimate)
@@ -221,14 +272,26 @@ helper_dmax_moddmax <- function(data_prepared, sport, plot) {
     Re()
   d_max <- d_max[d_max > 0]
 
-  model_intensity <- max(d_max[d_max <= max_intensity])
+  valid_candidates <- d_max[d_max <= max_intensity]
+  if(length(valid_candidates) == 0) {
+    out <- data_prepared_dmax %>%
+      dplyr::mutate(
+        fitting = "3rd degree polynomial (default)",
+        intensity = NA_real_,
+        lactate = NA_real_
+      )
+    return(out)
+  }
+
+  model_intensity <- max(valid_candidates)
   model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
 
   ## this is a workaround to avoid unplausible estimations
   ## a more elegant and definitive solution needs to be done
-  if(model_lactate > 8) {
-    model_intensity <- min(d_max[d_max <= max_intensity])
+  if(model_lactate > 8 && length(valid_candidates) > 1) {
+    model_intensity <- min(valid_candidates)
     model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
+    warning("Modified Dmax estimate exceeded plausible lactate range; lower root selected.", call. = FALSE)
   }
 
   if(plot) {
@@ -260,7 +323,7 @@ helper_dmax_moddmax <- function(data_prepared, sport, plot) {
   if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
     out <- out %>%
       dplyr::mutate(
-        heart_rate = retrieve_heart_rate(raw_data = data_prepared$data[[1]], intensity_value = intensity)
+        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 
@@ -284,14 +347,7 @@ helper_dmax_moddmax <- function(data_prepared, sport, plot) {
 #'
 #' @keywords internal
 #' @importFrom utils head tail
-helper_dmax_exp_dmax <- function(data_prepared, sport, plot) {
-
-  data_prepared_dmax <- prepare_fit(
-    .data = data_prepared$data[[1]],
-    fit = "Exponential",
-    include_baseline = FALSE,
-    sport = {{ sport }}
-  )
+helper_dmax_exp_dmax <- function(data_prepared_dmax, data_raw, sport, plot, model_heart_rate = NULL) {
 
   model_coefficients <- broom::tidy(data_prepared_dmax$model[[1]]) %>%
     dplyr::pull(estimate)
@@ -333,10 +389,10 @@ helper_dmax_exp_dmax <- function(data_prepared, sport, plot) {
 
   }
 
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
+  if("heart_rate" %in% colnames(data_raw)) {
     out <- out %>%
       dplyr::mutate(
-        heart_rate = retrieve_heart_rate(raw_data = data_prepared$data[[1]], intensity_value = intensity)
+        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 
@@ -363,18 +419,7 @@ helper_dmax_exp_dmax <- function(data_prepared, sport, plot) {
 #'
 #' @keywords internal
 #' @importFrom utils tail
-helper_dmax_log_poly_moddmax <- function(data_prepared, sport, loglog_restrainer, plot) {
-
-  ## calculate Log-log
-  results_loglog <- method_loglog(data_prepared = {{ data_prepared }}, fit = "3rd degree polynomial", sport = {{ sport }}, loglog_restrainer = {{ loglog_restrainer }}, plot = FALSE)
-
-  ## prepare data again, but this time only with the necessary data for the Dmax fit
-  data_prepared_dmax <- prepare_fit_dmax_mods(
-    .data = data_prepared$data[[1]],
-    fit = "3rd degree polynomial",
-    intensity_to_start = results_loglog$intensity,
-    sport = {{ sport }}
-  )
+helper_dmax_log_poly_moddmax <- function(data_prepared, results_loglog, data_prepared_dmax, sport, plot, model_heart_rate = NULL) {
 
   model_coefficients <- broom::tidy(data_prepared_dmax$model[[1]]) %>%
     dplyr::pull(estimate)
@@ -398,14 +443,26 @@ helper_dmax_log_poly_moddmax <- function(data_prepared, sport, loglog_restrainer
     Re()
   d_max <- d_max[d_max > 0]
 
-  model_intensity <- max(d_max[d_max <= max_intensity])
+  valid_candidates <- d_max[d_max <= max_intensity]
+  if(length(valid_candidates) == 0) {
+    out <- data_prepared_dmax %>%
+      dplyr::mutate(
+        fitting = "3rd degree polynomial (default)",
+        intensity = NA_real_,
+        lactate = NA_real_
+      )
+    return(out)
+  }
+
+  model_intensity <- max(valid_candidates)
   model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
 
   ## this is a workaround to avoid unplausible estimations
   ## a more elegant and definitive solution needs to be done
-  if(model_lactate > 8) {
-    model_intensity <- min(d_max[d_max <= max_intensity])
+  if(model_lactate > 8 && length(valid_candidates) > 1) {
+    model_intensity <- min(valid_candidates)
     model_lactate <- retrieve_lactate(model = data_prepared_dmax$model[[1]], intensity_value = model_intensity)
+    warning("Log-Poly-ModDmax estimate exceeded plausible lactate range; lower root selected.", call. = FALSE)
   }
 
   if(plot) {
@@ -436,7 +493,7 @@ helper_dmax_log_poly_moddmax <- function(data_prepared, sport, loglog_restrainer
   if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
     out <- out %>%
       dplyr::mutate(
-        heart_rate = retrieve_heart_rate(raw_data = data_prepared$data[[1]], intensity_value = intensity)
+        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 
@@ -463,18 +520,7 @@ helper_dmax_log_poly_moddmax <- function(data_prepared, sport, loglog_restrainer
 #'
 #' @keywords internal
 #' @importFrom utils tail
-helper_dmax_log_exp_moddmax <- function(data_prepared, sport, loglog_restrainer, plot) {
-
-  ## calculate Log-log
-  results_loglog <- method_loglog(data_prepared = {{ data_prepared }}, fit = "Exponential", sport = {{ sport }}, loglog_restrainer = {{ loglog_restrainer }}, plot = FALSE)
-
-  ## prepare data again, but this time only with the necessary data for the Dmax fit
-  data_prepared_dmax <- prepare_fit_dmax_mods(
-    .data = data_prepared$data[[1]],
-    fit = "Exponential",
-    intensity_to_start = results_loglog$intensity,
-    sport = {{ sport }}
-  )
+helper_dmax_log_exp_moddmax <- function(data_prepared, results_loglog, data_prepared_dmax, sport, plot, model_heart_rate = NULL) {
 
   model_coefficients <- broom::tidy(data_prepared_dmax$model[[1]]) %>%
     dplyr::pull(estimate)
@@ -521,7 +567,7 @@ helper_dmax_log_exp_moddmax <- function(data_prepared, sport, loglog_restrainer,
   if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
     out <- out %>%
       dplyr::mutate(
-        heart_rate = retrieve_heart_rate(raw_data = data_prepared$data[[1]], intensity_value = intensity)
+        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 

@@ -93,17 +93,25 @@ retrieve_lactate <- function(model, intensity_value) {
 #'
 #' @param raw_data The raw data.
 #' @param intensity_value The intensity value.
+#' @param model_heart_rate A pre-fit heart-rate model. If `NULL`, it will be fit from `raw_data`.
 #'
 #' @return the heart rate associated with the estimated lactate threshold
 #' @keywords internal
 #' @importFrom stats predict.lm
-retrieve_heart_rate <- function(raw_data, intensity_value) {
+build_heart_rate_model <- function(raw_data) {
 
   ## remove baseline value
   raw_data <- raw_data[-1, ]
 
   ## linear model heart rate vs intensity
-  model_heart_rate <- lm(heart_rate ~ intensity, data = raw_data)
+  lm(heart_rate ~ intensity, data = raw_data)
+}
+
+retrieve_heart_rate <- function(raw_data, intensity_value, model_heart_rate = NULL) {
+
+  if(is.null(model_heart_rate)) {
+    model_heart_rate <- build_heart_rate_model(raw_data = raw_data)
+  }
 
   ## predict heart rate based on intensity value
   out <- predict.lm(model_heart_rate, newdata = data.frame(intensity = intensity_value))

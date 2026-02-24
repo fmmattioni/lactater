@@ -18,37 +18,40 @@
 #'
 #' @keywords internal
 method_obla <- function(data_prepared, fit, sport, plot) {
+  model_heart_rate <- NULL
+  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
+    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
+  }
 
-  data_processed <- dplyr::tibble(method = c(2, 2.5, 3, 3.5, 4)) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(
-      results = obla_helper(
-        .data = data_prepared$data[[1]],
+  obla_values <- c(2, 2.5, 3, 3.5, 4)
+  out <- dplyr::tibble(
+    method = obla_values,
+    results = lapply(obla_values, function(obla) {
+      obla_helper(
+        raw_data = data_prepared$data[[1]],
         data_augmented = data_prepared$data_augmented[[1]],
         fit = fit,
         model = data_prepared$model[[1]],
-        obla = method
-      ) %>% list()
-    ) %>%
-    dplyr::ungroup() %>%
+        obla = obla,
+        model_heart_rate = model_heart_rate
+      )
+    })
+  ) %>%
     dplyr::mutate(method = sprintf("%.1f", round(method, 1)),
                   method = paste("OBLA", method)) %>%
     tidyr::unnest(cols = results) %>%
     dplyr::bind_cols(data = data_prepared) %>%
-    dplyr::mutate(fitting = paste(fit, "(user-defined)", sep = " ")) %>%
-    tidyr::nest(data = -method)
+    dplyr::mutate(fitting = paste(fit, "(user-defined)", sep = " "))
 
   if(plot) {
-    out <- data_processed %>%
-      dplyr::rowwise() %>%
+    out <- out %>%
       dplyr::mutate(
-        plot = list(plot_lactate(data_processed = data, method = method))
-      ) %>%
-      dplyr::ungroup() %>%
-      tidyr::unnest(cols = data)
-  } else {
-    out <- data_processed %>%
-      tidyr::unnest(cols = data)
+        plot = Map(
+          function(row_id, method_name) plot_lactate(data_processed = out[row_id, ], method = method_name),
+          seq_len(nrow(out)),
+          method
+        )
+      )
   }
 
   if(sport == "swimming") {
@@ -82,15 +85,16 @@ method_obla <- function(data_prepared, fit, sport, plot) {
 #' @return The results (intensity, lactate, heart rate) from the lactate threshold method.
 #' @keywords internal
 obla_helper <- function(
-  .data,
+  raw_data,
   data_augmented,
   fit,
   model,
-  obla
+  obla,
+  model_heart_rate = NULL
 ) {
 
   # check if fit is possible
-  if(obla > max(model$fitted.values) | obla < min(model$fitted.values)) {
+  if(obla > max(model$fitted.values) || obla < min(model$fitted.values)) {
     out <- dplyr::tibble(
       intensity = NA,
       lactate = obla
@@ -111,10 +115,10 @@ obla_helper <- function(
     lactate = obla
   )
 
-  if("heart_rate" %in% colnames(.data)) {
+  if("heart_rate" %in% colnames(raw_data)) {
     out <- out %>%
       dplyr::mutate(
-        heart_rate = retrieve_heart_rate(raw_data = {{ .data }}, intensity_value = intensity)
+        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 

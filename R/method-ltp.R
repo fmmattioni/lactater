@@ -18,47 +18,56 @@
 #' @keywords internal
 #' @importFrom stats lm
 method_ltp <- function(data_prepared, fit, sport, plot) {
+  model_heart_rate <- NULL
+  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
+    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
+  }
 
   data_interpolated <- data_prepared$data_interpolated[[1]]
+  if(nrow(data_interpolated) < 5) {
+    stop("LTP method requires at least 5 interpolated data points.", call. = FALSE)
+  }
 
   linear_fit <- lm(lactate ~ intensity, data = data_interpolated)
 
-  segmented_fit <- segmented::segmented(
-    obj = linear_fit,
-    npsi = 2 # 2 breakpoints
+  segmented_fit <- tryCatch(
+    segmented::segmented(
+      obj = linear_fit,
+      npsi = 2 # 2 breakpoints
+    ),
+    error = function(e) {
+      stop("LTP breakpoint estimation failed. Please verify that your test contains enough progressive lactate increase.", call. = FALSE)
+    }
   )
 
   method_intensity <- segmented_fit$psi[,2]
 
-  data_processed <- data_prepared %>%
+  out <- data_prepared %>%
     tidyr::crossing(
       method = c("LTP1", "LTP2"),
       fitting = paste({{ fit }}, "(user-defined)", sep = " ")
     ) %>%
-    dplyr::mutate(intensity = method_intensity) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(lactate = retrieve_lactate(model = model, intensity_value = intensity)) %>%
-    dplyr::ungroup() %>%
-    dplyr::mutate(segmented_object = list(segmented_fit)) %>%
-    tidyr::nest(data = -method)
+    dplyr::mutate(
+      intensity = method_intensity,
+      lactate = unlist(Map(retrieve_lactate, model = model, intensity_value = intensity))
+    ) %>%
+    dplyr::mutate(segmented_object = list(segmented_fit))
 
   if(plot) {
-    out <- data_processed %>%
-      dplyr::rowwise() %>%
+    out <- out %>%
       dplyr::mutate(
-        plot = list(plot_lactate(data_processed = data, method = method))
-      ) %>%
-      dplyr::ungroup() %>%
-      tidyr::unnest(cols = data)
-  } else {
-    out <- data_processed %>%
-      tidyr::unnest(cols = data)
+        plot = Map(
+          function(row_id, method_name) plot_lactate(data_processed = out[row_id, ], method = method_name),
+          seq_len(nrow(out)),
+          method
+        )
+      )
   }
 
   if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
     out <- out %>%
       dplyr::mutate(
-        heart_rate = retrieve_heart_rate(raw_data = data_prepared$data[[1]], intensity_value = intensity)
+        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 

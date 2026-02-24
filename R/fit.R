@@ -31,6 +31,16 @@ prepare_fit <- function(
 
   if(!any(colnames(.data) %in% c("intensity", "lactate")))
     stop("It looks like you didn't prepare your data. Please, call `prepare_data()` before.", call. = FALSE)
+  if(!all(c("intensity", "lactate") %in% colnames(.data)))
+    stop("The data must contain both `intensity` and `lactate` columns.", call. = FALSE)
+  if(nrow(.data) < 3)
+    stop("At least 3 rows are required to fit lactate curves reliably.", call. = FALSE)
+  if(anyNA(.data$intensity) || anyNA(.data$lactate))
+    stop("Missing values in `intensity`/`lactate` are not supported. Please remove or impute NAs first.", call. = FALSE)
+  if(!is.numeric(.data$intensity) || !is.numeric(.data$lactate))
+    stop("`intensity` and `lactate` columns must be numeric.", call. = FALSE)
+  if(any(diff(.data$intensity) <= 0))
+    stop("`intensity` must be strictly increasing.", call. = FALSE)
 
   fit <- match.arg(arg = fit)
   sport <- match.arg(arg = sport)
@@ -64,7 +74,6 @@ prepare_fit <- function(
   new_data_model <- data.frame(intensity = seq(min(data_for_modeling$intensity), max(data_for_modeling$intensity), interpolation_factor))
 
   if(fit == "3rd degree polynomial") {
-
     out <- data_pre_processed %>%
       dplyr::rowwise() %>%
       dplyr::mutate(
@@ -74,7 +83,6 @@ prepare_fit <- function(
       dplyr::ungroup()
 
   } else if(fit == "4th degree polynomial") {
-
     out <- data_pre_processed %>%
       dplyr::rowwise() %>%
       dplyr::mutate(
@@ -84,7 +92,6 @@ prepare_fit <- function(
       dplyr::ungroup()
 
   } else if(fit == "B-spline") {
-
     out <- data_pre_processed %>%
       dplyr::rowwise() %>%
       dplyr::mutate(
@@ -94,15 +101,19 @@ prepare_fit <- function(
       dplyr::ungroup()
 
   } else if(fit == "Exponential") {
-
     out <- data_pre_processed %>%
       dplyr::rowwise() %>%
       dplyr::mutate(
-        model = minpack.lm::nlsLM(
-          formula = lactate ~ a + (b * exp(c * intensity)),
-          data = data_for_modeling,
-          start = list(a = 0, b = 1, c = 0),
-          control = list(maxiter = 1000)
+        model = tryCatch(
+          minpack.lm::nlsLM(
+            formula = lactate ~ a + (b * exp(c * intensity)),
+            data = data_for_modeling,
+            start = list(a = 0, b = 1, c = 0),
+            control = list(maxiter = 1000)
+          ),
+          error = function(e) {
+            stop("Exponential fit failed to converge. Try another fit method or verify your input data.", call. = FALSE)
+          }
         ) %>% list(),
         data_augmented = broom::augment(model, newdata = new_data_model, type.predict = "response") %>% list()
       ) %>%
@@ -147,6 +158,16 @@ prepare_fit_dmax_mods <- function(
 
   if(!any(colnames(.data) %in% c("intensity", "lactate")))
     stop("It looks like you didn't prepare your data. Please, call `prepare_data()` before.", call. = FALSE)
+  if(!all(c("intensity", "lactate") %in% colnames(.data)))
+    stop("The data must contain both `intensity` and `lactate` columns.", call. = FALSE)
+  if(nrow(.data) < 3)
+    stop("At least 3 rows are required to fit modified Dmax curves reliably.", call. = FALSE)
+  if(anyNA(.data$intensity) || anyNA(.data$lactate))
+    stop("Missing values in `intensity`/`lactate` are not supported. Please remove or impute NAs first.", call. = FALSE)
+  if(!is.numeric(.data$intensity) || !is.numeric(.data$lactate))
+    stop("`intensity` and `lactate` columns must be numeric.", call. = FALSE)
+  if(any(diff(.data$intensity) <= 0))
+    stop("`intensity` must be strictly increasing.", call. = FALSE)
 
   if(missing(intensity_to_start))
     stop("You need to indicate at which intensity the fit should start.", call. = FALSE)
@@ -180,7 +201,6 @@ prepare_fit_dmax_mods <- function(
     dplyr::filter(intensity >= intensity_to_start)
 
   if(fit == "3rd degree polynomial") {
-
     out <- data_pre_processed %>%
       dplyr::rowwise() %>%
       dplyr::mutate(
@@ -190,15 +210,19 @@ prepare_fit_dmax_mods <- function(
       dplyr::ungroup()
 
   } else if(fit == "Exponential") {
-
     out <- data_pre_processed %>%
       dplyr::rowwise() %>%
       dplyr::mutate(
-        model = minpack.lm::nlsLM(
-          formula = lactate ~ a + (b * exp(c * intensity)),
-          data = data_for_modeling,
-          start = list(a = 0, b = 1, c = 0),
-          control = list(maxiter = 1000)
+        model = tryCatch(
+          minpack.lm::nlsLM(
+            formula = lactate ~ a + (b * exp(c * intensity)),
+            data = data_for_modeling,
+            start = list(a = 0, b = 1, c = 0),
+            control = list(maxiter = 1000)
+          ),
+          error = function(e) {
+            stop("Exponential fit for modified Dmax failed to converge.", call. = FALSE)
+          }
         ) %>% list(),
         data_augmented = broom::augment(model, newdata = new_data_model, type.predict = "response") %>% list()
       ) %>%

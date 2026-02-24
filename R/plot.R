@@ -131,7 +131,7 @@ plot_lactate <- function(data_processed, method) {
 
   }
 
-  breaks_and_labels <- adjust_x_axis_plot(.data = data, plot = p)
+  breaks_and_labels <- adjust_x_axis_plot(.data = data)
 
   p <- p +
     ggplot2::scale_x_continuous(breaks = breaks_and_labels$breaks, labels = breaks_and_labels$labels)
@@ -159,18 +159,21 @@ plot_methods <- function(plots, ...) {
 #'
 #' @keywords internal
 adjust_x_axis_plot <- function(
-  .data,
-  plot
+  .data
 ) {
+  rest_value <- .data$intensity[1]
+  x_values <- .data$intensity[!is.na(.data$intensity)]
+  x_values <- x_values[x_values != rest_value]
 
-  p_build <- ggplot2::ggplot_build(plot)
+  pretty_breaks <- if(length(x_values) > 0) {
+    pretty(range(x_values), n = 5)
+  } else {
+    numeric(0)
+  }
 
-  seq_plot <- p_build$layout$panel_params[[1]]$x$minor_breaks
+  breaks <- unique(c(rest_value, pretty_breaks))
+  labels <- as.character(breaks)
+  labels[breaks == rest_value] <- "rest"
 
-  out <- NULL
-
-  out$breaks <- c({{.data}}$intensity[1], seq_plot[-1])
-  out$labels <- c("rest", seq_plot[-1])
-
-  out
+  list(breaks = breaks, labels = labels)
 }

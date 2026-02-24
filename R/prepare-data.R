@@ -44,5 +44,16 @@ prepare_data <- function(
       dplyr::select(intensity, lactate)
   }
 
+  if(!is.numeric(out$intensity) || !is.numeric(out$lactate))
+    stop("`intensity` and `lactate` columns must be numeric.", call. = FALSE)
+  if(anyNA(out$intensity) || anyNA(out$lactate))
+    stop("`intensity` and `lactate` cannot contain missing values.", call. = FALSE)
+  if(nrow(out) < 3)
+    stop("At least 3 rows are required for lactate threshold estimation.", call. = FALSE)
+  if(!all(out$intensity >= 0))
+    stop("`intensity` values must be >= 0.", call. = FALSE)
+  if(!all(out$lactate >= 0))
+    stop("`lactate` values must be >= 0.", call. = FALSE)
+
   out
 }

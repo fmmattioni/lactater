@@ -178,8 +178,10 @@ lactate_threshold <- function(
 
   ## make sure 'loglog_restrainer' is numeric
   loglog_restrainer <- as.numeric(loglog_restrainer)
+  if(length(loglog_restrainer) != 1 || is.na(loglog_restrainer))
+    stop("`loglog_restrainer` must be a single numeric value between 0 and 1.", call. = FALSE)
 
-  if(loglog_restrainer < 0 | loglog_restrainer > 1)
+  if(loglog_restrainer < 0 || loglog_restrainer > 1)
     stop("You can only choose a value between 0 and 1.", call. = FALSE)
 
   ## make sure column names work unquoted too
@@ -218,21 +220,21 @@ lactate_threshold <- function(
       sport = sport
     )
 
-  out <- dplyr::tibble(method = method) %>%
-    dplyr::rename(method_category = method) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(
-      results = switch (
-        method_category,
-        "Log-log" = method_loglog(data_prepared = data_fit_prepared, fit = fit, sport = sport, loglog_restrainer = loglog_restrainer, plot = plot) %>% list(),
-        "OBLA" = method_obla(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot) %>% list(),
-        "Bsln+" = method_bsln_plus(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot) %>% list(),
-        "Dmax" = method_dmax(data_prepared = data_fit_prepared, sport = sport, loglog_restrainer = loglog_restrainer, plot = plot) %>% list(),
-        "LTP" = method_ltp(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot) %>% list(),
-        "LTratio" = method_ltratio(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot) %>% list()
-      )
-    ) %>%
-    tidyr::unnest(results) %>%
+  results <- lapply(method, function(method_category) {
+    out_method <- switch (
+      method_category,
+      "Log-log" = method_loglog(data_prepared = data_fit_prepared, fit = fit, sport = sport, loglog_restrainer = loglog_restrainer, plot = plot),
+      "OBLA" = method_obla(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot),
+      "Bsln+" = method_bsln_plus(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot),
+      "Dmax" = method_dmax(data_prepared = data_fit_prepared, sport = sport, loglog_restrainer = loglog_restrainer, plot = plot),
+      "LTP" = method_ltp(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot),
+      "LTratio" = method_ltratio(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot)
+    )
+    out_method$method_category <- method_category
+    out_method
+  })
+
+  out <- dplyr::bind_rows(results) %>%
     dplyr::mutate(method_category = factor(method_category, levels = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"))) %>%
     dplyr::arrange(method_category) %>%
     dplyr::mutate(method = forcats::as_factor(method))
