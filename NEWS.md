@@ -1,3 +1,11 @@
+# lactater 0.3.0
+
+* Improved `lactate_threshold()` performance by reducing repeated model preparation and minimizing expensive data wrangling in method pipelines.
+* Optimized plotting performance by removing `ggplot_build()` from x-axis adjustment and simplifying plot construction paths.
+* Added stronger input/model error handling for edge cases in fitting and segmentation routines.
+* Expanded test coverage with validation and golden-output regression tests for numerical stability.
+* Updated CI quality checks and coverage gates to better protect performance and correctness changes.
+
 # lactater 0.2.0
 
 * Added the function `lactate_curve()` to retrieve data for plotting the lactate curve and heart rate response.
