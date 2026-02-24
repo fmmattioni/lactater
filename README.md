@@ -89,7 +89,7 @@ results_overall <- lactate_threshold(
     #> 12 Dmax            Exp-Dmax         Exponent…     135.     3.3         170 <gg> 
     #> 13 Dmax            Log-Poly-ModDmax 3rd degr…     143      3.8         175 <gg> 
     #> 14 Dmax            Log-Exp-ModDmax  Exponent…     146.     4           177 <gg> 
-    #> 15 LTP             LTP1             3rd degr…      88.9    1.5         143 <gg> 
+    #> 15 LTP             LTP1             3rd degr…      88.8    1.5         143 <gg> 
     #> 16 LTP             LTP2             3rd degr…     148.     4.1         178 <gg> 
     #> 17 LTratio         LTratio          B-Spline…      71.2    1.2         132 <gg>
 
@@ -218,7 +218,7 @@ results_ltp <- lactate_threshold(
     #> # A tibble: 2 × 7
     #>   method_category method fitting              intensity lactate heart_rate plot 
     #>   <fct>           <fct>  <chr>                    <dbl>   <dbl>      <dbl> <lis>
-    #> 1 LTP             LTP1   3rd degree polynomi…      88.9     1.5        143 <gg> 
+    #> 1 LTP             LTP1   3rd degree polynomi…      88.8     1.5        143 <gg> 
     #> 2 LTP             LTP2   3rd degree polynomi…     148.      4.1        178 <gg>
 
 <img src="man/figures/readme/README-unnamed-chunk-20-1.png" width="100%" style="display: block; margin: auto;" />
