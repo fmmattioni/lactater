@@ -4,10 +4,17 @@
 \alias{bsln_plus_helper}
 \title{Bsln+ helper}
 \usage{
-bsln_plus_helper(.data, data_augmented, fit, model, plus)
+bsln_plus_helper(
+  raw_data,
+  data_augmented,
+  fit,
+  model,
+  plus,
+  model_heart_rate = NULL
+)
 }
 \arguments{
-\item{.data}{The raw data.}
+\item{raw_data}{The raw data.}
 
 \item{data_augmented}{The augmented data from the model.}
 
@@ -16,6 +23,8 @@ bsln_plus_helper(.data, data_augmented, fit, model, plus)
 \item{model}{The model chosen in \code{fit},}
 
 \item{plus}{The plus value to be added to the baseline value.}
+
+\item{model_heart_rate}{A pre-fit heart-rate model.}
 }
 \value{
 The results (intensity, lactate, heart rate) from the lactate threshold method.

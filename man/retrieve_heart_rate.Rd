@@ -4,12 +4,14 @@
 \alias{retrieve_heart_rate}
 \title{Retrieve heart rate}
 \usage{
-retrieve_heart_rate(raw_data, intensity_value)
+retrieve_heart_rate(raw_data, intensity_value, model_heart_rate = NULL)
 }
 \arguments{
 \item{raw_data}{The raw data.}
 
 \item{intensity_value}{The intensity value.}
+
+\item{model_heart_rate}{A pre-fit heart-rate model. If \code{NULL}, it will be fit from \code{raw_data}.}
 }
 \value{
 the heart rate associated with the estimated lactate threshold

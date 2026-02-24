@@ -4,14 +4,27 @@
 \alias{helper_dmax_moddmax}
 \title{Helper - ModDmax}
 \usage{
-helper_dmax_moddmax(data_prepared, sport, plot)
+helper_dmax_moddmax(
+  data_prepared,
+  data_first_rise,
+  data_prepared_dmax,
+  sport,
+  plot,
+  model_heart_rate = NULL
+)
 }
 \arguments{
 \item{data_prepared}{The data retrieved from \code{prepare_data()}.}
 
+\item{data_first_rise}{The first rise in lactate data point used for ModDmax.}
+
+\item{data_prepared_dmax}{The prepared polynomial fit for ModDmax.}
+
 \item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
 
 \item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
+
+\item{model_heart_rate}{A pre-fit heart-rate model.}
 }
 \description{
 For internal use only and it won't be exported.

@@ -76,11 +76,12 @@ method_bsln_plus <- function(data_prepared, fit, sport, plot) {
 #'
 #' For internal use only and it won't be exported.
 #'
-#' @param .data The raw data.
+#' @param raw_data The raw data.
 #' @param data_augmented The augmented data from the model.
 #' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
 #' @param model The model chosen in `fit`,
 #' @param plus The plus value to be added to the baseline value.
+#' @param model_heart_rate A pre-fit heart-rate model.
 #'
 #' @return The results (intensity, lactate, heart rate) from the lactate threshold method.
 #' @keywords internal

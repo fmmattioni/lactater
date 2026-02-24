@@ -88,6 +88,23 @@ retrieve_lactate <- function(model, intensity_value) {
 
 #' Retrieve heart rate
 #'
+#' Builds a linear heart rate model from the raw incremental test data.
+#'
+#' @param raw_data The raw data.
+#'
+#' @return a linear model (`lm`) for heart-rate prediction
+#' @keywords internal
+build_heart_rate_model <- function(raw_data) {
+
+  ## remove baseline value
+  raw_data <- raw_data[-1, ]
+
+  ## linear model heart rate vs intensity
+  lm(heart_rate ~ intensity, data = raw_data)
+}
+
+#' Retrieve heart rate
+#'
 #' Retrieves the heart rate associated to a given intensity value.
 #' It is mainly for internal use but it is exported for possible extensions.
 #'
@@ -98,15 +115,6 @@ retrieve_lactate <- function(model, intensity_value) {
 #' @return the heart rate associated with the estimated lactate threshold
 #' @keywords internal
 #' @importFrom stats predict.lm
-build_heart_rate_model <- function(raw_data) {
-
-  ## remove baseline value
-  raw_data <- raw_data[-1, ]
-
-  ## linear model heart rate vs intensity
-  lm(heart_rate ~ intensity, data = raw_data)
-}
-
 retrieve_heart_rate <- function(raw_data, intensity_value, model_heart_rate = NULL) {
 
   if(is.null(model_heart_rate)) {

@@ -4,12 +4,10 @@
 \alias{adjust_x_axis_plot}
 \title{Adjust x-axis}
 \usage{
-adjust_x_axis_plot(.data, plot)
+adjust_x_axis_plot(.data)
 }
 \arguments{
 \item{.data}{The raw data.}
-
-\item{plot}{A \code{ggplot2} object.}
 }
 \description{
 Adjusts the x-axis to show rest value at the beginning. Internal use only.

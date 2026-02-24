@@ -155,7 +155,6 @@ plot_methods <- function(plots, ...) {
 #' Adjusts the x-axis to show rest value at the beginning. Internal use only.
 #'
 #' @param .data The raw data.
-#' @param plot A `ggplot2` object.
 #'
 #' @keywords internal
 adjust_x_axis_plot <- function(

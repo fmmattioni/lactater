@@ -4,18 +4,27 @@
 \alias{helper_dmax_log_poly_moddmax}
 \title{Helper - Log-Poly-ModDmax}
 \usage{
-helper_dmax_log_poly_moddmax(data_prepared, sport, loglog_restrainer, plot)
+helper_dmax_log_poly_moddmax(
+  data_prepared,
+  results_loglog,
+  data_prepared_dmax,
+  sport,
+  plot,
+  model_heart_rate = NULL
+)
 }
 \arguments{
 \item{data_prepared}{The data retrieved from \code{prepare_data()}.}
 
+\item{results_loglog}{Results from the Log-log method using polynomial fit.}
+
+\item{data_prepared_dmax}{The prepared polynomial fit starting at Log-log intensity.}
+
 \item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
 
-\item{loglog_restrainer}{A scalar from 0 to 1 indicating the percentage of the data that you would like to
-restrain for fitting the Log-Log method. For example, \code{1} means no restriction (fits using the whole data), and \code{0.5} means that
-only the first 50\% of the data will be used. Default to \code{1}.}
-
 \item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
+
+\item{model_heart_rate}{A pre-fit heart-rate model.}
 }
 \description{
 For internal use only and it won't be exported.

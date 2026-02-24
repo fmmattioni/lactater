@@ -136,9 +136,11 @@ method_dmax <- function(data_prepared, sport, loglog_restrainer = 1, plot) {
 #'
 #' For internal use only and it won't be exported.
 #'
-#' @param data_prepared The data retrieved from `prepare_data()`.
+#' @param data_prepared_dmax The prepared polynomial fit for Dmax.
+#' @param data_raw The raw data retrieved from `prepare_data()`.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
 #' @param plot A boolean to indicate whether to generate a plot from each one of the methods.
+#' @param model_heart_rate A pre-fit heart-rate model.
 #'
 #' @keywords internal
 helper_dmax_dmax <- function(data_prepared_dmax, data_raw, sport, plot, model_heart_rate = NULL) {
@@ -233,8 +235,11 @@ helper_dmax_dmax <- function(data_prepared_dmax, data_raw, sport, plot, model_he
 #' For internal use only and it won't be exported.
 #'
 #' @param data_prepared The data retrieved from `prepare_data()`.
+#' @param data_first_rise The first rise in lactate data point used for ModDmax.
+#' @param data_prepared_dmax The prepared polynomial fit for ModDmax.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
 #' @param plot A boolean to indicate whether to generate a plot from each one of the methods.
+#' @param model_heart_rate A pre-fit heart-rate model.
 #'
 #' @keywords internal
 #' @importFrom utils head tail
@@ -341,9 +346,11 @@ helper_dmax_moddmax <- function(data_prepared, data_first_rise, data_prepared_dm
 #'
 #' For internal use only and it won't be exported.
 #'
-#' @param data_prepared The data retrieved from `prepare_data()`.
+#' @param data_prepared_dmax The prepared exponential fit for Exp-Dmax.
+#' @param data_raw The raw data retrieved from `prepare_data()`.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
 #' @param plot A boolean to indicate whether to generate a plot from each one of the methods.
+#' @param model_heart_rate A pre-fit heart-rate model.
 #'
 #' @keywords internal
 #' @importFrom utils head tail
@@ -411,11 +418,11 @@ helper_dmax_exp_dmax <- function(data_prepared_dmax, data_raw, sport, plot, mode
 #' For internal use only and it won't be exported.
 #'
 #' @param data_prepared The data retrieved from `prepare_data()`.
+#' @param results_loglog Results from the Log-log method using polynomial fit.
+#' @param data_prepared_dmax The prepared polynomial fit starting at Log-log intensity.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
-#' @param loglog_restrainer A scalar from 0 to 1 indicating the percentage of the data that you would like to
-#' restrain for fitting the Log-Log method. For example, `1` means no restriction (fits using the whole data), and `0.5` means that
-#' only the first 50% of the data will be used. Default to `1`.
 #' @param plot A boolean to indicate whether to generate a plot from each one of the methods.
+#' @param model_heart_rate A pre-fit heart-rate model.
 #'
 #' @keywords internal
 #' @importFrom utils tail
@@ -512,11 +519,11 @@ helper_dmax_log_poly_moddmax <- function(data_prepared, results_loglog, data_pre
 #' For internal use only and it won't be exported.
 #'
 #' @param data_prepared The data retrieved from `prepare_data()`.
+#' @param results_loglog Results from the Log-log method using exponential fit.
+#' @param data_prepared_dmax The prepared exponential fit starting at Log-log intensity.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
-#' @param loglog_restrainer A scalar from 0 to 1 indicating the percentage of the data that you would like to
-#' restrain for fitting the Log-Log method. For example, `1` means no restriction (fits using the whole data), and `0.5` means that
-#' only the first 50% of the data will be used. Default to `1`.
 #' @param plot A boolean to indicate whether to generate a plot from each one of the methods.
+#' @param model_heart_rate A pre-fit heart-rate model.
 #'
 #' @keywords internal
 #' @importFrom utils tail

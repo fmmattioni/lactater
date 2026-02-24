@@ -4,14 +4,24 @@
 \alias{helper_dmax_dmax}
 \title{Helper - Dmax}
 \usage{
-helper_dmax_dmax(data_prepared, sport, plot)
+helper_dmax_dmax(
+  data_prepared_dmax,
+  data_raw,
+  sport,
+  plot,
+  model_heart_rate = NULL
+)
 }
 \arguments{
-\item{data_prepared}{The data retrieved from \code{prepare_data()}.}
+\item{data_prepared_dmax}{The prepared polynomial fit for Dmax.}
+
+\item{data_raw}{The raw data retrieved from \code{prepare_data()}.}
 
 \item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
 
 \item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
+
+\item{model_heart_rate}{A pre-fit heart-rate model.}
 }
 \description{
 For internal use only and it won't be exported.
