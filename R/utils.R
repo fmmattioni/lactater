@@ -16,25 +16,6 @@ is_installed <- function() {
   ) == length(extra_packages)
 }
 
-#' Interpolate intensity
-#'
-#' @param .data The raw data.
-#' @param interpolation_factor The interpolation factor to be used. This will depend on the sport chosen.
-#'
-#' @keywords internal
-#' @importFrom stats approx
-interpolate_intensity <- function(.data, interpolation_factor) {
-  out <- lapply(.data, function (i) approx(
-    x = .data[[1]],
-    y = i,
-    xout = seq(min(.data[[1]]), max(.data[[1]], na.rm = TRUE), interpolation_factor)
-  )$y
-  ) %>%
-    dplyr::as_tibble()
-
-  out
-}
-
 #' Add external resources
 #'
 #' This function was copied from golem

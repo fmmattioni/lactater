@@ -11,7 +11,6 @@
 #'
 #' @return a tibble with the following nested columns:
 #' \item{data}{The raw data.}
-#' \item{data_interpolated}{The interpolated data.}
 #' \item{model}{The model chosen in the `fit` parameter.}
 #' \item{data_augmented}{The augmented data retrieved from the model.}
 #' \item{bsln}{A boolean indicating the `include_baseline` argument.}
@@ -68,7 +67,6 @@ prepare_fit <- function(
   data_pre_processed <- .data %>%
     tidyr::nest(data = dplyr::everything()) %>%
     dplyr::rowwise() %>%
-    dplyr::mutate(data_interpolated = interpolate_intensity(.data = data_for_modeling, interpolation_factor = interpolation_factor) %>% list()) %>%
     dplyr::ungroup()
 
   new_data_model <- data.frame(intensity = seq(min(data_for_modeling$intensity), max(data_for_modeling$intensity), interpolation_factor))
@@ -139,7 +137,6 @@ prepare_fit <- function(
 #'
 #' @return a tibble with the following nested columns:
 #' \item{data}{The raw data.}
-#' \item{data_interpolated}{The interpolated data.}
 #' \item{model}{The model chosen in the `fit` parameter.}
 #' \item{data_augmented}{The augmented data retrieved from the model.}
 #' \item{bsln}{A boolean indicating the `include_baseline` argument.}
@@ -194,7 +191,6 @@ prepare_fit_dmax_mods <- function(
   data_pre_processed <- .data %>%
     tidyr::nest(data = dplyr::everything()) %>%
     dplyr::rowwise() %>%
-    dplyr::mutate(data_interpolated = interpolate_intensity(.data = data_for_modeling, interpolation_factor = interpolation_factor) %>% list()) %>%
     dplyr::ungroup()
 
   new_data_model <- dplyr::tibble(intensity = seq(min(data_for_modeling$intensity), max(data_for_modeling$intensity), interpolation_factor)) %>%

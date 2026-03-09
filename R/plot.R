@@ -22,7 +22,8 @@ plot_lactate <- function(data_processed, method) {
   if(method %in% c("Log-log", "LTP1", "LTP2")) {
 
     segmented_object <- data_processed$segmented_object[[1]]
-    data_interpolated <- data_processed$data_interpolated[[1]]
+    data_interpolated <- data_processed$data_augmented[[1]] %>%
+      dplyr::rename(lactate = .fitted)
 
     if(method == "Log-log") {
       loglog_restrainer <- data_processed$loglog_restrainer

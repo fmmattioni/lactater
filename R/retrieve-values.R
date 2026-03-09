@@ -1,6 +1,7 @@
 #' Retrieve intensity
 #'
-#' Retrieves the intensity associated to a given lactate value.
+#' Retrieves the intensity associated to a given lactate value by computing the
+#' inverse of the fitted model using root-finding.
 #' It is mainly for internal use but it is exported for possible extensions.
 #'
 #' @param data_augmented The augmented data from the model.
@@ -10,54 +11,22 @@
 #'
 #' @return the intensity associated with the estimated lactate threshold
 #' @keywords internal
-#' @importFrom stats splinefun approx
-#' @importFrom utils tail
 retrieve_intensity <- function(data_augmented, fit, model, lactate_value) {
 
-  if(fit == "B-spline") {
-
-    # spline function
-    f1 <- splinefun(data_augmented$intensity, data_augmented$.fitted)
-
-    # get intensity
-    method_intensity <- pracma::findzeros(
-      function(x)
-        f1(x) - lactate_value, min(data_augmented$intensity), max(data_augmented$intensity)
-      )
-
-  } else {
-
-    method_intensity <- approx(
-      x = model$fitted.values,
-      y = model$model[, 2][, 1],
-      xout = lactate_value, ties = "ordered"
-    )$y
-
-    ## the following is necessary in case the lactate curve goes down and then increases again
-    ## if the above is NA, it means that two values were found, so the following will retrieve the higher value
-    if(is.na(method_intensity)) {
-
-      ## find where lactate curve start to increase again after going down
-      start_increasing <- dplyr::tibble(.fitted = model$fitted.values) %>%
-        dplyr::mutate(rowid = seq_along(.fitted), .before = 1) %>%
-        dplyr::mutate(diffs = .fitted - dplyr::lag(.fitted)) %>%
-        tidyr::drop_na() %>%
-        dplyr::filter(diffs < 0) %>%
-        dplyr::pull(rowid) %>%
-        tail(1)
-
-      n_row_data <- length(model$fitted.values)
-
-      method_intensity <- approx(
-        x = model$fitted.values[start_increasing:n_row_data],
-        y = model$model[, 2][, 1][start_increasing:n_row_data],
-        xout = lactate_value, ties = "ordered"
-      )$y
-    }
-
+  ## build a prediction function that returns zero at the target lactate value
+  pred_fun <- function(x) {
+    unname(predict(model, newdata = data.frame(intensity = x))) - lactate_value
   }
 
-  ## this will make sure that if two values were found, the highest value is retrieved
+  intensity_min <- min(data_augmented$intensity)
+  intensity_max <- max(data_augmented$intensity)
+
+  ## find all roots (intensities) where the model equals the target lactate value
+  method_intensity <- pracma::findzeros(pred_fun, intensity_min, intensity_max)
+
+  if (length(method_intensity) == 0) return(NA_real_)
+
+  ## if multiple roots found, return the highest intensity
   out <- max(method_intensity)
 
   out

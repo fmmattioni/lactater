@@ -23,12 +23,12 @@ method_ltp <- function(data_prepared, fit, sport, plot) {
     model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
   }
 
-  data_interpolated <- data_prepared$data_interpolated[[1]]
-  if(nrow(data_interpolated) < 5) {
-    stop("LTP method requires at least 5 interpolated data points.", call. = FALSE)
+  data_for_segmented <- data_prepared$data_augmented[[1]]
+  if(nrow(data_for_segmented) < 5) {
+    stop("LTP method requires at least 5 data points from the model fit.", call. = FALSE)
   }
 
-  linear_fit <- lm(lactate ~ intensity, data = data_interpolated)
+  linear_fit <- lm(.fitted ~ intensity, data = data_for_segmented)
 
   segmented_fit <- tryCatch(
     segmented::segmented(

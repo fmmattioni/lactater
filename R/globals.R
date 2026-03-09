@@ -38,6 +38,5 @@ globalVariables(unique(c(
   # prepare_fit_dmax_mods:
   "intensity", "model",
   # retrieve_intensity:
-  ".fitted", "diffs", "rowid",
   "x", "y"
 )))

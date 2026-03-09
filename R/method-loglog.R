@@ -26,20 +26,20 @@ method_loglog <- function(data_prepared, fit, sport, loglog_restrainer = 1, plot
     model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
   }
 
-  data_interpolated <- data_prepared$data_interpolated[[1]] %>%
+  data_for_segmented <- data_prepared$data_augmented[[1]] %>%
     dplyr::filter(intensity > 0) %>%
     dplyr::mutate(
       intensity = log(intensity),
-      lactate = log(lactate)
+      .fitted = log(.fitted)
     ) %>%
     ## filter data according to loglog_restrainer
     dplyr::slice(seq(loglog_restrainer * dplyr::n()))
 
-  if(nrow(data_interpolated) < 4) {
-    stop("Log-log method requires at least 4 interpolated data points after applying `loglog_restrainer`.", call. = FALSE)
+  if(nrow(data_for_segmented) < 4) {
+    stop("Log-log method requires at least 4 data points from the model fit after applying `loglog_restrainer`.", call. = FALSE)
   }
 
-  linear_fit <- lm(lactate ~ intensity, data = data_interpolated)
+  linear_fit <- lm(.fitted ~ intensity, data = data_for_segmented)
 
   segmented_fit <- tryCatch(
     segmented::segmented(
