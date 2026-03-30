@@ -129,6 +129,36 @@ method_dmax <- function(data_prepared, sport, loglog_restrainer = 1, plot) {
     dplyr::mutate(method = factor(method, levels = c("Dmax", "ModDmax", "Exp-Dmax", "Log-Poly-ModDmax", "Log-Exp-ModDmax"))) %>%
     dplyr::arrange(method)
 
+  ## attach per-method fit statistics (polynomial for poly methods, exponential for exp methods)
+  poly_fs <- if ("fit_stats" %in% names(data_prepared_poly)) data_prepared_poly$fit_stats[[1]] else NULL
+  exp_fs  <- if ("fit_stats" %in% names(data_prepared_exp))  data_prepared_exp$fit_stats[[1]]  else NULL
+
+  out$fit_rmse <- NA_real_
+  out$fit_r_squared <- NA_real_
+  out$fit_see <- NA_real_
+  out$fit_mae <- NA_real_
+  out$fit_n_points <- NA_integer_
+  out$fit_type <- NA_character_
+
+  for (i in seq_len(nrow(out))) {
+    m <- as.character(out$method[i])
+    if (m %in% c("Exp-Dmax", "Log-Exp-ModDmax") && !is.null(exp_fs)) {
+      out$fit_rmse[i]      <- exp_fs$rmse
+      out$fit_r_squared[i] <- exp_fs$r_squared
+      out$fit_see[i]       <- exp_fs$see
+      out$fit_mae[i]       <- exp_fs$mae
+      out$fit_n_points[i]  <- exp_fs$n_points
+      out$fit_type[i]      <- "Exponential"
+    } else if (!is.null(poly_fs)) {
+      out$fit_rmse[i]      <- poly_fs$rmse
+      out$fit_r_squared[i] <- poly_fs$r_squared
+      out$fit_see[i]       <- poly_fs$see
+      out$fit_mae[i]       <- poly_fs$mae
+      out$fit_n_points[i]  <- poly_fs$n_points
+      out$fit_type[i]      <- "3rd degree polynomial"
+    }
+  }
+
   out
 }
 

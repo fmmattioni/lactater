@@ -246,6 +246,49 @@ results_ltratio <- lactate_threshold(
 
 <img src="man/figures/readme/README-unnamed-chunk-23-1.png" width="100%" style="display: block; margin: auto;" />
 
+## Goodness-of-fit statistics
+
+The output now includes goodness-of-fit statistics for the curve-fitting
+model used to determine each threshold. These are evaluated on the raw
+(non-interpolated) measurement points:
+
+``` r
+results_dmax <- lactate_threshold(
+  .data = demo_data,
+  intensity_column = "intensity",
+  lactate_column = "lactate",
+  heart_rate_column = "heart_rate",
+  method = "Dmax",
+  fit = "3rd degree polynomial",
+  include_baseline = FALSE,
+  sport = "cycling",
+  plot = FALSE
+)
+
+results_dmax[, c("method", "fit_type", "fit_rmse", "fit_r_squared", "fit_mae")]
+```
+
+    #> # A tibble: 5 × 5
+    #>   method           fit_type              fit_rmse fit_r_squared fit_mae
+    #>   <fct>            <chr>                    <dbl>         <dbl>   <dbl>
+    #> 1 Dmax             3rd degree polynomial    0.527         0.962   0.337
+    #> 2 ModDmax          3rd degree polynomial    0.527         0.962   0.337
+    #> 3 Exp-Dmax         Exponential              0.534         0.961   0.333
+    #> 4 Log-Poly-ModDmax 3rd degree polynomial    0.527         0.962   0.337
+    #> 5 Log-Exp-ModDmax  Exponential              0.534         0.961   0.333
+
+The Dmax family reports per-method fit statistics: polynomial-based
+methods (Dmax, ModDmax, Log-Poly-ModDmax) show the polynomial fit
+quality, while exponential-based methods (Exp-Dmax, Log-Exp-ModDmax)
+show the exponential fit quality. Available statistics:
+
+  - `fit_rmse`: Root mean square error (mmol/L)
+  - `fit_r_squared`: Coefficient of determination (R²)
+  - `fit_mae`: Mean absolute error (mmol/L)
+  - `fit_see`: Standard error of estimate (mmol/L)
+  - `fit_n_points`: Number of data points used
+  - `fit_type`: Fitting model used ("3rd degree polynomial" or "Exponential")
+
 ## Lactate curve
 
 In case you would like to retrieve the data for producing your own

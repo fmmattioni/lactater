@@ -121,10 +121,92 @@ prepare_fit <- function(
 
   }
 
+  ## compute goodness-of-fit statistics (residuals evaluated on raw data points)
+  out <- out %>%
+    dplyr::rowwise() %>%
+    dplyr::mutate(
+      fit_stats = compute_fit_stats(model, data, bsln = include_baseline) %>% list()
+    ) %>%
+    dplyr::ungroup()
+
   out <- out %>%
     dplyr::mutate(bsln = include_baseline)
 
   out
+}
+
+#' Compute goodness-of-fit statistics for a lactate model
+#'
+#' Evaluates how well the fitted curve represents the measured data points
+#' by computing residuals, RMSE, R², and SEE on the raw (non-interpolated) data.
+#'
+#' @param model The fitted model object (lm, glm, or nls).
+#' @param raw_data The raw data tibble (from `data` column in prepare_fit output).
+#' @param bsln Whether baseline was included in fitting.
+#'
+#' @return A tibble with one row containing:
+#' \item{n_points}{Number of data points used for evaluation.}
+#' \item{rmse}{Root mean square error (mmol/L).}
+#' \item{r_squared}{Coefficient of determination.}
+#' \item{see}{Standard error of estimate (mmol/L).}
+#' \item{mae}{Mean absolute error (mmol/L).}
+#' \item{max_abs_error}{Maximum absolute residual (mmol/L).}
+#' \item{residuals}{List column with individual residuals per data point.}
+#'
+#' @keywords internal
+compute_fit_stats <- function(model, raw_data, bsln = FALSE) {
+  if (is.null(model) || is.null(raw_data)) {
+    return(dplyr::tibble(
+      n_points = NA_integer_, rmse = NA_real_, r_squared = NA_real_,
+      see = NA_real_, mae = NA_real_, max_abs_error = NA_real_,
+      residuals = list(NULL)
+    ))
+  }
+
+  # Use same data subset as fitting (with or without baseline)
+  if (bsln) {
+    eval_data <- raw_data
+  } else {
+    eval_data <- raw_data[-1, ]
+  }
+
+  # Predict on raw data points
+  predicted <- tryCatch(
+    stats::predict(model, newdata = data.frame(intensity = eval_data$intensity)),
+    error = function(e) rep(NA_real_, nrow(eval_data))
+  )
+
+  residuals <- eval_data$lactate - predicted
+  n <- length(residuals)
+
+  if (n < 2 || all(is.na(residuals))) {
+    return(dplyr::tibble(
+      n_points = n, rmse = NA_real_, r_squared = NA_real_,
+      see = NA_real_, mae = NA_real_, max_abs_error = NA_real_,
+      residuals = list(residuals)
+    ))
+  }
+
+  ss_res <- sum(residuals^2, na.rm = TRUE)
+  ss_tot <- sum((eval_data$lactate - mean(eval_data$lactate, na.rm = TRUE))^2, na.rm = TRUE)
+  n_valid <- sum(!is.na(residuals))
+  p <- length(stats::coef(model))  # number of parameters
+
+  rmse <- sqrt(ss_res / n_valid)
+  r_squared <- ifelse(ss_tot > 0, 1 - ss_res / ss_tot, NA_real_)
+  see <- ifelse(n_valid > p, sqrt(ss_res / (n_valid - p)), NA_real_)
+  mae <- mean(abs(residuals), na.rm = TRUE)
+  max_abs_error <- max(abs(residuals), na.rm = TRUE)
+
+  dplyr::tibble(
+    n_points = n_valid,
+    rmse = rmse,
+    r_squared = r_squared,
+    see = see,
+    mae = mae,
+    max_abs_error = max_abs_error,
+    residuals = list(residuals)
+  )
 }
 
 #' Prepare modified Dmax fits

@@ -239,5 +239,30 @@ lactate_threshold <- function(
     dplyr::arrange(method_category) %>%
     dplyr::mutate(method = forcats::as_factor(method))
 
+  ## attach fit statistics: Dmax methods carry their own per-method
+  ## fit stats (poly vs exp); other methods use the main prepare_fit stats.
+  ## After bind_rows, non-Dmax rows may have NA fit columns — fill them.
+  if ("fit_stats" %in% names(data_fit_prepared)) {
+    fs <- data_fit_prepared$fit_stats[[1]]
+    if (!is.null(fs) && nrow(fs) > 0) {
+      # Ensure columns exist
+      if (!"fit_rmse" %in% names(out)) out$fit_rmse <- NA_real_
+      if (!"fit_r_squared" %in% names(out)) out$fit_r_squared <- NA_real_
+      if (!"fit_see" %in% names(out)) out$fit_see <- NA_real_
+      if (!"fit_mae" %in% names(out)) out$fit_mae <- NA_real_
+      if (!"fit_n_points" %in% names(out)) out$fit_n_points <- NA_integer_
+      if (!"fit_type" %in% names(out)) out$fit_type <- NA_character_
+
+      # Fill NAs with the main prepare_fit stats
+      na_mask <- is.na(out$fit_rmse)
+      out$fit_rmse[na_mask]      <- fs$rmse
+      out$fit_r_squared[na_mask] <- fs$r_squared
+      out$fit_see[na_mask]       <- fs$see
+      out$fit_mae[na_mask]       <- fs$mae
+      out$fit_n_points[na_mask]  <- fs$n_points
+      out$fit_type[na_mask]      <- fit
+    }
+  }
+
   out
 }

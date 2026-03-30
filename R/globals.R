@@ -34,7 +34,7 @@ globalVariables(unique(c(
   # prepare_data:
   "heart_rate", "intensity", "lactate",
   # prepare_fit:
-  "model",
+  "model", "fit_stats", "bsln",
   # prepare_fit_dmax_mods:
   "intensity", "model",
   # retrieve_intensity:
