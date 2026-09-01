@@ -5,6 +5,7 @@
 * Added stronger input/model error handling for edge cases in fitting and segmentation routines.
 * Expanded test coverage with validation and golden-output regression tests for numerical stability.
 * Updated CI quality checks and coverage gates to better protect performance and correctness changes.
+* Fixed an underestimation of lactate threshold intensities: the intensity corresponding to a target lactate value is now found by solving the fitted model for its root rather than by linear interpolation (`approx`) between discrete curve points, which under-estimated the true intersection.
 
 # lactater 0.2.0
 
