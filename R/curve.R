@@ -45,46 +45,27 @@ lactate_curve <- function(
   if(missing(.data))
     stop("No data, no fun. Please, include your data to the function.", call. = FALSE)
 
-  ## make sure column names work unquoted too
-  intensity_column <- rlang::ensym(intensity_column)
-  lactate_column <- rlang::ensym(lactate_column)
-
   fit <- match.arg(arg = fit, several.ok = FALSE)
   sport <- match.arg(arg = sport, several.ok = FALSE)
 
-  if(!missing(heart_rate_column)) {
-    heart_rate_column <- rlang::ensym(heart_rate_column)
-    data_prepared <- prepare_data(
-      .data = .data,
-      intensity_column = {{ intensity_column }},
-      lactate_column = {{ lactate_column }},
-      heart_rate_column = {{ heart_rate_column }}
-    )
-  } else {
-    data_prepared <- prepare_data(
-      .data = .data,
-      intensity_column = {{ intensity_column }},
-      lactate_column = {{ lactate_column }}
-    )
-  }
-
-  data_fit_prepared <- data_prepared %>%
-    prepare_fit(
-      .data = .,
-      fit = fit,
-      include_baseline = include_baseline,
-      sport = sport
-    ) %>%
-    dplyr::select(data, lactate_curve = data_augmented)
+  ## column names work quoted or unquoted
+  data <- prepare_data(
+    .data = .data,
+    intensity_column = rlang::as_name(rlang::ensym(intensity_column)),
+    lactate_column = rlang::as_name(rlang::ensym(lactate_column)),
+    heart_rate_column = if(!missing(heart_rate_column)) rlang::as_name(rlang::ensym(heart_rate_column))
+  )
+  curve <- fit_curve(modeling_data(data, include_baseline), fit)
+  intensity <- seq(curve$domain[1], curve$domain[2], by = switch(sport, cycling = 0.1, running = 0.1, swimming = 0.01))
 
   out <- list(
-    data = position_rest(data_fit_prepared$data[[1]]),
-    lactate_curve = data_fit_prepared$lactate_curve[[1]] %>% dplyr::rename(lactate = .fitted)
+    data = position_rest(data),
+    lactate_curve = tibble::tibble(intensity = intensity, lactate = curve$predict(intensity))
   )
 
-  if(!missing(heart_rate_column)) {
-    stages <- data_prepared[data_prepared$intensity > 0 & !is.na(data_prepared$heart_rate), ]
-    out$heart_rate_response <- dplyr::tibble(intensity = stages$intensity, heart_rate = stages$heart_rate)
+  if("heart_rate" %in% names(data)) {
+    stages <- data[data$intensity > 0 & !is.na(data$heart_rate), ]
+    out$heart_rate_response <- tibble::tibble(intensity = stages$intensity, heart_rate = stages$heart_rate)
   }
   out
 }

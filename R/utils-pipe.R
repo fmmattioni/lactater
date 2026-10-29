@@ -9,3 +9,7 @@
 #' @importFrom magrittr %>%
 #' @usage lhs \%>\% rhs
 NULL
+
+#' @importFrom ggplot2 autoplot
+#' @export
+ggplot2::autoplot

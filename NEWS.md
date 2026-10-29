@@ -62,8 +62,41 @@
   numbers change (e.g. `demo_data` with the resting sample: Log-log 83.4 ->
   85.3 W, LTP2 147.6 -> 157.3 W). LTP now needs at least six stages.
 * New `ltp_fix_first_slope` fixes the slope before LTP1 at zero.
-* `lactate_threshold()` is ~3.5x faster (426 -> 118 ms on `demo_data` without
-  plots).
+
+* LTratio is now the exact minimum of lactate / intensity instead of the
+  nearest point on a 0.1 W (0.1 km/h, 0.01 m/s) grid.
+
+## New look
+
+* Every plot was redesigned: the method as the title, the threshold values
+  (intensity, lactate, heart rate, and pace for swimming) as the subtitle,
+  measured stages as dots with white rings, the fitted curve in red, the
+  threshold in blue with thin guides to both axes, the fit in the caption, and
+  axis titles with units. Log-log is drawn on log axes in real units. Colours
+  are checked for colour-vision deficiency.
+* New `theme_lactater()`, the ggplot2 theme behind every plot, to make your own
+  plots match.
+* `lactate_threshold()` now returns a `lactate_thresholds` tibble that prints
+  a one-line summary of the test and can be plotted directly: `autoplot(x)`
+  (or `plot(x)`) draws an overview with the fitted curve on top and every
+  threshold below on the same intensity axis, one row per method, so you can
+  see how much the methods agree; `autoplot(x, method = "Dmax")` draws one
+  method. `autoplot()` is re-exported from ggplot2. The `plot` column is still
+  there with `plot = TRUE`.
+
+## Faster and leaner
+
+* `lactate_threshold()` is ~18x faster than 0.3.0 (426 -> 24 ms for all
+  methods on `demo_data` without plots).
+* The exponential fit no longer needs starting values and cannot fail to
+  converge: for a fixed rate the model is linear, so only the rate is searched
+  (variable projection). Results match the previous `minpack.lm` fit on all
+  test datasets.
+* Eight dependencies were dropped: broom, dplyr, forcats, ggtext, lubridate,
+  minpack.lm, stringr and tidyr (plus pracma and segmented, above). ggplot2
+  4.0.0 or later is now required.
+* `method_category` is now the first column of the output.
+* A column name that is not in the data now gives a clear error.
 
 ## Data handling
 
@@ -73,6 +106,51 @@
   log-based methods failed on it with an unclear error).
 * `intensity` must be strictly increasing; this is now checked up front with a
   clear message.
+
+## New methods
+
+* `IAT`: the individual anaerobic threshold of Dickhuth et al. (1999), the
+  intensity 1.5 mmol/L above the lactate at LTratio on the same B-spline curve.
+  It is part of the default `method` set.
+* `vlamax()` estimates the maximal lactate accumulation rate from a separate
+  all-out sprint test: (peak post-sprint lactate - pre-sprint lactate) /
+  (sprint duration - alactic time), with the alactic time fixed at 3.5 s by
+  default, the most reliable option in Meixner et al. (2024). Its help page
+  explains the protocol and why VLamax should be compared only within the same
+  protocol.
+* `dmax_methods` chooses the Dmax variants, and adds `"LTP1-Poly-ModDmax"`
+  (a line from LTP1 instead of Log-log) on request.
+* `max_intensity` leaves stages above an intensity out of every method, for
+  example an incomplete last stage or a final plateau.
+
+## Analysis tools
+
+* `lactate_zones()` builds training zones (zone 1 below LT1, zone 2 between,
+  zone 3 above LT2; Hofmann & Tschakert, 2017) from the thresholds you choose
+  as LT1 and LT2 (any method in the results, or an intensity), with intensity,
+  pace, lactate and heart-rate ranges and a plot.
+* `ci = TRUE` adds bootstrap confidence intervals (`intensity_low`,
+  `intensity_high`) to every threshold: residuals around the fitted curve are
+  resampled (leverage-adjusted, Davison & Hinkley, 1997) and every method is
+  run again. Plots show them as bands and whiskers. On `demo_data` OBLA moves
+  by about +/-2 W, Dmax by about +/-4 W and the breakpoint methods by 15-35 W,
+  so reporting a threshold to 0.1 W is false precision.
+* `lactate_checks()` flags problems: too few stages, no resting sample,
+  thresholds not found or at the edge of the tested range, an early lactate dip,
+  no rise in the last stage, and fixed-concentration methods used on a
+  non-blood `sample`. The printed result says how many checks need attention.
+* `lactate_fit_quality()` fits every curve to the same points and reports
+  R-squared, RMSE, standard error of the estimate and the largest residual, to
+  help choose `fit` (thanks @Victorivus for the idea and #11).
+* `compare_tests()` compares two tests of the same athlete, method by method,
+  with a plot of both curves.
+* `.by` analyses many tests in one call (e.g. `.by = c("athlete", "date")`).
+* New `sample` argument (`"blood"`, `"plasma"`, `"sweat"`,
+  `"interstitial fluid"`), used by `lactate_checks()`.
+* New sport `"rowing"` (power in W) with the Concept2 split (s/500 m). Running
+  now gets a `pace` column too (s/km), and plot subtitles show pace as m:ss.
+* `heart_rate_column` now defaults to `NULL` (no heart rate), so it can be
+  passed programmatically.
 
 ## New arguments
 

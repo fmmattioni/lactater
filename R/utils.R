@@ -56,48 +56,18 @@ helper_data_protocol <- function(
   input_last_length_step,
   sport
 ) {
+  step <- seq(0, input_steps - 1)
   if(sport == "Swimming") {
-    steps <- input_steps
-
-    df <- dplyr::tibble(
-      step = seq(0, steps - 1, 1),
-      intensity = 0,
-      lactate = 0
-    )
-
+    df <- data.frame(step = step, intensity = 0, lactate = 0)
   } else {
-    steps <- input_steps
-    length_steps <- input_length_steps
-
-    tmp1 <- dplyr::tibble(
-      step = c(0, 1),
-      length = c(0, length_steps),
-      intensity = c(0, input_starting_load)
-    )
-
-    tmp2 <- dplyr::tibble(
-      step = seq(0, input_steps - 1, 1)[-1:-2],
-      length = c(0, rep(input_length_steps, input_steps - 1))[-1:-2]
-    )
-
-    if(!input_completed) {
-      input_last_length_step <- helper_last_length_step(input_last_length_step)
-
-      tmp2[nrow(tmp2), ]$length <- input_last_length_step
-    }
-
-    tmp2 <- tmp2 %>%
-      dplyr::mutate(intensity = cumsum((input_step_increase * length) / input_length_steps) + input_starting_load,
-                    length = length) %>%
-      dplyr::mutate(intensity = round(intensity, 2))
-
-    df <- dplyr::bind_rows(tmp1, tmp2) %>%
-      dplyr::mutate(lactate = 0)
+    length <- c(0, rep(input_length_steps, input_steps - 1))
+    if(!input_completed) length[input_steps] <- helper_last_length_step(input_last_length_step)
+    ## stage 1 is at the starting load; later stages add the increase pro rata to their length
+    increase <- cumsum(c(0, input_step_increase * length[-(1:2)] / input_length_steps))
+    df <- data.frame(step = step, length = length, intensity = c(0, round(input_starting_load + increase, 2)), lactate = 0)
   }
 
-  if(input_heart_rate_data)
-    df <- df %>%
-      dplyr::mutate(heart_rate = as.integer(0))
+  if(input_heart_rate_data) df$heart_rate <- 0L
 
   df
 }
@@ -110,17 +80,9 @@ helper_data_protocol <- function(
 #'
 #' @keywords internal
 helper_last_length_step <- function(last_length_step) {
-  if(length(last_length_step > 0) & !stringr::str_detect(last_length_step, ":")) {
-    out <- as.numeric(last_length_step)
-  } else if (length(last_length_step > 0) & stringr::str_detect(last_length_step, ":")){
-    out <- last_length_step %>%
-      lubridate::ms() %>%
-      lubridate::period_to_seconds() %>%
-      magrittr::divide_by(60) %>%
-      round(digits = 1)
-  }
-
-  out
+  if(!grepl(":", last_length_step, fixed = TRUE)) return(as.numeric(last_length_step))
+  min_sec <- as.numeric(strsplit(last_length_step, ":", fixed = TRUE)[[1]])
+  round(min_sec[1] + min_sec[2] / 60, digits = 1)
 }
 
 #' Render table for data input

@@ -5,17 +5,20 @@
 #' @param .data The raw data.
 #' @param intensity_column The name of the intensity column.
 #' @param lactate_column The name of the lactate column.
-#' @param heart_rate_column The name of the heart rate column, if applicable.
+#' @param heart_rate_column The name of the heart rate column, if applicable. The heart rate at each threshold is
+#' interpolated linearly between the measured stages.
 #' @param method The lactate threshold method to calculate. It can be one or many of the following:
-#' `Log-log`, `OBLA`, `Bsln+`, `Dmax`, `LTP`, `LTratio`. See `Details` for more information.
-#' Default to `c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio")`.
+#' `Log-log`, `OBLA`, `Bsln+`, `Dmax`, `LTP`, `LTratio`, `IAT`. See `Details` for more information.
+#' Default to all of them.
 #' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
 #' Please, note that a few lactate thresholds have default methods for this and cannot be changed.
 #' Options are `3rd degree polynomial`, `4th degree polynomial`, or `B-spline`. See `Details`.
 #' @param include_baseline A boolean to indicate whether to include the resting (baseline) sample in the fit. The resting sample is
 #' the row with intensity 0; it is placed one median step before the first stage. Data without a resting sample is fine.
 #' Rows with a missing intensity or lactate are dropped with a warning.
-#' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
+#' @param sport The sport at which the incremental test was performed. One of `cycling` (intensity in W), `running`
+#' (km/h), `swimming` (m/s), or `rowing` (W). For running, swimming and rowing a `pace` column is added: s/km,
+#' s/100 m, and the Concept2 split in s/500 m (`watts = 2.80 / pace^3`, pace in s/m).
 #' @param loglog_restrainer A scalar from 0 to 1 indicating the percentage of the data that you would like to
 #' restrain for fitting the Log-Log method. For example, `1` means no restriction (fits using the whole data), and `0.5` means that
 #' only the first 50% of the data will be used. Default to `1`.
@@ -24,11 +27,25 @@
 #' fitted curve, `"observed"` at the measured lactate of the start and end stages. See `Details`.
 #' @param ltp_fix_first_slope A boolean to indicate whether the first `LTP` segment (before LTP1) is flat
 #' (slope fixed at zero) instead of estimated. Default to `FALSE`.
+#' @param dmax_methods Which `Dmax` variants to calculate when `method` includes `Dmax`: one or more of
+#' `"Dmax"`, `"ModDmax"`, `"Exp-Dmax"`, `"LTP1-Poly-ModDmax"`, `"Log-Poly-ModDmax"`, and `"Log-Exp-ModDmax"`.
+#' Default to all but `"LTP1-Poly-ModDmax"` (a line from LTP1 instead of Log-log; not part of Jamnick et al., 2018).
+#' @param max_intensity Stages above this intensity are left out of every method (e.g. an incomplete last
+#' stage, or a last stage where lactate plateaus). Default to `NULL` (keep all stages).
+#' @param sample The sample the lactate was measured in: `"blood"` (default), `"plasma"`, `"sweat"`, or
+#' `"interstitial fluid"`. It does not change the calculations; [lactate_checks()] warns when a method relies on
+#' fixed blood lactate concentrations that do not transfer to the sample.
+#' @param ci A boolean to indicate whether to add bootstrap confidence intervals for the intensities
+#' (`intensity_low`, `intensity_high`). See `Details`. Default to `FALSE`.
+#' @param n_boot Number of bootstrap replicates when `ci = TRUE`. Default to `500`.
+#' @param ci_level Confidence level when `ci = TRUE`. Default to `0.95`.
+#' @param .by Names of columns that identify separate tests (e.g. `"athlete"`, or `c("athlete", "date")`).
+#' Each test is analysed on its own and the results are bound together, with the `.by` columns first.
 #' @param moddmax_rise The rise in lactate (mmol/L) between two consecutive stages that marks the
 #' first rise in `ModDmax`. Default to `0.4` (Bishop et al., 1998), a blood lactate value; change it
 #' for other sample types such as sweat.
 #'
-#' @return a tibble with the following columns:
+#' @return a `lactate_thresholds` tibble (plot it with [autoplot()] or [plot()]) with the following columns:
 #' \item{method_category}{the category of the lactate threshold method.}
 #' \item{method}{the method used to estimate the lactate threshold}
 #' \item{fitting}{the fitting method used to predict the lactate curve}
@@ -123,6 +140,21 @@
 #' using a B-spline regression curve. LTratio is then defined as the lowest value of the lactate / exercise intensity
 #' ratio, which attempts to describe the onset of the lactate increase (Dickhuth et al., 1999).
 #'
+#' ## Confidence intervals
+#'
+#' With `ci = TRUE`, each threshold gets a percentile bootstrap interval. Each replicate keeps the curve fitted to
+#' the data and adds residuals resampled with replacement (scaled by their leverage and centered; Davison &
+#' Hinkley, 1997), then every method is run again. The interval shows how much a threshold moves with this much
+#' scatter around the curve; it does not cover errors that are the same in every sample (analyser bias, sampling
+#' site). This approach has not been validated specifically for lactate thresholds. Call `set.seed()` first to make
+#' the intervals reproducible.
+#'
+#' ## IAT
+#'
+#' The individual anaerobic threshold (IAT) is the intensity at which lactate is 1.5 mmol/L above the
+#' lactate at LTratio, on the same B-spline curve (Dickhuth et al., 1999; as described by Heuberger et al., 2018).
+#' Like OBLA and Bsln+, it uses an absolute lactate step, so it assumes blood lactate.
+#'
 #' @references
 #'
 #' Beaver WL, Wasserman K, Whipp BJ. Improved detection of lactate threshold during exercise using a log-log transformation.
@@ -152,6 +184,8 @@
 #'
 #' Jamnick NA, Botella J, Pyne DB, Bishop DJ. Manipulating graded exercise test variables affects the validity of the lactate
 #' threshold and VO2peak. PLOS ONE. 2018;13(7):e0199794.
+#'
+#' Davison AC, Hinkley DV. Bootstrap Methods and Their Application. Cambridge University Press; 1997.
 #'
 #' Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive value
 #' of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
@@ -187,16 +221,23 @@ lactate_threshold <- function(
   .data,
   intensity_column,
   lactate_column,
-  heart_rate_column,
-  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"),
+  heart_rate_column = NULL,
+  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT"),
   fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
   include_baseline = FALSE,
-  sport = c("cycling", "running", "swimming"),
+  sport = c("cycling", "running", "swimming", "rowing"),
   loglog_restrainer = 1,
   plot = TRUE,
   dmax_anchor = c("fitted", "observed"),
   moddmax_rise = 0.4,
-  ltp_fix_first_slope = FALSE
+  ltp_fix_first_slope = FALSE,
+  dmax_methods = c("Dmax", "ModDmax", "Exp-Dmax", "Log-Poly-ModDmax", "Log-Exp-ModDmax"),
+  max_intensity = NULL,
+  sample = c("blood", "plasma", "sweat", "interstitial fluid"),
+  ci = FALSE,
+  n_boot = 500,
+  ci_level = 0.95,
+  .by = NULL
 ) {
 
   if(missing(.data))
@@ -210,68 +251,125 @@ lactate_threshold <- function(
   if(loglog_restrainer < 0 || loglog_restrainer > 1)
     stop("You can only choose a value between 0 and 1.", call. = FALSE)
 
-  ## make sure column names work unquoted too
-  intensity_column <- rlang::ensym(intensity_column)
-  lactate_column <- rlang::ensym(lactate_column)
-
   method <- match.arg(arg = method, several.ok = TRUE)
   fit <- match.arg(arg = fit, several.ok = FALSE)
   sport <- match.arg(arg = sport, several.ok = FALSE)
   dmax_anchor <- match.arg(arg = dmax_anchor)
   if(!is.numeric(moddmax_rise) || length(moddmax_rise) != 1 || is.na(moddmax_rise) || moddmax_rise <= 0)
     stop("`moddmax_rise` must be a single positive number (mmol/L).", call. = FALSE)
+  dmax_variants <- c("Dmax", "ModDmax", "Exp-Dmax", "LTP1-Poly-ModDmax", "Log-Poly-ModDmax", "Log-Exp-ModDmax")
+  if(length(dmax_methods) == 0 || !all(dmax_methods %in% dmax_variants))
+    stop(sprintf("`dmax_methods` must be one or more of: %s.", paste(dmax_variants, collapse = ", ")), call. = FALSE)
+  if(!is.null(max_intensity) && (!is.numeric(max_intensity) || length(max_intensity) != 1 || is.na(max_intensity)))
+    stop("`max_intensity` must be `NULL` or a single number.", call. = FALSE)
+  sample <- match.arg(arg = sample)
+  if(!is.logical(ci) || length(ci) != 1 || is.na(ci))
+    stop("`ci` must be `TRUE` or `FALSE`.", call. = FALSE)
+  if(ci && (!is.numeric(n_boot) || length(n_boot) != 1 || n_boot < 20 || !is.numeric(ci_level) || ci_level <= 0 || ci_level >= 1))
+    stop("`n_boot` must be a number >= 20 and `ci_level` a number between 0 and 1.", call. = FALSE)
 
-  if(!missing(heart_rate_column)) {
-    heart_rate_column <- rlang::ensym(heart_rate_column)
+  ## column names work quoted or unquoted
+  columns <- list(
+    intensity_column = rlang::as_name(rlang::enexpr(intensity_column)),
+    lactate_column = rlang::as_name(rlang::enexpr(lactate_column)),
+    heart_rate_column = if(!is.null(rlang::enexpr(heart_rate_column))) rlang::as_name(rlang::enexpr(heart_rate_column))
+  )
 
-    data_prepared <- prepare_data(
-      .data = .data,
-      intensity_column = {{ intensity_column }},
-      lactate_column = {{ lactate_column }},
-      heart_rate_column = {{ heart_rate_column }}
-    )
-
-  } else {
-
-    data_prepared <- prepare_data(
-      .data = .data,
-      intensity_column = {{ intensity_column }},
-      lactate_column = {{ lactate_column }}
-    )
-
+  if(!is.null(.by)) {
+    arguments <- c(columns, list(
+      method = method, fit = fit, include_baseline = include_baseline, sport = sport,
+      loglog_restrainer = loglog_restrainer, plot = plot, dmax_anchor = dmax_anchor,
+      moddmax_rise = moddmax_rise, ltp_fix_first_slope = ltp_fix_first_slope, dmax_methods = dmax_methods,
+      max_intensity = max_intensity, sample = sample, ci = ci, n_boot = n_boot, ci_level = ci_level
+    ))
+    return(lactate_threshold_by(.data, .by, arguments))
   }
 
-  data_fit_prepared <- data_prepared %>%
-    prepare_fit(
-      .data = .,
-      fit = fit,
-      include_baseline = include_baseline,
-      sport = sport
-    )
+  data <- do.call(prepare_data, c(list(.data = .data), columns))
+  if(!is.null(max_intensity)) {
+    data <- data[data$intensity <= max_intensity, ]
+    if(sum(data$intensity > 0) < 3)
+      stop("Fewer than 3 stages are left at or below `max_intensity`.", call. = FALSE)
+  }
 
-  results <- lapply(method, function(method_category) {
-    out_method <- switch (
-      method_category,
-      "Log-log" = method_loglog(data_prepared = data_fit_prepared, fit = fit, sport = sport, loglog_restrainer = loglog_restrainer, plot = plot),
-      "OBLA" = method_obla(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot),
-      "Bsln+" = method_bsln_plus(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot),
-      "Dmax" = method_dmax(data_prepared = data_fit_prepared, sport = sport, loglog_restrainer = loglog_restrainer, plot = plot, dmax_anchor = dmax_anchor, moddmax_rise = moddmax_rise),
-      "LTP" = method_ltp(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot, fix_first_slope = ltp_fix_first_slope),
-      "LTratio" = method_ltratio(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot)
-    )
-    out_method$method_category <- method_category
-    out_method
+  settings <- list(
+    fit = fit,
+    include_baseline = include_baseline,
+    sport = sport,
+    loglog_restrainer = loglog_restrainer,
+    dmax_anchor = dmax_anchor,
+    moddmax_rise = moddmax_rise,
+    ltp_fix_first_slope = ltp_fix_first_slope,
+    dmax_methods = dmax_variants[dmax_variants %in% dmax_methods],
+    sample = sample
+  )
+  computed <- compute_thresholds(data, settings, method)
+  curve <- computed$curve
+  rows <- computed$rows
+  plot_data <- computed$plot_data
+  categories <- method_categories
+
+  out <- tibble::tibble(
+    method_category = factor(rows$method_category, levels = categories),
+    method = factor(rows$method, levels = unique(rows$method)),
+    fitting = rows$fitting,
+    intensity = round(rows$intensity, digits = intensity_digits(sport))
+  )
+  intervals <- NULL
+  if(ci) {
+    intervals <- bootstrap_intervals(data, settings, method, curve, nrow(rows), n_boot, ci_level)
+    if(!is.null(intervals)) {
+      out$intensity_low <- round(intervals[, "low"], digits = intensity_digits(sport))
+      out$intensity_high <- round(intervals[, "high"], digits = intensity_digits(sport))
+    }
+  }
+  if(sport != "cycling") out$pace <- convert_to_pace(rows$intensity, sport)
+  out$lactate <- rows$lactate
+  if("heart_rate" %in% names(data)) out$heart_rate <- retrieve_heart_rate(data, rows$intensity)
+
+  if(plot) {
+    heart_rate <- if("heart_rate" %in% names(out)) out$heart_rate else rep(NA_real_, nrow(out))
+    out$plot <- lapply(seq_len(nrow(out)), function(i) {
+      plot_threshold(
+        method = as.character(out$method[i]),
+        intensity = rows$intensity[i],
+        lactate = out$lactate[i],
+        heart_rate = heart_rate[i],
+        plot_data = plot_data[[i]],
+        data = data,
+        settings = settings,
+        interval = if(!is.null(intervals)) intervals[i, ]
+      )
+    })
+  }
+
+  new_lactate_thresholds(out, data = data, curve = curve, settings = settings, plot_data = plot_data, intensity = rows$intensity, intervals = intervals)
+}
+
+#' Lactate thresholds by group
+#'
+#' Runs [lactate_threshold()] once per group and binds the results, with the group columns first.
+#' For internal use only.
+#'
+#' @param .data The raw data.
+#' @param .by The grouping column names.
+#' @param arguments The other [lactate_threshold()] arguments.
+#'
+#' @keywords internal
+lactate_threshold_by <- function(.data, .by, arguments) {
+  if(!is.character(.by) || !all(.by %in% names(.data)))
+    stop("`.by` must name one or more columns of the data.", call. = FALSE)
+  groups <- split(.data, .data[.by], drop = TRUE, sep = "\r")
+  results <- lapply(groups, function(group) {
+    result <- do.call(lactate_threshold, c(list(.data = group), arguments))
+    keys <- group[rep(1, nrow(result)), .by, drop = FALSE]
+    vctrs::vec_cbind(tibble::as_tibble(keys), tibble::as_tibble(unclass_thresholds(result)))
   })
+  vctrs::vec_rbind(!!!unname(results))
+}
 
-  out <- dplyr::bind_rows(results) %>%
-    dplyr::mutate(method_category = factor(method_category, levels = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"))) %>%
-    dplyr::arrange(method_category) %>%
-    dplyr::mutate(method = forcats::as_factor(method))
-
-  if("heart_rate" %in% colnames(data_prepared)) {
-    out <- out %>%
-      dplyr::mutate(heart_rate = retrieve_heart_rate(raw_data = data_prepared, intensity_value = intensity), .after = lactate)
-  }
-
-  out
+unclass_thresholds <- function(x) {
+  attr(x, "lactater") <- NULL
+  class(x) <- setdiff(class(x), "lactate_thresholds")
+  x
 }

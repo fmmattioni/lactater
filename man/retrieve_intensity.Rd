@@ -4,12 +4,10 @@
 \alias{retrieve_intensity}
 \title{Retrieve intensity}
 \usage{
-retrieve_intensity(data_augmented, model, lactate_value)
+retrieve_intensity(curve, lactate_value)
 }
 \arguments{
-\item{data_augmented}{The augmented data from the model (a fine intensity grid with \code{.fitted}).}
-
-\item{model}{The model chosen in \code{fit}.}
+\item{curve}{A curve from \code{fit_curve()}.}
 
 \item{lactate_value}{The lactate value.}
 }
@@ -19,7 +17,7 @@ curve never reaches \code{lactate_value} within the tested range.
 }
 \description{
 Retrieves the intensity at which the fitted lactate curve reaches a given lactate value,
-by solving the fitted model (not by interpolating between fitted points, which
+by solving the fitted curve (not by interpolating between fitted points, which
 under-estimates the intensity on a convex curve, see issue #8).
 }
 \keyword{internal}

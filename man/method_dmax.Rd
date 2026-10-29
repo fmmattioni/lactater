@@ -4,41 +4,18 @@
 \alias{method_dmax}
 \title{Dmax}
 \usage{
-method_dmax(
-  data_prepared,
-  sport,
-  loglog_restrainer = 1,
-  plot,
-  dmax_anchor = "fitted",
-  moddmax_rise = 0.4
-)
+method_dmax(data, curve, settings)
 }
 \arguments{
-\item{data_prepared}{The data retrieved from \code{prepare_fit()}.}
+\item{data}{The data retrieved from \code{prepare_data()}.}
 
-\item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
+\item{curve}{The user-selected curve from \code{fit_curve()}.}
 
-\item{loglog_restrainer}{A scalar from 0 to 1 indicating the percentage of the data that you would like to
-restrain for fitting the Log-Log method - This is going to be used in the \code{Log-Poly-ModDmax} and \code{Log-Exp-ModDmax} methods only.
-For example, \code{1} means no restriction (fits using the whole data), and \code{0.5} means that
-only the first 50\% of the data will be used. Default to \code{1}.}
-
-\item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
-
-\item{dmax_anchor}{Where the line's ends sit: \code{"fitted"} (on the fitted curve) or \code{"observed"}
-(at the measured lactate of the start and end stages). The Log-log start has no measured value,
-so it always sits on the curve.}
-
-\item{moddmax_rise}{The rise in lactate (mmol/L) between two consecutive stages that marks the
-first rise in ModDmax. Default to \code{0.4}.}
+\item{settings}{The analysis settings.}
 }
 \value{
-a tibble with the following columns:
-\item{method}{the method used to estimate the lactate threshold}
-\item{fitting}{the fitting method used to predict the lactate curve}
-\item{intensity}{the intensity associated with the estimated lactate threshold}
-\item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{plot}{the plot produced to display the lactate threshold}
+a list with the result \code{rows} (method, fitting, intensity, lactate) and the \code{plot_data}
+for each row.
 }
 \description{
 It applies the \code{Dmax} methods: \code{"Dmax"}, \code{"ModDmax"}, \code{"Exp-Dmax"}, \code{"Log-Poly-ModDmax"}, and \code{"Log-Exp-ModDmax"}.
@@ -51,10 +28,14 @@ line between two anchors. The variants differ in the fitted curve and in where t
 \item ModDmax: 3rd degree polynomial, from the stage preceding the first rise of at least
 \code{moddmax_rise} mmol/L.
 \item Exp-Dmax: exponential plus constant, from the first stage.
+\item LTP1-Poly-ModDmax: 3rd degree polynomial, from LTP1 (only when requested in \code{dmax_methods}).
 \item Log-Poly-ModDmax: 3rd degree polynomial, from the Log-log threshold.
 \item Log-Exp-ModDmax: exponential plus constant, from the Log-log threshold.
 }
 
-The line always ends at the last stage. The resting sample is never used.
+The line always ends at the last stage. The resting sample is never used. With
+\code{settings$dmax_anchor = "observed"} the line's ends sit at the measured lactate of the start
+and end stages instead of on the fitted curve; the Log-log start has no measured value, so it
+always sits on the curve.
 }
 \keyword{internal}

@@ -4,27 +4,21 @@
 \alias{method_obla}
 \title{Onset of Blood Lactate Accumulation (OBLA)}
 \usage{
-method_obla(data_prepared, fit, sport, plot)
+method_obla(data, curve, settings)
 }
 \arguments{
-\item{data_prepared}{The data retrieved from \code{prepare_data()}.}
+\item{data}{The data retrieved from \code{prepare_data()}.}
 
-\item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.}
+\item{curve}{The user-selected curve from \code{fit_curve()}.}
 
-\item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
-
-\item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
+\item{settings}{The analysis settings.}
 }
 \value{
-a tibble with the following columns:
-\item{method}{the method used to estimate the lactate threshold}
-\item{fitting}{the fitting method used to predict the lactate curve}
-\item{intensity}{the intensity associated with the estimated lactate threshold}
-\item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{plot}{the plot produced to display the lactate threshold}
+a list with the result \code{rows} (method, fitting, intensity, lactate) and the \code{plot_data}
+for each row.
 }
 \description{
-It applies the \code{OBLA} methods: \verb{OBLA 2.0 mmol/L}, \verb{OBLA 2.5 mmol/L}, \verb{OBLA 3.0 mmol/L},
-\verb{OBLA 3.5 mmol/L}, and \verb{OBLA 4.0 mmol/L}.
+It applies the \code{OBLA} methods: the intensity at which the fitted curve reaches 2.0, 2.5, 3.0,
+3.5, and 4.0 mmol/L.
 }
 \keyword{internal}

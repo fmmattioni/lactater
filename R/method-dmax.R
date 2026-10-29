@@ -9,91 +9,68 @@
 #' * ModDmax: 3rd degree polynomial, from the stage preceding the first rise of at least
 #'   `moddmax_rise` mmol/L.
 #' * Exp-Dmax: exponential plus constant, from the first stage.
+#' * LTP1-Poly-ModDmax: 3rd degree polynomial, from LTP1 (only when requested in `dmax_methods`).
 #' * Log-Poly-ModDmax: 3rd degree polynomial, from the Log-log threshold.
 #' * Log-Exp-ModDmax: exponential plus constant, from the Log-log threshold.
 #'
-#' The line always ends at the last stage. The resting sample is never used.
+#' The line always ends at the last stage. The resting sample is never used. With
+#' `settings$dmax_anchor = "observed"` the line's ends sit at the measured lactate of the start
+#' and end stages instead of on the fitted curve; the Log-log start has no measured value, so it
+#' always sits on the curve.
 #'
-#' @param data_prepared The data retrieved from `prepare_fit()`.
-#' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
-#' @param loglog_restrainer A scalar from 0 to 1 indicating the percentage of the data that you would like to
-#' restrain for fitting the Log-Log method - This is going to be used in the `Log-Poly-ModDmax` and `Log-Exp-ModDmax` methods only.
-#' For example, `1` means no restriction (fits using the whole data), and `0.5` means that
-#' only the first 50% of the data will be used. Default to `1`.
-#' @param plot A boolean to indicate whether to generate a plot from each one of the methods.
-#' @param dmax_anchor Where the line's ends sit: `"fitted"` (on the fitted curve) or `"observed"`
-#' (at the measured lactate of the start and end stages). The Log-log start has no measured value,
-#' so it always sits on the curve.
-#' @param moddmax_rise The rise in lactate (mmol/L) between two consecutive stages that marks the
-#' first rise in ModDmax. Default to `0.4`.
+#' @inheritParams method_obla
 #'
-#' @return a tibble with the following columns:
-#' \item{method}{the method used to estimate the lactate threshold}
-#' \item{fitting}{the fitting method used to predict the lactate curve}
-#' \item{intensity}{the intensity associated with the estimated lactate threshold}
-#' \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-#' \item{plot}{the plot produced to display the lactate threshold}
-#'
+#' @return a list with the result `rows` (method, fitting, intensity, lactate) and the `plot_data`
+#' for each row.
 #' @keywords internal
-method_dmax <- function(data_prepared, sport, loglog_restrainer = 1, plot, dmax_anchor = "fitted", moddmax_rise = 0.4) {
-  data_raw <- data_prepared$data[[1]]
-  fit_poly <- prepare_fit(.data = data_raw, fit = "3rd degree polynomial", include_baseline = FALSE, sport = sport)
-  fit_exp <- prepare_fit(.data = data_raw, fit = "Exponential", include_baseline = FALSE, sport = sport)
-
-  stages <- data_raw[data_raw$intensity > 0, ]
+method_dmax <- function(data, curve, settings) {
+  stages <- data[data$intensity > 0, ]
   n <- nrow(stages)
+  poly <- fit_curve(stages, "3rd degree polynomial")
+  expo <- fit_curve(stages, "Exponential")
+
   ## tolerance: 1.4 - 1.0 is 0.3999... in floating point
-  first_rise <- which(diff(stages$lactate) >= moddmax_rise - 1e-9)[1]
-  loglog_intensity <- loglog_breakpoint(stages, loglog_restrainer)$intensity
+  first_rise <- which(diff(stages$lactate) >= settings$moddmax_rise - 1e-9)[1]
+  wanted <- settings$dmax_methods
+  loglog_intensity <- if(any(grepl("^Log-", wanted))) loglog_breakpoint(stages, settings$loglog_restrainer)$intensity
+  ltp1_intensity <- if("LTP1-Poly-ModDmax" %in% wanted) {
+    fit_breakpoints(stages$intensity, stages$lactate, n_breakpoints = 2, flat_first = settings$ltp_fix_first_slope)$psi[1]
+  }
 
   variants <- list(
-    "Dmax" = list(fit = fit_poly, x0 = stages$intensity[1], y0 = stages$lactate[1]),
-    "ModDmax" = list(fit = fit_poly, x0 = stages$intensity[first_rise], y0 = stages$lactate[first_rise]),
-    "Exp-Dmax" = list(fit = fit_exp, x0 = stages$intensity[1], y0 = stages$lactate[1]),
-    "Log-Poly-ModDmax" = list(fit = fit_poly, x0 = loglog_intensity, y0 = NA_real_),
-    "Log-Exp-ModDmax" = list(fit = fit_exp, x0 = loglog_intensity, y0 = NA_real_)
-  )
+    "Dmax" = list(curve = poly, x0 = stages$intensity[1], y0 = stages$lactate[1]),
+    "ModDmax" = list(curve = poly, x0 = stages$intensity[first_rise], y0 = stages$lactate[first_rise]),
+    "Exp-Dmax" = list(curve = expo, x0 = stages$intensity[1], y0 = stages$lactate[1]),
+    "LTP1-Poly-ModDmax" = list(curve = poly, x0 = ltp1_intensity, y0 = NA_real_),
+    "Log-Poly-ModDmax" = list(curve = poly, x0 = loglog_intensity, y0 = NA_real_),
+    "Log-Exp-ModDmax" = list(curve = expo, x0 = loglog_intensity, y0 = NA_real_)
+  )[wanted]
 
-  out <- lapply(names(variants), function(method) {
-    v <- variants[[method]]
-    model <- v$fit$model[[1]]
-    curve <- function(x) unname(stats::predict(model, newdata = data.frame(intensity = x)))
+  results <- lapply(variants, function(v) {
     x0 <- v$x0
     x1 <- stages$intensity[n]
-    observed <- dmax_anchor == "observed" && !is.na(v$y0)
-    y0 <- if (is.na(x0)) NA_real_ else if (observed) v$y0 else curve(x0)
-    y1 <- if (dmax_anchor == "observed") stages$lactate[n] else curve(x1)
-    intensity <- dmax_point(curve, x0, y0, x1, y1)
-
-    v$fit %>%
-      dplyr::mutate(
-        data_augmented = list(dplyr::filter(data_augmented[[1]], is.na(x0) | intensity >= x0)),
-        method = method,
-        fitting = if (inherits(model, "nls")) "Exponential (default)" else "3rd degree polynomial (default)",
-        intensity = intensity,
-        lactate = if (is.na(intensity)) NA_real_ else round(curve(intensity), 1),
-        data_plot_line = list(data.frame(intensity = c(x0, x1), lactate = c(y0, y1)))
+    observed <- settings$dmax_anchor == "observed"
+    y0 <- if(is.na(x0)) NA_real_ else if(observed && !is.na(v$y0)) v$y0 else v$curve$predict(x0)
+    y1 <- if(observed) stages$lactate[n] else v$curve$predict(x1)
+    intensity <- dmax_point(v$curve$predict, x0, y0, x1, y1)
+    list(
+      intensity = intensity,
+      lactate = if(is.na(intensity)) NA_real_ else retrieve_lactate(v$curve, intensity),
+      plot_data = list(
+        curve = curve_points(v$curve, from = if(is.na(x0)) v$curve$domain[1] else x0),
+        line = data.frame(intensity = c(x0, x1), lactate = c(y0, y1)),
+        fitting = v$curve$fit
       )
-  }) %>%
-    dplyr::bind_rows()
-
-  if(plot) {
-    out$plot <- lapply(seq_len(nrow(out)), function(i) suppressWarnings(plot_lactate(data_processed = out[i, ], method = out$method[i])))
-  }
-
-  if(sport == "swimming") {
-    out <- out %>%
-      dplyr::mutate(pace = convert_to_pace(speed = intensity))
-  }
-
-  out <- out %>%
-    dplyr::select(dplyr::any_of(c("method", "fitting", "intensity", "pace", "lactate", "heart_rate", "plot"))) %>%
-    dplyr::mutate(
-      method = factor(method, levels = names(variants)),
-      intensity = round(intensity, digits = switch(sport, cycling = 1, running = 2, swimming = 3))
     )
+  })
 
-  out
+  method_result(
+    method = names(variants),
+    fitting = ifelse(vapply(variants, function(v) v$curve$fit, "") == "Exponential", "Exponential (default)", "3rd degree polynomial (default)"),
+    intensity = vapply(results, `[[`, numeric(1), "intensity"),
+    lactate = vapply(results, `[[`, numeric(1), "lactate"),
+    plot_data = unname(lapply(results, `[[`, "plot_data"))
+  )
 }
 
 #' Dmax point

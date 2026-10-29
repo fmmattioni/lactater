@@ -1,52 +1,38 @@
 #' Retrieve intensity
 #'
 #' Retrieves the intensity at which the fitted lactate curve reaches a given lactate value,
-#' by solving the fitted model (not by interpolating between fitted points, which
+#' by solving the fitted curve (not by interpolating between fitted points, which
 #' under-estimates the intensity on a convex curve, see issue #8).
 #'
-#' @param data_augmented The augmented data from the model (a fine intensity grid with `.fitted`).
-#' @param model The model chosen in `fit`.
+#' @param curve A curve from `fit_curve()`.
 #' @param lactate_value The lactate value.
 #'
 #' @return the intensity associated with the estimated lactate threshold, or `NA` when the
 #' curve never reaches `lactate_value` within the tested range.
 #' @keywords internal
-#' @importFrom stats predict uniroot
-retrieve_intensity <- function(data_augmented, model, lactate_value) {
-  x <- data_augmented$intensity
-  gap <- data_augmented$.fitted - lactate_value
+#' @importFrom stats uniroot
+retrieve_intensity <- function(curve, lactate_value) {
+  x <- seq(curve$domain[1], curve$domain[2], length.out = 2001)
+  gap <- curve$predict(x) - lactate_value
   crossings <- which(gap[-1] * gap[-length(gap)] <= 0)
   if (length(crossings) == 0) return(NA_real_)
 
   ## the curve can cross the target more than once (early lactate dip): keep the highest intensity
   i <- max(crossings)
-  uniroot(
-    function(v) predict(model, newdata = data.frame(intensity = v)) - lactate_value,
-    lower = x[i], upper = x[i + 1], tol = 1e-8
-  )$root
+  uniroot(function(v) curve$predict(v) - lactate_value, lower = x[i], upper = x[i + 1], tol = 1e-8)$root
 }
 
 #' Retrieve lactate
 #'
-#' Retrieves the lactate associated to a given intensity value.
-#' It is mainly for internal use but it is exported for possible extensions.
+#' Retrieves the fitted lactate at given intensities, rounded to 0.1 mmol/L.
 #'
-#' @param model The model chosen in `fit`.
-#' @param intensity_value The intensity value.
+#' @param curve A curve from `fit_curve()`.
+#' @param intensity_value The intensity values.
 #'
 #' @return the lactate associated with the estimated lactate threshold
 #' @keywords internal
-#' @importFrom stats predict
-retrieve_lactate <- function(model, intensity_value) {
-
-  new_data <- data.frame(intensity = intensity_value)
-
-  out <- predict(object = model, newdata = new_data)
-
-  out <- round(x = out, digits = 1)
-
-  out
-
+retrieve_lactate <- function(curve, intensity_value) {
+  round(curve$predict(intensity_value), digits = 1)
 }
 
 #' Retrieve heart rate
@@ -66,4 +52,3 @@ retrieve_heart_rate <- function(raw_data, intensity_value) {
   if (nrow(stages) < 2) return(rep(NA_real_, length(intensity_value)))
   round(approx(stages$intensity, stages$heart_rate, xout = intensity_value)$y)
 }
-

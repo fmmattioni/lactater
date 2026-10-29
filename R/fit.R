@@ -1,121 +1,79 @@
-#' Prepare fit
+#' Fit a lactate curve
 #'
-#' This is an obligatory step before applying any lactate threshold method.
-#' This function will model the raw data as well as make all the necessary data wrangling.
+#' Fits the lactate curve used by the threshold methods. For internal use only.
 #'
-#' @param .data The data retrieved from `prepare_data()`.
-#' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
-#' Please, note that a few lactate thresholds have default methods for this and cannot be changed. See `Details`.
-#' @param include_baseline A boolean to indicate whether to include the baseline value in the fit.
-#' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
+#' * `"3rd degree polynomial"` and `"4th degree polynomial"`: ordinary least squares on raw powers.
+#' * `"B-spline"`: a natural cubic regression spline with 4 degrees of freedom (`splines::ns()`).
+#' * `"Exponential"`: the exponential plus constant `a + b * exp(c * x)` (Hughson et al., 1987). For a
+#'   fixed `c` the model is linear in `a` and `b`, so only `c` is searched (variable projection):
+#'   no starting values are needed and the fit cannot fail to converge.
 #'
-#' @return a tibble with the following nested columns:
-#' \item{data}{The raw data.}
-#' \item{model}{The model chosen in the `fit` parameter.}
-#' \item{data_augmented}{The augmented data retrieved from the model.}
-#' \item{bsln}{A boolean indicating the `include_baseline` argument.}
+#' @param points A data frame with `intensity` and `lactate`.
+#' @param fit The curve type.
 #'
+#' @return a list with the `fit` type, the `points`, the `domain` (intensity range of the points),
+#' the `coefficients`, `predict`, a function returning the fitted lactate at given intensities, and,
+#' for the fits that are linear in their parameters, the `leverage` of each point.
 #' @keywords internal
-#'
-#' @importFrom stats lm glm
-prepare_fit <- function(
-  .data,
-  fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline", "Exponential"),
-  include_baseline = FALSE,
-  sport = c("cycling", "running", "swimming")
-) {
-
-  if(missing(.data))
-    stop("No data, no fun. Please, include your data to the function.", call. = FALSE)
-
-  if(!any(colnames(.data) %in% c("intensity", "lactate")))
-    stop("It looks like you didn't prepare your data. Please, call `prepare_data()` before.", call. = FALSE)
-  if(!all(c("intensity", "lactate") %in% colnames(.data)))
-    stop("The data must contain both `intensity` and `lactate` columns.", call. = FALSE)
-  if(nrow(.data) < 3)
-    stop("At least 3 rows are required to fit lactate curves reliably.", call. = FALSE)
-  if(anyNA(.data$intensity) || anyNA(.data$lactate))
-    stop("Missing values in `intensity`/`lactate` are not supported. Please remove or impute NAs first.", call. = FALSE)
-  if(!is.numeric(.data$intensity) || !is.numeric(.data$lactate))
-    stop("`intensity` and `lactate` columns must be numeric.", call. = FALSE)
-  if(any(diff(.data$intensity) <= 0))
-    stop("`intensity` must be strictly increasing.", call. = FALSE)
-
-  fit <- match.arg(arg = fit)
-  sport <- match.arg(arg = sport)
-
-  switch (
-    sport,
-    "cycling" = interpolation_factor <- 0.1,
-    "running" = interpolation_factor <- 0.1,
-    "swimming" = interpolation_factor <- 0.01
+fit_curve <- function(points, fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline", "Exponential")) {
+  fit <- match.arg(fit)
+  x <- points$intensity
+  y <- points$lactate
+  curve <- switch(
+    fit,
+    "3rd degree polynomial" = fit_polynomial(x, y, degree = 3),
+    "4th degree polynomial" = fit_polynomial(x, y, degree = 4),
+    "B-spline" = fit_spline(x, y),
+    "Exponential" = fit_exponential(x, y)
   )
+  c(list(fit = fit, points = points, domain = range(x)), curve)
+}
 
-  data_for_modeling <- modeling_data(.data, include_baseline)
+fit_polynomial <- function(x, y, degree) {
+  powers <- function(v) outer(v, 0:degree, "^")
+  fit <- stats::lm.fit(powers(x), y)
+  coefficients <- unname(fit$coefficients)
+  list(coefficients = coefficients, predict = function(v) drop(powers(v) %*% coefficients), leverage = leverage(fit))
+}
 
-  data_pre_processed <- .data %>%
-    tidyr::nest(data = dplyr::everything())
+fit_spline <- function(x, y) {
+  basis <- splines::ns(x, df = 4)
+  fit <- stats::lm.fit(cbind(1, basis), y)
+  coefficients <- unname(fit$coefficients)
+  list(
+    coefficients = coefficients,
+    predict = function(v) drop(cbind(1, stats::predict(basis, v)) %*% coefficients),
+    leverage = leverage(fit)
+  )
+}
 
-  new_data_model <- data.frame(intensity = seq(min(data_for_modeling$intensity), max(data_for_modeling$intensity), interpolation_factor))
+## diagonal of the hat matrix
+leverage <- function(fit) {
+  rowSums(qr.Q(fit$qr)[, seq_len(fit$rank), drop = FALSE]^2)
+}
 
-  if(fit == "3rd degree polynomial") {
-    out <- data_pre_processed %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(
-        model = lm(lactate ~ poly(intensity, degree = 3, raw = TRUE), data = data_for_modeling) %>% list(),
-        data_augmented = broom::augment(model, newdata = new_data_model, type.predict = "response") %>% list()
-      ) %>%
-      dplyr::ungroup()
-
-  } else if(fit == "4th degree polynomial") {
-    out <- data_pre_processed %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(
-        model = lm(lactate ~ poly(intensity, degree = 4, raw = TRUE), data = data_for_modeling) %>% list(),
-        data_augmented = broom::augment(model, newdata = new_data_model, type.predict = "response") %>% list()
-      ) %>%
-      dplyr::ungroup()
-
-  } else if(fit == "B-spline") {
-    out <- data_pre_processed %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(
-        model = glm(lactate ~ splines::ns(intensity, 4), data = data_for_modeling) %>% list(),
-        data_augmented = broom::augment(model, newdata = new_data_model, type.predict = "response") %>% list()
-      ) %>%
-      dplyr::ungroup()
-
-  } else if(fit == "Exponential") {
-    out <- data_pre_processed %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(
-        model = tryCatch(
-          minpack.lm::nlsLM(
-            formula = lactate ~ a + (b * exp(c * intensity)),
-            data = data_for_modeling,
-            start = list(a = 0, b = 1, c = 0),
-            control = list(maxiter = 1000)
-          ),
-          error = function(e) {
-            stop("Exponential fit failed to converge. Try another fit method or verify your input data.", call. = FALSE)
-          }
-        ) %>% list(),
-        data_augmented = broom::augment(model, newdata = new_data_model, type.predict = "response") %>% list()
-      ) %>%
-      dplyr::ungroup()
-
-  }
-
-  out <- out %>%
-    dplyr::mutate(bsln = include_baseline)
-
-  out
+fit_exponential <- function(x, y) {
+  ## search the rate on intensities scaled to [0, 1] for conditioning
+  width <- diff(range(x))
+  scaled <- (x - min(x)) / width
+  linear_part <- function(k) stats::lm.fit(cbind(1, exp(k * scaled)), y)
+  rss <- function(k) sum(linear_part(k)$residuals^2)
+  ## shortcut: rates beyond 40 (a 2e17-fold rise across the test) are not lactate curves
+  grid <- c(seq(-20, -0.05, length.out = 100), seq(0.05, 40, length.out = 400))
+  best <- which.min(vapply(grid, rss, numeric(1)))
+  k <- stats::optimize(rss, grid[c(max(best - 1, 1), min(best + 1, length(grid)))], tol = 1e-10)$minimum
+  ab <- linear_part(k)$coefficients
+  c_ <- k / width
+  a <- unname(ab[1])
+  b <- unname(ab[2] * exp(-c_ * min(x)))
+  list(coefficients = c(a = a, b = b, c = c_), predict = function(v) a + b * exp(c_ * v))
 }
 
 #' Data used for modeling
 #'
 #' The exercise stages, plus the positioned resting sample when `include_baseline = TRUE`.
-#' `data` keeps the resting sample at intensity 0; only the fit places it one step before stage 1.
+#' The prepared data keeps the resting sample at intensity 0; only the fit places it one step
+#' before stage 1 (see `position_rest()`).
 #'
 #' @param .data The data retrieved from `prepare_data()`.
 #' @param include_baseline Whether to include the resting sample.
@@ -123,4 +81,17 @@ prepare_fit <- function(
 #' @keywords internal
 modeling_data <- function(.data, include_baseline) {
   if(include_baseline) position_rest(.data) else .data[.data$intensity > 0, ]
+}
+
+#' Points along a fitted curve
+#'
+#' @param curve A curve from `fit_curve()`.
+#' @param from Where to start (default: the start of the curve's domain).
+#' @param n Number of points.
+#'
+#' @return a data frame with `intensity` and `lactate`.
+#' @keywords internal
+curve_points <- function(curve, from = curve$domain[1], n = 200) {
+  intensity <- seq(from, curve$domain[2], length.out = n)
+  data.frame(intensity = intensity, lactate = curve$predict(intensity))
 }

@@ -24,12 +24,13 @@ fit_breakpoints <- function(x, y, n_breakpoints, flat_first = FALSE, min_points 
   rss <- function(psi) {
     counts <- tabulate(findInterval(x, psi) + 1, n_breakpoints + 1)
     if (is.unsorted(psi, strictly = TRUE) || any(counts < min_points)) return(Inf)
-    sum(.lm.fit(breakpoint_design(x, psi, flat_first), y)$residuals^2)
+    sum(stats::.lm.fit(breakpoint_design(x, psi, flat_first), y)$residuals^2)
   }
 
-  candidates <- seq(x[min_points], x[n - min_points + 1], length.out = if (n_breakpoints == 1) 400 else 120)
+  ## a coarse grid finds the basin of the global optimum; the refinement below makes it exact
+  candidates <- seq(x[min_points], x[n - min_points + 1], length.out = if (n_breakpoints == 1) 100 else 50)
   grid <- as.matrix(expand.grid(rep(list(candidates), n_breakpoints)))
-  grid <- grid[apply(grid, 1, function(psi) !is.unsorted(psi, strictly = TRUE)), , drop = FALSE]
+  if (n_breakpoints == 2) grid <- grid[grid[, 1] < grid[, 2], , drop = FALSE]
   start <- grid[which.min(apply(grid, 1, rss)), ]
 
   psi <- if (n_breakpoints == 1) {
@@ -42,7 +43,7 @@ fit_breakpoints <- function(x, y, n_breakpoints, flat_first = FALSE, min_points 
 
   list(
     psi = unname(psi),
-    coefficients = .lm.fit(breakpoint_design(x, psi, flat_first), y)$coefficients,
+    coefficients = stats::.lm.fit(breakpoint_design(x, psi, flat_first), y)$coefficients,
     x = x,
     y = y,
     flat_first = flat_first

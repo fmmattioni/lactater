@@ -4,16 +4,16 @@
 \alias{prepare_data}
 \title{Prepare raw data}
 \usage{
-prepare_data(.data, intensity_column, lactate_column, heart_rate_column)
+prepare_data(.data, intensity_column, lactate_column, heart_rate_column = NULL)
 }
 \arguments{
 \item{.data}{The raw data.}
 
-\item{intensity_column}{The name of the intensity column.}
+\item{intensity_column}{The name of the intensity column, as a string.}
 
-\item{lactate_column}{The name of the lactate column.}
+\item{lactate_column}{The name of the lactate column, as a string.}
 
-\item{heart_rate_column}{The name of the heart rate column, if applicable.}
+\item{heart_rate_column}{The name of the heart rate column, as a string, or \code{NULL}.}
 }
 \value{
 a tibble with the following columns:

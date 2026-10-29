@@ -32,32 +32,26 @@ Suggests:
     bsplus,
     covr,
     datapasta,
-    glue,
     knitr,
     lintr,
     miniUI,
+    pillar,
     rhandsontable,
     rmarkdown,
     shiny,
     shinyjs,
     shinyWidgets,
     spelling,
-    tibble,
     testthat (>= 3.0.0)
 Imports: 
+    ggplot2 (>= 4.0.0),
     magrittr,
-    broom,
-    dplyr,
-    ggplot2,
-    ggtext,
     patchwork,
-    lubridate,
-    minpack.lm,
     rlang,
     splines,
-    stringr,
-    tidyr,
-    forcats
+    stats,
+    tibble,
+    vctrs
 Depends: 
     R (>= 4.1.0)
 Language: en-US

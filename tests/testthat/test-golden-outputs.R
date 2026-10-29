@@ -30,7 +30,8 @@ test_that("demo_data golden outputs stay stable", {
     "Dmax", "Log-Exp-ModDmax", 155.4, 4.7, 184,
     "LTP", "LTP1", 88.9, 1.5, 145,
     "LTP", "LTP2", 157.3, 4.9, 185,
-    "LTratio", "LTratio", 71.2, 1.2, 131
+    "LTratio", "LTratio", 71.2, 1.2, 131,
+    "IAT", "IAT", 122.2, 2.7, 168
   )
   expect_thresholds(golden_run(fixtures$demo), expected)
 })
@@ -54,7 +55,8 @@ test_that("noisy fixture outputs stay stable", {
     "Dmax", "Log-Exp-ModDmax", 156.6, 4.7, 186,
     "LTP", "LTP1", 113.7, 2.3, 163,
     "LTP", "LTP2", 167.9, 5.8, 191,
-    "LTratio", "LTratio", 74.4, 1.3, 133
+    "LTratio", "LTratio", 74.4, 1.3, 133,
+    "IAT", "IAT", 125.0, 2.8, 171
   )
   expect_thresholds(golden_run(fixtures$noisy), expected)
 })

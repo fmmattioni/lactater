@@ -13,6 +13,7 @@ modeling_data(.data, include_baseline)
 }
 \description{
 The exercise stages, plus the positioned resting sample when \code{include_baseline = TRUE}.
-\code{data} keeps the resting sample at intensity 0; only the fit places it one step before stage 1.
+The prepared data keeps the resting sample at intensity 0; only the fit places it one step
+before stage 1 (see \code{position_rest()}).
 }
 \keyword{internal}

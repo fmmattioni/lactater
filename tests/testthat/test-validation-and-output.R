@@ -36,6 +36,7 @@ test_that("individual methods return expected number of rows", {
   expect_equal(nrow(do.call(lactate_threshold, c(common_args, list(method = "Dmax")))), 5)
   expect_equal(nrow(do.call(lactate_threshold, c(common_args, list(method = "LTP")))), 2)
   expect_equal(nrow(do.call(lactate_threshold, c(common_args, list(method = "LTratio")))), 1)
+  expect_equal(nrow(do.call(lactate_threshold, c(common_args, list(method = "IAT")))), 1)
 })
 
 test_that("input validation errors are informative", {

@@ -4,32 +4,23 @@
 \alias{method_ltp}
 \title{Lactate Turning Point (LTP)}
 \usage{
-method_ltp(data_prepared, fit, sport, plot, fix_first_slope = FALSE)
+method_ltp(data, curve, settings)
 }
 \arguments{
-\item{data_prepared}{The data retrieved from \code{prepare_fit()}.}
+\item{data}{The data retrieved from \code{prepare_data()}.}
 
-\item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.}
+\item{curve}{The user-selected curve from \code{fit_curve()}.}
 
-\item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
-
-\item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
-
-\item{fix_first_slope}{Whether the first segment (before LTP1) is flat (slope fixed at 0).}
+\item{settings}{The analysis settings.}
 }
 \value{
-a tibble with the following columns:
-\item{method}{the method used to estimate the lactate threshold}
-\item{fitting}{the fitting method used to predict the lactate curve}
-\item{intensity}{the intensity associated with the estimated lactate threshold}
-\item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{plot}{the plot produced to display the lactate threshold}
+a list with the result \code{rows} (method, fitting, intensity, lactate) and the \code{plot_data}
+for each row.
 }
 \description{
-It applies the \code{LTP} methods: \code{LTP1}, and \code{LTP2}.
-}
-\details{
-A three-segment continuous linear regression is fitted to the measured points; the two breakpoints with the
-lowest residual sum of squares are found by exhaustive search (see \code{fit_breakpoints()}).
+It applies the \code{LTP} methods: \code{LTP1}, and \code{LTP2}. A three-segment continuous linear regression
+is fitted to the measured points; the two breakpoints with the lowest residual sum of squares
+are found by exhaustive search (see \code{fit_breakpoints()}). With \code{ltp_fix_first_slope} the first
+segment is flat.
 }
 \keyword{internal}
