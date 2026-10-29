@@ -1,95 +1,60 @@
-test_that("demo_data golden outputs stay stable", {
-  results <- lactate_threshold(
-    .data = demo_data,
+golden_run <- function(.data) {
+  lactate_threshold(
+    .data = .data,
     intensity_column = "intensity",
     lactate_column = "lactate",
     heart_rate_column = "heart_rate",
-    method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"),
     fit = "3rd degree polynomial",
     include_baseline = TRUE,
     sport = "cycling",
     plot = FALSE
-  ) %>%
-    dplyr::select(method_category, method, intensity, lactate, heart_rate)
+  )
+}
 
+test_that("demo_data golden outputs stay stable", {
   expected <- tibble::tribble(
     ~method_category, ~method, ~intensity, ~lactate, ~heart_rate,
-    "Log-log", "Log-log", 83.4, 1.4, 140,
-    "OBLA", "OBLA 2.0", 105.0, 2.0, 153,
-    "OBLA", "OBLA 2.5", 118.0, 2.5, 160,
-    "OBLA", "OBLA 3.0", 129.0, 3.0, 167,
-    "OBLA", "OBLA 3.5", 137.0, 3.5, 171,
-    "OBLA", "OBLA 4.0", 145.0, 4.0, 176,
-    "Bsln+", "Bsln + 0.5", 82.5, 1.43, 139,
-    "Bsln+", "Bsln + 1.0", 104.0, 1.93, 152,
-    "Bsln+", "Bsln + 1.5", 117.0, 2.43, 159,
-    "Dmax", "Dmax", 132.0, 3.1, 168,
-    "Dmax", "ModDmax", 140.0, 3.6, 173,
-    "Dmax", "Exp-Dmax", 135.0, 3.3, 170,
-    "Dmax", "Log-Poly-ModDmax", 143.0, 3.8, 175,
-    "Dmax", "Log-Exp-ModDmax", 146.0, 4.0, 177,
-    "LTP", "LTP1", 88.8, 1.5, 143,
-    "LTP", "LTP2", 148.0, 4.1, 178,
-    "LTratio", "LTratio", 71.2, 1.2, 132
+    "Log-log", "Log-log", 85.3, 1.4, 142,
+    "OBLA", "OBLA 2.0", 106.8, 2.0, 158,
+    "OBLA", "OBLA 2.5", 119.7, 2.5, 167,
+    "OBLA", "OBLA 3.0", 129.9, 3.0, 172,
+    "OBLA", "OBLA 3.5", 138.4, 3.5, 176,
+    "OBLA", "OBLA 4.0", 145.8, 4.0, 180,
+    "Bsln+", "Bsln + 0.5", 84.5, 1.43, 142,
+    "Bsln+", "Bsln + 1.0", 104.6, 1.93, 157,
+    "Bsln+", "Bsln + 1.5", 118.1, 2.43, 166,
+    "Dmax", "Dmax", 131.7, 3.1, 173,
+    "Dmax", "ModDmax", 139.7, 3.6, 177,
+    "Dmax", "Exp-Dmax", 134.8, 3.3, 175,
+    "Dmax", "Log-Poly-ModDmax", 153.2, 4.5, 183,
+    "Dmax", "Log-Exp-ModDmax", 155.4, 4.7, 184,
+    "LTP", "LTP1", 88.9, 1.5, 145,
+    "LTP", "LTP2", 157.3, 4.9, 185,
+    "LTratio", "LTratio", 71.2, 1.2, 131
   )
-
-  joined <- results %>%
-    dplyr::mutate(method = as.character(method), method_category = as.character(method_category)) %>%
-    dplyr::left_join(expected, by = c("method_category", "method"), suffix = c("_obs", "_exp"))
-
-  expect_equal(nrow(joined), 17)
-  expect_true(all(!is.na(joined$intensity_exp)))
-  expect_equal(unname(joined$intensity_obs), unname(joined$intensity_exp), tolerance = 0.15)
-  expect_equal(unname(joined$lactate_obs), unname(joined$lactate_exp), tolerance = 0.05)
-  expect_equal(unname(joined$heart_rate_obs), unname(joined$heart_rate_exp), tolerance = 1)
+  expect_thresholds(golden_run(fixtures$demo), expected)
 })
 
-test_that("noisy fixture outputs stay within golden tolerance", {
-  noisy_data <- demo_data
-  noisy_data$lactate <- c(0.93, 1.02, 1.30, 1.95, 2.72, 4.35, 6.45, 8.55)
-  noisy_data$heart_rate <- c(96, 115, 133, 153, 171, 183, 194, 198)
-
-  results <- lactate_threshold(
-    .data = noisy_data,
-    intensity_column = "intensity",
-    lactate_column = "lactate",
-    heart_rate_column = "heart_rate",
-    method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"),
-    fit = "3rd degree polynomial",
-    include_baseline = TRUE,
-    sport = "cycling",
-    plot = FALSE
-  ) %>%
-    dplyr::select(method_category, method, intensity, lactate, heart_rate)
-
+test_that("noisy fixture outputs stay stable", {
   expected <- tibble::tribble(
     ~method_category, ~method, ~intensity, ~lactate, ~heart_rate,
-    "Log-log", "Log-log", 87.3, 1.5, 142,
-    "OBLA", "OBLA 2.0", 104.0, 2.0, 152,
-    "OBLA", "OBLA 2.5", 118.0, 2.5, 160,
-    "OBLA", "OBLA 3.0", 129.0, 3.0, 167,
-    "OBLA", "OBLA 3.5", 137.0, 3.5, 172,
-    "OBLA", "OBLA 4.0", 145.0, 4.0, 177,
-    "Bsln+", "Bsln + 0.5", 79.7, 1.43, 138,
-    "Bsln+", "Bsln + 1.0", 102.0, 1.93, 151,
-    "Bsln+", "Bsln + 1.5", 116.0, 2.43, 159,
-    "Dmax", "Dmax", 132.0, 3.1, 169,
-    "Dmax", "ModDmax", 141.0, 3.6, 174,
-    "Dmax", "Exp-Dmax", 135.0, 3.3, 170,
-    "Dmax", "Log-Poly-ModDmax", 145.0, 3.9, 177,
-    "Dmax", "Log-Exp-ModDmax", 147.0, 4.0, 178,
-    "LTP", "LTP1", 81.9, 1.4, 139,
-    "LTP", "LTP2", 139.0, 3.5, 173,
-    "LTratio", "LTratio", 74.4, 1.3, 134
+    "Log-log", "Log-log", 86.7, 1.5, 142,
+    "OBLA", "OBLA 2.0", 105.3, 2.0, 157,
+    "OBLA", "OBLA 2.5", 118.9, 2.5, 167,
+    "OBLA", "OBLA 3.0", 129.5, 3.0, 173,
+    "OBLA", "OBLA 3.5", 138.3, 3.5, 177,
+    "OBLA", "OBLA 4.0", 146.0, 4.0, 181,
+    "Bsln+", "Bsln + 0.5", 81.2, 1.43, 138,
+    "Bsln+", "Bsln + 1.0", 103.0, 1.93, 155,
+    "Bsln+", "Bsln + 1.5", 117.2, 2.43, 165,
+    "Dmax", "Dmax", 132.1, 3.1, 174,
+    "Dmax", "ModDmax", 139.9, 3.6, 178,
+    "Dmax", "Exp-Dmax", 134.8, 3.3, 176,
+    "Dmax", "Log-Poly-ModDmax", 154.7, 4.6, 185,
+    "Dmax", "Log-Exp-ModDmax", 156.6, 4.7, 186,
+    "LTP", "LTP1", 113.7, 2.3, 163,
+    "LTP", "LTP2", 167.9, 5.8, 191,
+    "LTratio", "LTratio", 74.4, 1.3, 133
   )
-
-  joined <- results %>%
-    dplyr::mutate(method = as.character(method), method_category = as.character(method_category)) %>%
-    dplyr::left_join(expected, by = c("method_category", "method"), suffix = c("_obs", "_exp"))
-
-  expect_equal(nrow(joined), 17)
-  expect_true(all(!is.na(joined$intensity_exp)))
-  expect_equal(unname(joined$intensity_obs), unname(joined$intensity_exp), tolerance = 0.2)
-  expect_equal(unname(joined$lactate_obs), unname(joined$lactate_exp), tolerance = 0.06)
-  expect_equal(unname(joined$heart_rate_obs), unname(joined$heart_rate_exp), tolerance = 1)
+  expect_thresholds(golden_run(fixtures$noisy), expected)
 })

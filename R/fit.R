@@ -11,7 +11,6 @@
 #'
 #' @return a tibble with the following nested columns:
 #' \item{data}{The raw data.}
-#' \item{data_interpolated}{The interpolated data.}
 #' \item{model}{The model chosen in the `fit` parameter.}
 #' \item{data_augmented}{The augmented data retrieved from the model.}
 #' \item{bsln}{A boolean indicating the `include_baseline` argument.}
@@ -45,13 +44,6 @@ prepare_fit <- function(
   fit <- match.arg(arg = fit)
   sport <- match.arg(arg = sport)
 
-  ## here we take the baseline intensity
-  ## and create it as a previous step of step 1
-  ## this is mainly important to correctly plot the baseline value as the previous step of step 1
-  to_subtract <- .data$intensity[3] - .data$intensity[2]
-  .data[.data$intensity == 0, ]$intensity <- .data$intensity[2] - to_subtract
-
-
   switch (
     sport,
     "cycling" = interpolation_factor <- 0.1,
@@ -59,17 +51,10 @@ prepare_fit <- function(
     "swimming" = interpolation_factor <- 0.01
   )
 
-  if(include_baseline) {
-    data_for_modeling <- .data
-  } else {
-    data_for_modeling <- .data[-1, ]
-  }
+  data_for_modeling <- modeling_data(.data, include_baseline)
 
   data_pre_processed <- .data %>%
-    tidyr::nest(data = dplyr::everything()) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(data_interpolated = interpolate_intensity(.data = data_for_modeling, interpolation_factor = interpolation_factor) %>% list()) %>%
-    dplyr::ungroup()
+    tidyr::nest(data = dplyr::everything())
 
   new_data_model <- data.frame(intensity = seq(min(data_for_modeling$intensity), max(data_for_modeling$intensity), interpolation_factor))
 
@@ -127,112 +112,15 @@ prepare_fit <- function(
   out
 }
 
-#' Prepare modified Dmax fits
+#' Data used for modeling
 #'
-#' This is a function for internal use only and it won't be exported.
+#' The exercise stages, plus the positioned resting sample when `include_baseline = TRUE`.
+#' `data` keeps the resting sample at intensity 0; only the fit places it one step before stage 1.
 #'
 #' @param .data The data retrieved from `prepare_data()`.
-#' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
-#' Please, note that a few lactate thresholds have default methods for this and cannot be changed. See `Details`.
-#' @param intensity_to_start A double indicating the intensity to start the fit.
-#' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
-#'
-#' @return a tibble with the following nested columns:
-#' \item{data}{The raw data.}
-#' \item{data_interpolated}{The interpolated data.}
-#' \item{model}{The model chosen in the `fit` parameter.}
-#' \item{data_augmented}{The augmented data retrieved from the model.}
-#' \item{bsln}{A boolean indicating the `include_baseline` argument.}
+#' @param include_baseline Whether to include the resting sample.
 #'
 #' @keywords internal
-#' @importFrom stats lm
-prepare_fit_dmax_mods <- function(
-  .data,
-  fit = c("3rd degree polynomial", "Exponential"),
-  intensity_to_start,
-  sport = c("cycling", "running", "swimming")
-) {
-
-  if(missing(.data))
-    stop("No data, no fun. Please, include your data to the function.", call. = FALSE)
-
-  if(!any(colnames(.data) %in% c("intensity", "lactate")))
-    stop("It looks like you didn't prepare your data. Please, call `prepare_data()` before.", call. = FALSE)
-  if(!all(c("intensity", "lactate") %in% colnames(.data)))
-    stop("The data must contain both `intensity` and `lactate` columns.", call. = FALSE)
-  if(nrow(.data) < 3)
-    stop("At least 3 rows are required to fit modified Dmax curves reliably.", call. = FALSE)
-  if(anyNA(.data$intensity) || anyNA(.data$lactate))
-    stop("Missing values in `intensity`/`lactate` are not supported. Please remove or impute NAs first.", call. = FALSE)
-  if(!is.numeric(.data$intensity) || !is.numeric(.data$lactate))
-    stop("`intensity` and `lactate` columns must be numeric.", call. = FALSE)
-  if(any(diff(.data$intensity) <= 0))
-    stop("`intensity` must be strictly increasing.", call. = FALSE)
-
-  if(missing(intensity_to_start))
-    stop("You need to indicate at which intensity the fit should start.", call. = FALSE)
-
-  fit <- match.arg(arg = fit)
-  sport <- match.arg(arg = sport)
-
-  ## here we take the baseline intensity
-  ## and create it as a previous step of step 1
-  ## this is mainly important to correctly plot the baseline value as the previous step of step 1
-  to_subtract <- .data$intensity[3] - .data$intensity[2]
-  .data[.data$intensity == 0, ]$intensity <- .data$intensity[2] - to_subtract
-
-
-  switch (
-    sport,
-    "cycling" = interpolation_factor <- 0.1,
-    "running" = interpolation_factor <- 0.1,
-    "swimming" = interpolation_factor <- 0.01
-  )
-
-  data_for_modeling <- .data[-1, ]
-
-  data_pre_processed <- .data %>%
-    tidyr::nest(data = dplyr::everything()) %>%
-    dplyr::rowwise() %>%
-    dplyr::mutate(data_interpolated = interpolate_intensity(.data = data_for_modeling, interpolation_factor = interpolation_factor) %>% list()) %>%
-    dplyr::ungroup()
-
-  new_data_model <- dplyr::tibble(intensity = seq(min(data_for_modeling$intensity), max(data_for_modeling$intensity), interpolation_factor)) %>%
-    dplyr::filter(intensity >= intensity_to_start)
-
-  if(fit == "3rd degree polynomial") {
-    out <- data_pre_processed %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(
-        model = lm(lactate ~ poly(intensity, degree = 3, raw = TRUE), data = data_for_modeling) %>% list(),
-        data_augmented = broom::augment(model, newdata = new_data_model, type.predict = "response") %>% list()
-      ) %>%
-      dplyr::ungroup()
-
-  } else if(fit == "Exponential") {
-    out <- data_pre_processed %>%
-      dplyr::rowwise() %>%
-      dplyr::mutate(
-        model = tryCatch(
-          minpack.lm::nlsLM(
-            formula = lactate ~ a + (b * exp(c * intensity)),
-            data = data_for_modeling,
-            start = list(a = 0, b = 1, c = 0),
-            control = list(maxiter = 1000)
-          ),
-          error = function(e) {
-            stop("Exponential fit for modified Dmax failed to converge.", call. = FALSE)
-          }
-        ) %>% list(),
-        data_augmented = broom::augment(model, newdata = new_data_model, type.predict = "response") %>% list()
-      ) %>%
-      dplyr::ungroup()
-
-  }
-
-  out <- out %>%
-    dplyr::mutate(bsln = FALSE)
-
-  out
+modeling_data <- function(.data, include_baseline) {
+  if(include_baseline) position_rest(.data) else .data[.data$intensity > 0, ]
 }
-

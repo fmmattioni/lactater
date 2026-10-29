@@ -10,7 +10,8 @@
 #' @importFrom stats predict
 plot_lactate <- function(data_processed, method) {
 
-  data <- data_processed$data[[1]]
+  has_rest <- any(data_processed$data[[1]]$intensity == 0)
+  data <- position_rest(data_processed$data[[1]])
   data_augmented <- data_processed$data_augmented[[1]]
   method_intensity <- data_processed$intensity
   method_lactate <- data_processed$lactate
@@ -21,38 +22,17 @@ plot_lactate <- function(data_processed, method) {
 
   if(method %in% c("Log-log", "LTP1", "LTP2")) {
 
-    segmented_object <- data_processed$segmented_object[[1]]
-    data_interpolated <- data_processed$data_interpolated[[1]]
-
-    if(method == "Log-log") {
-      loglog_restrainer <- data_processed$loglog_restrainer
-
-      data_interpolated <- data_interpolated %>%
-        dplyr::filter(intensity > 0) %>%
-        dplyr::slice(seq(loglog_restrainer * dplyr::n()))
-    }
-
-    breakpoint_y_value <- predict(object = segmented_object, newdata = data.frame(intensity = method_intensity))
-
-    if(method == "Log-log") {
-      method_intensity <- log(method_intensity)
-      breakpoint_y_value <- predict(object = segmented_object, newdata = data.frame(intensity = method_intensity))
-    }
-
-    fitted_values <- segmented::broken.line(ogg = segmented_object)$fit %>%
-      dplyr::as_tibble() %>%
-      dplyr::bind_cols(data_interpolated, .)
+    ## the breakpoint fit is in the space it was fitted in (log-log for Log-log)
+    breakpoint_fit <- data_processed$breakpoint_fit[[1]]
+    fitted_values <- data.frame(intensity = seq(min(breakpoint_fit$x), max(breakpoint_fit$x), length.out = 200))
+    fitted_values$value <- predict_breakpoints(breakpoint_fit, fitted_values$intensity)
 
     x_axis_label <- "intensity"
     y_axis_label <- "&#91;La<sup>-</sup>&#93; (mmol\u00b7L<sup>-1</sup>)"
     if(method == "Log-log") {
-      fitted_values <- fitted_values %>%
-        dplyr::mutate(
-          intensity = log(intensity),
-          lactate = log(lactate)
-        )
+      method_intensity <- log(method_intensity)
       data <- data %>%
-        dplyr::mutate(intensity = ifelse(intensity == 0, 0.1, intensity)) %>%
+        dplyr::filter(intensity > 0) %>%
         dplyr::mutate(
           intensity = log(intensity),
           lactate = log(lactate)
@@ -61,6 +41,7 @@ plot_lactate <- function(data_processed, method) {
       x_axis_label <- "Log intensity"
       y_axis_label <- "&#91;La<sup>-</sup>&#93; (Log mmol\u00b7L<sup>-1</sup>)"
     }
+    breakpoint_y_value <- predict_breakpoints(breakpoint_fit, method_intensity)
 
     p <- ggplot2::ggplot() +
       ggplot2::geom_point(data = data, ggplot2::aes(intensity, lactate), shape = 21, size = 4) +
@@ -77,8 +58,8 @@ plot_lactate <- function(data_processed, method) {
   } else if(method == "LTratio") {
 
     data_ratio <- data_augmented %>%
-      dplyr::mutate(ratio = .fitted / intensity) %>%
-      dplyr::filter(!is.infinite(ratio))
+      dplyr::filter(intensity >= min(data$intensity[data$intensity > 0])) %>%
+      dplyr::mutate(ratio = .fitted / intensity)
 
     data_min_ratio <- data_ratio %>%
       dplyr::slice(which.min(ratio))
@@ -131,7 +112,7 @@ plot_lactate <- function(data_processed, method) {
 
   }
 
-  breaks_and_labels <- adjust_x_axis_plot(.data = data)
+  breaks_and_labels <- adjust_x_axis_plot(.data = data, has_rest = has_rest)
 
   p <- p +
     ggplot2::scale_x_continuous(breaks = breaks_and_labels$breaks, labels = breaks_and_labels$labels)
@@ -154,15 +135,21 @@ plot_methods <- function(plots, ...) {
 #'
 #' Adjusts the x-axis to show rest value at the beginning. Internal use only.
 #'
-#' @param .data The raw data.
+#' @param .data The raw data, with the resting sample positioned (see `position_rest()`).
+#' @param has_rest Whether the first row is a resting sample.
 #'
 #' @keywords internal
 adjust_x_axis_plot <- function(
-  .data
+  .data,
+  has_rest = TRUE
 ) {
-  rest_value <- .data$intensity[1]
   x_values <- .data$intensity[!is.na(.data$intensity)]
-  x_values <- x_values[x_values != rest_value]
+  if(!has_rest) {
+    breaks <- pretty(range(x_values), n = 5)
+    return(list(breaks = breaks, labels = as.character(breaks)))
+  }
+  rest_value <- x_values[1]
+  x_values <- x_values[-1]
 
   pretty_breaks <- if(length(x_values) > 0) {
     pretty(range(x_values), n = 5)

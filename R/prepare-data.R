@@ -46,14 +46,37 @@ prepare_data <- function(
 
   if(!is.numeric(out$intensity) || !is.numeric(out$lactate))
     stop("`intensity` and `lactate` columns must be numeric.", call. = FALSE)
-  if(anyNA(out$intensity) || anyNA(out$lactate))
-    stop("`intensity` and `lactate` cannot contain missing values.", call. = FALSE)
+  ## a missed sample should not void the whole test
+  missing <- is.na(out$intensity) | is.na(out$lactate)
+  if(any(missing)) {
+    warning(sprintf("Dropped %d row(s) with a missing `intensity` or `lactate` value.", sum(missing)), call. = FALSE)
+    out <- out[!missing, ]
+  }
   if(nrow(out) < 3)
     stop("At least 3 rows are required for lactate threshold estimation.", call. = FALSE)
   if(!all(out$intensity >= 0))
     stop("`intensity` values must be >= 0.", call. = FALSE)
-  if(!all(out$lactate >= 0))
-    stop("`lactate` values must be >= 0.", call. = FALSE)
+  if(!all(out$lactate > 0))
+    stop("`lactate` values must be > 0 (a 0 is usually an empty cell).", call. = FALSE)
+  if(any(diff(out$intensity) <= 0))
+    stop("`intensity` must be strictly increasing (the resting sample, if any, is the row with intensity 0).", call. = FALSE)
 
   out
+}
+
+#' Position the resting sample
+#'
+#' The resting sample (intensity 0) is placed one step before the first stage, so it can be
+#' plotted next to the curve and, with `include_baseline = TRUE`, fitted. The step is the median
+#' step between stages, so a missed stage or a short last stage does not shift it.
+#'
+#' @param .data The data retrieved from `prepare_data()`.
+#'
+#' @return `.data` with the resting intensity replaced; unchanged when there is no resting sample.
+#' @keywords internal
+position_rest <- function(.data) {
+  rest <- .data$intensity == 0
+  stages <- .data$intensity[!rest]
+  .data$intensity[rest] <- min(stages) - stats::median(diff(stages))
+  .data
 }

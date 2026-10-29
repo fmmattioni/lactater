@@ -14,7 +14,10 @@ lactate_threshold(
   include_baseline = FALSE,
   sport = c("cycling", "running", "swimming"),
   loglog_restrainer = 1,
-  plot = TRUE
+  plot = TRUE,
+  dmax_anchor = c("fitted", "observed"),
+  moddmax_rise = 0.4,
+  ltp_fix_first_slope = FALSE
 )
 }
 \arguments{
@@ -34,7 +37,9 @@ Default to \code{c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio")}.}
 Please, note that a few lactate thresholds have default methods for this and cannot be changed.
 Options are \verb{3rd degree polynomial}, \verb{4th degree polynomial}, or \code{B-spline}. See \code{Details}.}
 
-\item{include_baseline}{A boolean to indicate whether to include the baseline value in the fit.}
+\item{include_baseline}{A boolean to indicate whether to include the resting (baseline) sample in the fit. The resting sample is
+the row with intensity 0; it is placed one median step before the first stage. Data without a resting sample is fine.
+Rows with a missing intensity or lactate are dropped with a warning.}
 
 \item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
 
@@ -43,6 +48,16 @@ restrain for fitting the Log-Log method. For example, \code{1} means no restrict
 only the first 50\% of the data will be used. Default to \code{1}.}
 
 \item{plot}{A boolean to indicate whether to generate a plot from each one of the methods. Default to \code{TRUE}.}
+
+\item{dmax_anchor}{Where the ends of the \code{Dmax} lines sit: \code{"fitted"} (default) puts them on the
+fitted curve, \code{"observed"} at the measured lactate of the start and end stages. See \code{Details}.}
+
+\item{moddmax_rise}{The rise in lactate (mmol/L) between two consecutive stages that marks the
+first rise in \code{ModDmax}. Default to \code{0.4} (Bishop et al., 1998), a blood lactate value; change it
+for other sample types such as sweat.}
+
+\item{ltp_fix_first_slope}{A boolean to indicate whether the first \code{LTP} segment (before LTP1) is flat
+(slope fixed at zero) instead of estimated. Default to \code{FALSE}.}
 }
 \value{
 a tibble with the following columns:
@@ -60,9 +75,10 @@ This is a general function that applies several lactate threshold methods at the
 \details{
 \subsection{Log-log}{
 
-The lactate response (i.e., log of lactate vs intensity) is divided into two segments.
-A segmented regression is then performed such that the lactate curve would present one breaking point. The exercise
-intensity at which the breaking point occurs is then considered as Log-log (Beaver et al., 1985).
+The log of lactate vs the log of intensity is divided into two straight segments (Beaver et al., 1985).
+The breakpoint is "the intersection point of the two lines with the lowest residuals sum of squares"
+(Jamnick et al., 2018), found by exhaustive search over the measured stages, with at least two stages
+in each segment. The exercise intensity at the breakpoint is considered as Log-log.
 Caution: this method might require a double-check via a visual inspection, depending in some cases.
 }
 
@@ -82,18 +98,25 @@ but the user can define another method (4th degree polynomial or B-spline).
 }
 
 \subsection{Dmax}{
+
+All \code{Dmax} variants look for the point on the fitted curve furthest below a straight line that
+ends at the last stage. With \code{dmax_anchor = "fitted"} (default) both ends of the line sit on the
+fitted curve ("the two end points of the curve", Jamnick et al., 2018); with
+\code{dmax_anchor = "observed"} they sit at the measured lactate values (Heuberger et al., 2018).
+A line starting at the Log-log threshold always starts on the curve. When the curve never dips
+below the line, the result is \code{NA}. The resting sample is never used.
 \subsection{Dmax}{
 
 The exercise intensity that yields the maximum perpendicular distance to the straight line
-between the first and the last data point (Cheng et al., 1992). The lactate curve is fitted using a 3rd order polynomial regression curve,
+between the first and the last stage (Cheng et al., 1992). The lactate curve is fitted using a 3rd order polynomial regression curve,
 and it can't be changed.
 }
 
 \subsection{Modified Dmax (ModDmax)}{
 
 The exercise intensity that yields the maximum perpendicular distance to the straight line
-between data point preceding the first rise in lactate greater than 0.4 mmol/L and the last
-data point (Bishop et al., 1998). The lactate curve is fitted using a 3rd order polynomial regression curve,
+between the stage preceding the first rise in lactate of at least \code{moddmax_rise} (0.4 mmol/L by default)
+and the last stage (Bishop et al., 1998). The lactate curve is fitted using a 3rd order polynomial regression curve,
 and it can't be changed.
 }
 
@@ -101,14 +124,15 @@ and it can't be changed.
 
 The exercise intensity on the exponential plus-constant regression lactate curve that
 yields the maximum perpendicular distance to the straight line between the first and the
-last data point (Hughson et al., 1987). The lactate curve is fitted using an exponential curve,
+last stage (Hughson et al., 1987). The lactate curve is fitted using an exponential curve,
 and it can't be changed.
 }
 
 \subsection{Log-log modified Dmax (Log-Poly-ModDmax)}{
 
 The exercise intensity that yields the maximum perpendicular distance to the straight line
-between Log-log and the last data point in the 3rd order polynomial regression curve (Jamnick et al., 2018).
+between the Log-log threshold and the last stage in the 3rd order polynomial regression curve (Jamnick et al., 2018).
+The Log-log threshold used here is always computed without the resting sample.
 The lactate curve is fitted using a 3rd order polynomial regression curve,
 and it can't be changed.
 }
@@ -116,7 +140,7 @@ and it can't be changed.
 \subsection{Log-log exponential Dmax (Log-Exp-ModDmax)}{
 
 The exercise intensity that yields the maximum perpendicular distance to the straight line
-between Log-log and the last data point in the exponential curve (Jamnick et al., 2018).
+between the Log-log threshold and the last stage in the exponential curve (Jamnick et al., 2018).
 The lactate curve is fitted using an exponential curve,
 and it can't be changed.
 }
@@ -126,8 +150,10 @@ and it can't be changed.
 \subsection{LTP}{
 \subsection{Lactate Turning Point 1 (LTP1) and Lactate Turning Point 2 (LTP2)}{
 
-the lactate response is divided into three segments. A segmented regression is performed
-such that the lactate curve yields two breaking points. The first breaking point, representing
+The lactate response is divided into three continuous straight segments, fitted to the measured stages
+by exhaustive search for the two breakpoints with the lowest residual sum of squares (at least two stages
+per segment, so at least six stages are needed). With \code{ltp_fix_first_slope = TRUE} the first segment is
+flat. The first breaking point, representing
 the first rise in lactate above resting levels, is considered as LTP1. The second breaking point,
 representing an accelerated lactate accumulation, is then considered as LTP2
 (Hofmann & Tschakert, 2017; Hofmann et al., 1997; Pokan et al., 1997).
@@ -186,6 +212,9 @@ Journal of Applied Physiology. 1987;62(5):1975–81.
 
 Jamnick NA, Botella J, Pyne DB, Bishop DJ. Manipulating graded exercise test variables affects the validity of the lactate
 threshold and VO2peak. PLOS ONE. 2018;13(7):e0199794.
+
+Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive value
+of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
 
 Hofmann P, Tschakert G. Intensity- and Duration-Based Options to Regulate Endurance Training. Front Physiol. 2017;8:337.
 

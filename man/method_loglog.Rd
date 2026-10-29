@@ -7,7 +7,7 @@
 method_loglog(data_prepared, fit, sport, loglog_restrainer = 1, plot)
 }
 \arguments{
-\item{data_prepared}{The data retrieved from \code{prepare_data()}.}
+\item{data_prepared}{The data retrieved from \code{prepare_fit()}.}
 
 \item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.}
 
@@ -25,10 +25,13 @@ a tibble with the following columns:
 \item{fitting}{the fitting method used to predict the lactate curve}
 \item{intensity}{the intensity associated with the estimated lactate threshold}
 \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{heart_rate}{the heart rate associated with the estimated lactate threshold}
 \item{plot}{the plot produced to display the lactate threshold}
 }
 \description{
 It applies the \code{Log-log} method.
+}
+\details{
+The two-segment regression of log(lactate) on log(intensity) is fitted to the measured points, and the
+breakpoint with the lowest residual sum of squares is found by exhaustive search (see \code{fit_breakpoints()}).
 }
 \keyword{internal}

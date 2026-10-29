@@ -4,10 +4,17 @@
 \alias{method_dmax}
 \title{Dmax}
 \usage{
-method_dmax(data_prepared, sport, loglog_restrainer = 1, plot)
+method_dmax(
+  data_prepared,
+  sport,
+  loglog_restrainer = 1,
+  plot,
+  dmax_anchor = "fitted",
+  moddmax_rise = 0.4
+)
 }
 \arguments{
-\item{data_prepared}{The data retrieved from \code{prepare_data()}.}
+\item{data_prepared}{The data retrieved from \code{prepare_fit()}.}
 
 \item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
 
@@ -16,18 +23,14 @@ restrain for fitting the Log-Log method - This is going to be used in the \code{
 For example, \code{1} means no restriction (fits using the whole data), and \code{0.5} means that
 only the first 50\% of the data will be used. Default to \code{1}.}
 
-\item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.
-\subsection{Fit}{
+\item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
 
-The \code{method_dmax()} function does not have a \code{fit} argument because all the \code{Dmax} methods have their own default fitting methods:
-\itemize{
-\item Dmax = 3rd degree polynomial
-\item ModDmax = 3rd degree polynomial
-\item Exp-Dmax = exponential
-\item Log-Poly-ModDmax = 3rd degree polynomial
-\item Log-Exp-ModDmax = exponential
-}
-}}
+\item{dmax_anchor}{Where the line's ends sit: \code{"fitted"} (on the fitted curve) or \code{"observed"}
+(at the measured lactate of the start and end stages). The Log-log start has no measured value,
+so it always sits on the curve.}
+
+\item{moddmax_rise}{The rise in lactate (mmol/L) between two consecutive stages that marks the
+first rise in ModDmax. Default to \code{0.4}.}
 }
 \value{
 a tibble with the following columns:
@@ -35,10 +38,23 @@ a tibble with the following columns:
 \item{fitting}{the fitting method used to predict the lactate curve}
 \item{intensity}{the intensity associated with the estimated lactate threshold}
 \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{heart_rate}{the heart rate associated with the estimated lactate threshold}
 \item{plot}{the plot produced to display the lactate threshold}
 }
 \description{
 It applies the \code{Dmax} methods: \code{"Dmax"}, \code{"ModDmax"}, \code{"Exp-Dmax"}, \code{"Log-Poly-ModDmax"}, and \code{"Log-Exp-ModDmax"}.
+}
+\details{
+Every variant looks for the point on the fitted curve that lies furthest below a straight
+line between two anchors. The variants differ in the fitted curve and in where the line starts:
+\itemize{
+\item Dmax: 3rd degree polynomial, from the first stage.
+\item ModDmax: 3rd degree polynomial, from the stage preceding the first rise of at least
+\code{moddmax_rise} mmol/L.
+\item Exp-Dmax: exponential plus constant, from the first stage.
+\item Log-Poly-ModDmax: 3rd degree polynomial, from the Log-log threshold.
+\item Log-Exp-ModDmax: exponential plus constant, from the Log-log threshold.
+}
+
+The line always ends at the last stage. The resting sample is never used.
 }
 \keyword{internal}

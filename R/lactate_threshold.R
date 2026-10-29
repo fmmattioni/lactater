@@ -12,12 +12,21 @@
 #' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
 #' Please, note that a few lactate thresholds have default methods for this and cannot be changed.
 #' Options are `3rd degree polynomial`, `4th degree polynomial`, or `B-spline`. See `Details`.
-#' @param include_baseline A boolean to indicate whether to include the baseline value in the fit.
+#' @param include_baseline A boolean to indicate whether to include the resting (baseline) sample in the fit. The resting sample is
+#' the row with intensity 0; it is placed one median step before the first stage. Data without a resting sample is fine.
+#' Rows with a missing intensity or lactate are dropped with a warning.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
 #' @param loglog_restrainer A scalar from 0 to 1 indicating the percentage of the data that you would like to
 #' restrain for fitting the Log-Log method. For example, `1` means no restriction (fits using the whole data), and `0.5` means that
 #' only the first 50% of the data will be used. Default to `1`.
 #' @param plot A boolean to indicate whether to generate a plot from each one of the methods. Default to `TRUE`.
+#' @param dmax_anchor Where the ends of the `Dmax` lines sit: `"fitted"` (default) puts them on the
+#' fitted curve, `"observed"` at the measured lactate of the start and end stages. See `Details`.
+#' @param ltp_fix_first_slope A boolean to indicate whether the first `LTP` segment (before LTP1) is flat
+#' (slope fixed at zero) instead of estimated. Default to `FALSE`.
+#' @param moddmax_rise The rise in lactate (mmol/L) between two consecutive stages that marks the
+#' first rise in `ModDmax`. Default to `0.4` (Bishop et al., 1998), a blood lactate value; change it
+#' for other sample types such as sweat.
 #'
 #' @return a tibble with the following columns:
 #' \item{method_category}{the category of the lactate threshold method.}
@@ -32,9 +41,10 @@
 #'
 #' ## Log-log
 #'
-#' The lactate response (i.e., log of lactate vs intensity) is divided into two segments.
-#' A segmented regression is then performed such that the lactate curve would present one breaking point. The exercise
-#' intensity at which the breaking point occurs is then considered as Log-log (Beaver et al., 1985).
+#' The log of lactate vs the log of intensity is divided into two straight segments (Beaver et al., 1985).
+#' The breakpoint is "the intersection point of the two lines with the lowest residuals sum of squares"
+#' (Jamnick et al., 2018), found by exhaustive search over the measured stages, with at least two stages
+#' in each segment. The exercise intensity at the breakpoint is considered as Log-log.
 #' Caution: this method might require a double-check via a visual inspection, depending in some cases.
 #'
 #' ## OBLA
@@ -52,37 +62,45 @@
 #'
 #' ## Dmax
 #'
+#' All `Dmax` variants look for the point on the fitted curve furthest below a straight line that
+#' ends at the last stage. With `dmax_anchor = "fitted"` (default) both ends of the line sit on the
+#' fitted curve ("the two end points of the curve", Jamnick et al., 2018); with
+#' `dmax_anchor = "observed"` they sit at the measured lactate values (Heuberger et al., 2018).
+#' A line starting at the Log-log threshold always starts on the curve. When the curve never dips
+#' below the line, the result is `NA`. The resting sample is never used.
+#'
 #' ### Dmax
 #'
 #' The exercise intensity that yields the maximum perpendicular distance to the straight line
-#' between the first and the last data point (Cheng et al., 1992). The lactate curve is fitted using a 3rd order polynomial regression curve,
+#' between the first and the last stage (Cheng et al., 1992). The lactate curve is fitted using a 3rd order polynomial regression curve,
 #' and it can't be changed.
 #'
 #' ### Modified Dmax (ModDmax)
 #'
 #' The exercise intensity that yields the maximum perpendicular distance to the straight line
-#' between data point preceding the first rise in lactate greater than 0.4 mmol/L and the last
-#' data point (Bishop et al., 1998). The lactate curve is fitted using a 3rd order polynomial regression curve,
+#' between the stage preceding the first rise in lactate of at least `moddmax_rise` (0.4 mmol/L by default)
+#' and the last stage (Bishop et al., 1998). The lactate curve is fitted using a 3rd order polynomial regression curve,
 #' and it can't be changed.
 #'
 #' ### Exponential Dmax (Exp-Dmax)
 #'
 #' The exercise intensity on the exponential plus-constant regression lactate curve that
 #' yields the maximum perpendicular distance to the straight line between the first and the
-#' last data point (Hughson et al., 1987). The lactate curve is fitted using an exponential curve,
+#' last stage (Hughson et al., 1987). The lactate curve is fitted using an exponential curve,
 #' and it can't be changed.
 #'
 #' ### Log-log modified Dmax (Log-Poly-ModDmax)
 #'
 #' The exercise intensity that yields the maximum perpendicular distance to the straight line
-#' between Log-log and the last data point in the 3rd order polynomial regression curve (Jamnick et al., 2018).
+#' between the Log-log threshold and the last stage in the 3rd order polynomial regression curve (Jamnick et al., 2018).
+#' The Log-log threshold used here is always computed without the resting sample.
 #' The lactate curve is fitted using a 3rd order polynomial regression curve,
 #' and it can't be changed.
 #'
 #' ### Log-log exponential Dmax (Log-Exp-ModDmax)
 #'
 #' The exercise intensity that yields the maximum perpendicular distance to the straight line
-#' between Log-log and the last data point in the exponential curve (Jamnick et al., 2018).
+#' between the Log-log threshold and the last stage in the exponential curve (Jamnick et al., 2018).
 #' The lactate curve is fitted using an exponential curve,
 #' and it can't be changed.
 #'
@@ -90,8 +108,10 @@
 #'
 #' ### Lactate Turning Point 1 (LTP1) and Lactate Turning Point 2 (LTP2)
 #'
-#' the lactate response is divided into three segments. A segmented regression is performed
-#' such that the lactate curve yields two breaking points. The first breaking point, representing
+#' The lactate response is divided into three continuous straight segments, fitted to the measured stages
+#' by exhaustive search for the two breakpoints with the lowest residual sum of squares (at least two stages
+#' per segment, so at least six stages are needed). With `ltp_fix_first_slope = TRUE` the first segment is
+#' flat. The first breaking point, representing
 #' the first rise in lactate above resting levels, is considered as LTP1. The second breaking point,
 #' representing an accelerated lactate accumulation, is then considered as LTP2
 #' (Hofmann & Tschakert, 2017; Hofmann et al., 1997; Pokan et al., 1997).
@@ -133,6 +153,9 @@
 #' Jamnick NA, Botella J, Pyne DB, Bishop DJ. Manipulating graded exercise test variables affects the validity of the lactate
 #' threshold and VO2peak. PLOS ONE. 2018;13(7):e0199794.
 #'
+#' Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive value
+#' of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
+#'
 #' Hofmann P, Tschakert G. Intensity- and Duration-Based Options to Regulate Endurance Training. Front Physiol. 2017;8:337.
 #'
 #' Hofmann P, Pokan R, von Duvillard SP, Seibert FJ, Zweiker R, Schmid P. Heart rate performance curve during incremental
@@ -170,7 +193,10 @@ lactate_threshold <- function(
   include_baseline = FALSE,
   sport = c("cycling", "running", "swimming"),
   loglog_restrainer = 1,
-  plot = TRUE
+  plot = TRUE,
+  dmax_anchor = c("fitted", "observed"),
+  moddmax_rise = 0.4,
+  ltp_fix_first_slope = FALSE
 ) {
 
   if(missing(.data))
@@ -191,6 +217,9 @@ lactate_threshold <- function(
   method <- match.arg(arg = method, several.ok = TRUE)
   fit <- match.arg(arg = fit, several.ok = FALSE)
   sport <- match.arg(arg = sport, several.ok = FALSE)
+  dmax_anchor <- match.arg(arg = dmax_anchor)
+  if(!is.numeric(moddmax_rise) || length(moddmax_rise) != 1 || is.na(moddmax_rise) || moddmax_rise <= 0)
+    stop("`moddmax_rise` must be a single positive number (mmol/L).", call. = FALSE)
 
   if(!missing(heart_rate_column)) {
     heart_rate_column <- rlang::ensym(heart_rate_column)
@@ -226,8 +255,8 @@ lactate_threshold <- function(
       "Log-log" = method_loglog(data_prepared = data_fit_prepared, fit = fit, sport = sport, loglog_restrainer = loglog_restrainer, plot = plot),
       "OBLA" = method_obla(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot),
       "Bsln+" = method_bsln_plus(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot),
-      "Dmax" = method_dmax(data_prepared = data_fit_prepared, sport = sport, loglog_restrainer = loglog_restrainer, plot = plot),
-      "LTP" = method_ltp(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot),
+      "Dmax" = method_dmax(data_prepared = data_fit_prepared, sport = sport, loglog_restrainer = loglog_restrainer, plot = plot, dmax_anchor = dmax_anchor, moddmax_rise = moddmax_rise),
+      "LTP" = method_ltp(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot, fix_first_slope = ltp_fix_first_slope),
       "LTratio" = method_ltratio(data_prepared = data_fit_prepared, fit = fit, sport = sport, plot = plot)
     )
     out_method$method_category <- method_category
@@ -238,6 +267,11 @@ lactate_threshold <- function(
     dplyr::mutate(method_category = factor(method_category, levels = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"))) %>%
     dplyr::arrange(method_category) %>%
     dplyr::mutate(method = forcats::as_factor(method))
+
+  if("heart_rate" %in% colnames(data_prepared)) {
+    out <- out %>%
+      dplyr::mutate(heart_rate = retrieve_heart_rate(raw_data = data_prepared, intensity_value = intensity), .after = lactate)
+  }
 
   out
 }

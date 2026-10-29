@@ -4,30 +4,17 @@
 \alias{obla_helper}
 \title{OBLA helper}
 \usage{
-obla_helper(
-  raw_data,
-  data_augmented,
-  fit,
-  model,
-  obla,
-  model_heart_rate = NULL
-)
+obla_helper(data_augmented, model, obla)
 }
 \arguments{
-\item{raw_data}{The raw data.}
-
 \item{data_augmented}{The augmented data from the model.}
 
-\item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.}
-
-\item{model}{The model chosen in \code{fit},}
+\item{model}{The fitted lactate model,}
 
 \item{obla}{The lactate value to be analyzed.}
-
-\item{model_heart_rate}{A pre-fit heart-rate model.}
 }
 \value{
-The results (intensity, lactate, heart rate) from the lactate threshold method.
+The results (intensity, lactate) from the lactate threshold method.
 }
 \description{
 For internal use only and it won't be exported.

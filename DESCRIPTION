@@ -1,6 +1,6 @@
 Package: lactater
 Title: Tools for Analyzing Lactate Thresholds
-Version: 0.3.0
+Version: 0.3.0.9000
 Authors@R: 
     person(given = "Felipe",
            family = "Mattioni Maturana",
@@ -28,7 +28,6 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
 Suggests: 
     bsplus,
     covr,
@@ -54,13 +53,13 @@ Imports:
     patchwork,
     lubridate,
     minpack.lm,
-    pracma,
     rlang,
-    segmented,
+    splines,
     stringr,
     tidyr,
     forcats
 Depends: 
-    R (>= 2.10)
+    R (>= 4.1.0)
 Language: en-US
 Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.1

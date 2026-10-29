@@ -4,16 +4,18 @@
 \alias{method_ltp}
 \title{Lactate Turning Point (LTP)}
 \usage{
-method_ltp(data_prepared, fit, sport, plot)
+method_ltp(data_prepared, fit, sport, plot, fix_first_slope = FALSE)
 }
 \arguments{
-\item{data_prepared}{The data retrieved from \code{prepare_data()}.}
+\item{data_prepared}{The data retrieved from \code{prepare_fit()}.}
 
 \item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.}
 
 \item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
 
 \item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
+
+\item{fix_first_slope}{Whether the first segment (before LTP1) is flat (slope fixed at 0).}
 }
 \value{
 a tibble with the following columns:
@@ -21,10 +23,13 @@ a tibble with the following columns:
 \item{fitting}{the fitting method used to predict the lactate curve}
 \item{intensity}{the intensity associated with the estimated lactate threshold}
 \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{heart_rate}{the heart rate associated with the estimated lactate threshold}
 \item{plot}{the plot produced to display the lactate threshold}
 }
 \description{
 It applies the \code{LTP} methods: \code{LTP1}, and \code{LTP2}.
+}
+\details{
+A three-segment continuous linear regression is fitted to the measured points; the two breakpoints with the
+lowest residual sum of squares are found by exhaustive search (see \code{fit_breakpoints()}).
 }
 \keyword{internal}

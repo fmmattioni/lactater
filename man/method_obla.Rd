@@ -21,7 +21,6 @@ a tibble with the following columns:
 \item{fitting}{the fitting method used to predict the lactate curve}
 \item{intensity}{the intensity associated with the estimated lactate threshold}
 \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{heart_rate}{the heart rate associated with the estimated lactate threshold}
 \item{plot}{the plot produced to display the lactate threshold}
 }
 \description{

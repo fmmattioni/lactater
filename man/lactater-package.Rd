@@ -13,5 +13,10 @@ Set of tools for analyzing lactate thresholds from a step incremental test to ex
 \author{
 \strong{Maintainer}: Felipe Mattioni Maturana \email{felipe.mattioni@med.uni-tuebingen.de} (\href{https://orcid.org/0000-0002-4221-6104}{ORCID})
 
+Authors:
+\itemize{
+  \item Felipe Mattioni Maturana \email{felipe.mattioni@med.uni-tuebingen.de} (\href{https://orcid.org/0000-0002-4221-6104}{ORCID})
+}
+
 }
 \keyword{internal}

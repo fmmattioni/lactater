@@ -12,16 +12,10 @@
 #' \item{fitting}{the fitting method used to predict the lactate curve}
 #' \item{intensity}{the intensity associated with the estimated lactate threshold}
 #' \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-#' \item{heart_rate}{the heart rate associated with the estimated lactate threshold}
 #' \item{plot}{the plot produced to display the lactate threshold}
 #'
 #' @keywords internal
 method_ltratio <- function(data_prepared, fit, sport, plot) {
-  model_heart_rate <- NULL
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
-  }
-
   data_prepared_ltratio <- if(inherits(data_prepared$model[[1]], "glm")) {
     data_prepared
   } else {
@@ -33,14 +27,14 @@ method_ltratio <- function(data_prepared, fit, sport, plot) {
     )
   }
 
-  data_augmented <- data_prepared_ltratio$data_augmented[[1]]
-
-  ## get min ratio
-  data_min_ratio <- data_augmented %>%
+  ## the ratio is only meaningful during exercise, not at the positioned resting sample
+  first_stage <- min(data_prepared$data[[1]]$intensity[data_prepared$data[[1]]$intensity > 0])
+  data_min_ratio <- data_prepared_ltratio$data_augmented[[1]] %>%
+    dplyr::filter(intensity >= first_stage) %>%
     dplyr::mutate(ratio = .fitted / intensity) %>%
     dplyr::slice(which.min(ratio))
 
-  data_processed <- data_prepared %>%
+  data_processed <- data_prepared_ltratio %>%
     dplyr::mutate(
       method = "LTratio",
       fitting = "B-Spline (default)",
@@ -58,13 +52,6 @@ method_ltratio <- function(data_prepared, fit, sport, plot) {
   } else {
     out <- data_processed %>%
       tidyr::unnest(cols = data)
-  }
-
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    out <- out %>%
-      dplyr::mutate(
-        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
-      )
   }
 
   if(sport == "swimming") {

@@ -8,13 +8,16 @@
 #' @param heart_rate_column The name of the heart rate column, if applicable.
 #' @param fit The fit you would like to use for plotting the lactate curve.
 #' Options are `3rd degree polynomial`, `4th degree polynomial`, or `B-spline`.
-#' @param include_baseline A boolean to indicate whether to include the baseline value in the fit.
+#' @param include_baseline A boolean to indicate whether to include the resting (baseline) sample in the fit. The resting sample is
+#' the row with intensity 0; it is placed one median step before the first stage. Data without a resting sample is fine.
+#' Rows with a missing intensity or lactate are dropped with a warning.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
 #'
 #' @return a list with the following elements:
 #' \item{data}{a tibble containing the raw data with the columns `intensity`, `lactate`, and `heart_rate`.}
 #' \item{lactate_curve}{a tibble containing the data with the columns `intensity` and `lactate` for plotting the lactate curve according to the `fit` method chosen.}
-#' \item{heart_rate_response}{a tibble containing the data with the columns `intensity` and `heart_rate` for plotting the heart rate response using the linear method.}
+#' \item{heart_rate_response}{a tibble with the columns `intensity` and `heart_rate` at each exercise stage. A line through
+#' these points is the interpolation used for the heart rate at each threshold.}
 #'
 #' @export
 #'
@@ -75,34 +78,13 @@ lactate_curve <- function(
     dplyr::select(data, lactate_curve = data_augmented)
 
   out <- list(
-    data = data_fit_prepared$data[[1]],
+    data = position_rest(data_fit_prepared$data[[1]]),
     lactate_curve = data_fit_prepared$lactate_curve[[1]] %>% dplyr::rename(lactate = .fitted)
   )
 
-  # if heart rate data was added, then retrieve the line for plotting too
   if(!missing(heart_rate_column)) {
-    # define interpolation factor
-    switch (
-      sport,
-      "cycling" = interpolation_factor <- 0.1,
-      "running" = interpolation_factor <- 0.1,
-      "swimming" = interpolation_factor <- 0.01
-    )
-    # define whether to include the baseline value
-    if(include_baseline) {
-      data_for_modeling <- data_prepared
-    } else {
-      data_for_modeling <- data_prepared[-1, ]
-    }
-    # linear model
-    heart_rate_model = lm(heart_rate ~ intensity, data = data_for_modeling)
-    # data for retrieving response
-    new_data_model <- data.frame(intensity = seq(min(data_for_modeling$intensity), max(data_for_modeling$intensity), interpolation_factor))
-    # get response data
-    heart_rate_response <- broom::augment(heart_rate_model, newdata = new_data_model, type.predict = "response") %>%
-      dplyr::rename(heart_rate = .fitted)
-    # add to the output
-    out$heart_rate_response <- heart_rate_response
+    stages <- data_prepared[data_prepared$intensity > 0 & !is.na(data_prepared$heart_rate), ]
+    out$heart_rate_response <- dplyr::tibble(intensity = stages$intensity, heart_rate = stages$heart_rate)
   }
   out
 }

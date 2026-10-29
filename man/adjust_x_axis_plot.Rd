@@ -4,10 +4,12 @@
 \alias{adjust_x_axis_plot}
 \title{Adjust x-axis}
 \usage{
-adjust_x_axis_plot(.data)
+adjust_x_axis_plot(.data, has_rest = TRUE)
 }
 \arguments{
-\item{.data}{The raw data.}
+\item{.data}{The raw data, with the resting sample positioned (see \code{position_rest()}).}
+
+\item{has_rest}{Whether the first row is a resting sample.}
 }
 \description{
 Adjusts the x-axis to show rest value at the beginning. Internal use only.

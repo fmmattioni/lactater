@@ -2,45 +2,27 @@
 #'
 #' It applies the `LTP` methods: `LTP1`, and `LTP2`.
 #'
-#' @param data_prepared The data retrieved from `prepare_data()`.
+#' A three-segment continuous linear regression is fitted to the measured points; the two breakpoints with the
+#' lowest residual sum of squares are found by exhaustive search (see `fit_breakpoints()`).
+#'
+#' @param data_prepared The data retrieved from `prepare_fit()`.
 #' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
 #' @param plot A boolean to indicate whether to generate a plot from each one of the methods.
+#' @param fix_first_slope Whether the first segment (before LTP1) is flat (slope fixed at 0).
 #'
 #' @return a tibble with the following columns:
 #' \item{method}{the method used to estimate the lactate threshold}
 #' \item{fitting}{the fitting method used to predict the lactate curve}
 #' \item{intensity}{the intensity associated with the estimated lactate threshold}
 #' \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-#' \item{heart_rate}{the heart rate associated with the estimated lactate threshold}
 #' \item{plot}{the plot produced to display the lactate threshold}
 #'
 #' @keywords internal
-#' @importFrom stats lm
-method_ltp <- function(data_prepared, fit, sport, plot) {
-  model_heart_rate <- NULL
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
-  }
-
-  data_interpolated <- data_prepared$data_interpolated[[1]]
-  if(nrow(data_interpolated) < 5) {
-    stop("LTP method requires at least 5 interpolated data points.", call. = FALSE)
-  }
-
-  linear_fit <- lm(lactate ~ intensity, data = data_interpolated)
-
-  segmented_fit <- tryCatch(
-    segmented::segmented(
-      obj = linear_fit,
-      npsi = 2 # 2 breakpoints
-    ),
-    error = function(e) {
-      stop("LTP breakpoint estimation failed. Please verify that your test contains enough progressive lactate increase.", call. = FALSE)
-    }
-  )
-
-  method_intensity <- segmented_fit$psi[,2]
+method_ltp <- function(data_prepared, fit, sport, plot, fix_first_slope = FALSE) {
+  points <- modeling_data(data_prepared$data[[1]], data_prepared$bsln)
+  breakpoint_fit <- fit_breakpoints(points$intensity, points$lactate, n_breakpoints = 2, flat_first = fix_first_slope)
+  method_intensity <- breakpoint_fit$psi
 
   out <- data_prepared %>%
     tidyr::crossing(
@@ -51,7 +33,7 @@ method_ltp <- function(data_prepared, fit, sport, plot) {
       intensity = method_intensity,
       lactate = unlist(Map(retrieve_lactate, model = model, intensity_value = intensity))
     ) %>%
-    dplyr::mutate(segmented_object = list(segmented_fit))
+    dplyr::mutate(breakpoint_fit = list(breakpoint_fit))
 
   if(plot) {
     out <- out %>%
@@ -61,13 +43,6 @@ method_ltp <- function(data_prepared, fit, sport, plot) {
           seq_len(nrow(out)),
           method
         )
-      )
-  }
-
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    out <- out %>%
-      dplyr::mutate(
-        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
       )
   }
 
@@ -87,5 +62,4 @@ method_ltp <- function(data_prepared, fit, sport, plot) {
   )
 
   out
-
 }

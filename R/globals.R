@@ -3,22 +3,12 @@ globalVariables(unique(c(
   "intensity",
   # helper_data_protocol:
   "intensity",
-  # helper_dmax_dmax:
-  "estimate", "intensity",
-  # helper_dmax_exp_dmax:
-  "estimate", "intensity",
-  # helper_dmax_log_exp_moddmax:
-  ".", "estimate", "intensity", "lactate",
-  # helper_dmax_log_poly_moddmax:
-  ".", "estimate", "intensity", "lactate",
-  # helper_dmax_moddmax:
-  ".", "diffs", "estimate", "intensity", "lactate",
   # lactate_threshold:
   ".", "method_category", "results",
   # method_bsln_plus:
   "data", "data_augmented", "intensity", "method", "model", "results",
   # method_dmax:
-  "intensity", "method", "results",
+  "data_augmented", "intensity", "method",
   # method_loglog:
   "data", "intensity", "lactate", "method", "model",
   # method_ltp:
@@ -35,9 +25,5 @@ globalVariables(unique(c(
   "heart_rate", "intensity", "lactate",
   # prepare_fit:
   "model",
-  # prepare_fit_dmax_mods:
-  "intensity", "model",
-  # retrieve_intensity:
-  ".fitted", "diffs", "rowid",
   "x", "y"
 )))

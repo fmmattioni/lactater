@@ -2,7 +2,10 @@
 #'
 #' It applies the `Log-log` method.
 #'
-#' @param data_prepared The data retrieved from `prepare_data()`.
+#' The two-segment regression of log(lactate) on log(intensity) is fitted to the measured points, and the
+#' breakpoint with the lowest residual sum of squares is found by exhaustive search (see `fit_breakpoints()`).
+#'
+#' @param data_prepared The data retrieved from `prepare_fit()`.
 #' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
 #' @param loglog_restrainer A scalar from 0 to 1 indicating the percentage of the data that you would like to
@@ -15,46 +18,12 @@
 #' \item{fitting}{the fitting method used to predict the lactate curve}
 #' \item{intensity}{the intensity associated with the estimated lactate threshold}
 #' \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-#' \item{heart_rate}{the heart rate associated with the estimated lactate threshold}
 #' \item{plot}{the plot produced to display the lactate threshold}
 #'
 #' @keywords internal
-#' @importFrom stats lm
 method_loglog <- function(data_prepared, fit, sport, loglog_restrainer = 1, plot) {
-  model_heart_rate <- NULL
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
-  }
-
-  data_interpolated <- data_prepared$data_interpolated[[1]] %>%
-    dplyr::filter(intensity > 0) %>%
-    dplyr::mutate(
-      intensity = log(intensity),
-      lactate = log(lactate)
-    ) %>%
-    ## filter data according to loglog_restrainer
-    dplyr::slice(seq(loglog_restrainer * dplyr::n()))
-
-  if(nrow(data_interpolated) < 4) {
-    stop("Log-log method requires at least 4 interpolated data points after applying `loglog_restrainer`.", call. = FALSE)
-  }
-
-  linear_fit <- lm(lactate ~ intensity, data = data_interpolated)
-
-  segmented_fit <- tryCatch(
-    segmented::segmented(
-      obj = linear_fit,
-      npsi = 1, # 1 breakpoint
-      control = segmented::seg.control(it.max = 1000)
-    ),
-    error = function(e) {
-      stop("Log-log breakpoint estimation failed. Try lowering `loglog_restrainer` or reviewing your data quality.", call. = FALSE)
-    }
-  )
-
-  method_intensity <- segmented_fit$psi[,2]
-
-  method_intensity <- exp(method_intensity)
+  breakpoint <- loglog_breakpoint(modeling_data(data_prepared$data[[1]], data_prepared$bsln), loglog_restrainer)
+  method_intensity <- breakpoint$intensity
 
   out <- data_prepared %>%
     dplyr::mutate(
@@ -63,19 +32,11 @@ method_loglog <- function(data_prepared, fit, sport, loglog_restrainer = 1, plot
       intensity = method_intensity,
       lactate = retrieve_lactate(model = model[[1]], intensity_value = method_intensity)
     ) %>%
-    dplyr::mutate(segmented_object = list(segmented_fit)) %>%
-    dplyr::mutate(loglog_restrainer = loglog_restrainer)
+    dplyr::mutate(breakpoint_fit = list(breakpoint$fit))
 
   if(plot) {
     out <- out %>%
       dplyr::mutate(plot = list(plot_lactate(data_processed = ., method = method)))
-  }
-
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    out <- out %>%
-      dplyr::mutate(
-        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
-      )
   }
 
   if(sport == "swimming") {
@@ -94,4 +55,26 @@ method_loglog <- function(data_prepared, fit, sport, loglog_restrainer = 1, plot
   )
 
   out
+}
+
+#' Log-log breakpoint
+#'
+#' Fits the two-segment regression of log(lactate) on log(intensity) to the measured points and
+#' returns the unrounded breakpoint intensity. For internal use only.
+#'
+#' @param points The measured points (`intensity`, `lactate`) used for the fit.
+#' @param loglog_restrainer The share of the points to use (see [lactate_threshold()]).
+#'
+#' @return a list with the breakpoint `intensity` and the breakpoint `fit` (in log-log space).
+#' @keywords internal
+loglog_breakpoint <- function(points, loglog_restrainer = 1) {
+  points <- points[points$intensity > 0, ]
+  points <- points[seq_len(floor(loglog_restrainer * nrow(points))), ]
+
+  if(nrow(points) < 4) {
+    stop("Log-log method requires at least 4 measured stages after applying `loglog_restrainer`.", call. = FALSE)
+  }
+
+  breakpoint_fit <- fit_breakpoints(log(points$intensity), log(points$lactate), n_breakpoints = 1)
+  list(intensity = exp(breakpoint_fit$psi), fit = breakpoint_fit)
 }

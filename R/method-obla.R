@@ -13,27 +13,18 @@
 #' \item{fitting}{the fitting method used to predict the lactate curve}
 #' \item{intensity}{the intensity associated with the estimated lactate threshold}
 #' \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-#' \item{heart_rate}{the heart rate associated with the estimated lactate threshold}
 #' \item{plot}{the plot produced to display the lactate threshold}
 #'
 #' @keywords internal
 method_obla <- function(data_prepared, fit, sport, plot) {
-  model_heart_rate <- NULL
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
-  }
-
   obla_values <- c(2, 2.5, 3, 3.5, 4)
   out <- dplyr::tibble(
     method = obla_values,
     results = lapply(obla_values, function(obla) {
       obla_helper(
-        raw_data = data_prepared$data[[1]],
         data_augmented = data_prepared$data_augmented[[1]],
-        fit = fit,
         model = data_prepared$model[[1]],
-        obla = obla,
-        model_heart_rate = model_heart_rate
+        obla = obla
       )
     })
   ) %>%
@@ -76,52 +67,15 @@ method_obla <- function(data_prepared, fit, sport, plot) {
 #'
 #' For internal use only and it won't be exported.
 #'
-#' @param raw_data The raw data.
 #' @param data_augmented The augmented data from the model.
-#' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
-#' @param model The model chosen in `fit`,
+#' @param model The fitted lactate model,
 #' @param obla The lactate value to be analyzed.
-#' @param model_heart_rate A pre-fit heart-rate model.
 #'
-#' @return The results (intensity, lactate, heart rate) from the lactate threshold method.
+#' @return The results (intensity, lactate) from the lactate threshold method.
 #' @keywords internal
-obla_helper <- function(
-  raw_data,
-  data_augmented,
-  fit,
-  model,
-  obla,
-  model_heart_rate = NULL
-) {
-
-  # check if fit is possible
-  if(obla > max(model$fitted.values) || obla < min(model$fitted.values)) {
-    out <- dplyr::tibble(
-      intensity = NA,
-      lactate = obla
-    )
-
-    return(out)
-  }
-
-  method_intensity <- retrieve_intensity(
-    data_augmented = data_augmented,
-    fit = fit,
-    model = model,
-    lactate_value = obla
-  )
-
-  out <- dplyr::tibble(
-    intensity = method_intensity,
+obla_helper <- function(data_augmented, model, obla) {
+  dplyr::tibble(
+    intensity = retrieve_intensity(data_augmented = data_augmented, model = model, lactate_value = obla),
     lactate = obla
   )
-
-  if("heart_rate" %in% colnames(raw_data)) {
-    out <- out %>%
-      dplyr::mutate(
-        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
-      )
-  }
-
-  out
 }

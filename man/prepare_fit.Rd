@@ -24,7 +24,6 @@ Please, note that a few lactate thresholds have default methods for this and can
 \value{
 a tibble with the following nested columns:
 \item{data}{The raw data.}
-\item{data_interpolated}{The interpolated data.}
 \item{model}{The model chosen in the \code{fit} parameter.}
 \item{data_augmented}{The augmented data retrieved from the model.}
 \item{bsln}{A boolean indicating the \code{include_baseline} argument.}

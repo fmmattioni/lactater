@@ -1,14 +1,44 @@
-test_that("dmax works", {
-  results_dmax <- lactate_threshold(
-    .data = demo_data,
-    intensity_column = "intensity",
-    lactate_column = "lactate",
-    heart_rate_column = "heart_rate",
-    method = "Dmax",
-    fit = "3rd degree polynomial",
-    include_baseline = TRUE,
-    sport = "cycling",
-    plot = FALSE
+dmax_run <- function(.data, ...) {
+  lactate_threshold(
+    .data = .data, intensity_column = "intensity", lactate_column = "lactate",
+    method = "Dmax", plot = FALSE, ...
   )
-  expect_s3_class(object = results_dmax, class = "tbl")
+}
+
+test_that("dmax_point finds the analytic maximum distance below the line", {
+  # f(x) = x^2 on [0, 1], line y = x: the gap x - x^2 peaks at x = 0.5
+  expect_equal(dmax_point(function(x) x^2, 0, 0, 1, 1), 0.5, tolerance = 1e-6)
+  # a cubic with two stationary points of the gap: only the one below the line counts
+  f <- function(x) x^3 - 1.5 * x^2 + 0.5 * x
+  expect_equal(dmax_point(f, 0, 0, 1, 0), 0.5 + sqrt(3) / 6, tolerance = 1e-6)
+})
+
+test_that("dmax_point returns NA when the curve never dips below the line", {
+  expect_true(is.na(dmax_point(function(x) sqrt(x), 0, 0, 1, 1)))
+  expect_true(is.na(dmax_point(function(x) x, NA, 0, 1, 1)))
+})
+
+test_that("Dmax intensities do not depend on the lactate scale", {
+  # the old code picked the other root once lactate passed 8 mmol/L
+  plateau <- dmax_run(fixtures$plateau)
+  plateau_x3 <- dmax_run(fixtures$plateau_x3)
+  same_shape <- plateau$method != "ModDmax" # ModDmax uses an absolute 0.4 mmol/L rise
+  expect_equal(plateau$intensity[same_shape], plateau_x3$intensity[same_shape])
+  expect_equal(plateau$intensity[plateau$method == "Dmax"], 176)
+})
+
+test_that("Dmax family ignores include_baseline", {
+  expect_equal(
+    dmax_run(demo_data, include_baseline = TRUE)$intensity,
+    dmax_run(demo_data, include_baseline = FALSE)$intensity
+  )
+})
+
+test_that("dmax_anchor and moddmax_rise are honoured and validated", {
+  fitted <- dmax_run(demo_data)
+  observed <- dmax_run(demo_data, dmax_anchor = "observed")
+  expect_false(isTRUE(all.equal(fitted$intensity, observed$intensity)))
+  expect_true(is.na(dmax_run(demo_data, moddmax_rise = 50)$intensity[2]))
+  expect_error(dmax_run(demo_data, moddmax_rise = -1), "moddmax_rise")
+  expect_error(dmax_run(demo_data, dmax_anchor = "middle"), "should be one of")
 })
