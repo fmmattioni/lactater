@@ -1,0 +1,12 @@
+lactater is released under the MIT licence (see LICENSE).
+
+The dataset `lactate_tests` includes data from two sources, used under the Creative Commons Attribution
+4.0 International licence (CC BY 4.0, https://creativecommons.org/licenses/by/4.0/):
+
+* Trinity College Dublin graded exercise test data. Zenodo. doi:10.5281/zenodo.10841412.
+* Heuberger JAAC, Gal P, Stuurman FE, et al. Repeatability and predictive value of lactate threshold
+  concepts in endurance sports. PLOS ONE 2018;13(11):e0206846. Data on figshare,
+  doi:10.6084/m9.figshare.7240571.
+
+Only stage-level intensity, lactate and heart rate, sex and body mass were kept; names, birth dates and
+test dates were removed. See data-raw/lactate_tests.R.

@@ -4,8 +4,8 @@ test_that("IAT is 1.5 mmol/L above the LTratio lactate on the same curve", {
   res <- run(method = c("LTratio", "IAT"))
   expect_equal(as.character(res$method), c("LTratio", "IAT"))
   spline <- fit_curve(modeling_data(prepare_data(demo_data, "intensity", "lactate"), FALSE), "B-spline")
-  ltratio <- attr(res, "lactater")$intensity[1]
-  iat <- attr(res, "lactater")$intensity[2]
+  ltratio <- unname(attr(res, "lactater")$intensity[1])
+  iat <- unname(attr(res, "lactater")$intensity[2])
   expect_equal(spline$predict(iat) - spline$predict(ltratio), 1.5, tolerance = 1e-6)
   expect_gt(iat, ltratio)
 })

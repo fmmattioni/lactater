@@ -45,8 +45,11 @@ fixture_sport <- function(name) {
 
 # Absolute tolerances: expect_equal(tolerance=) is relative, which hid 15% drifts before.
 expect_thresholds <- function(results, expected, tol_intensity = 0.11, tol_lactate = 0.051, tol_hr = 1) {
+  ## the table rounds intensities to the sport's decimals (whole watts); compare the unrounded values
+  unrounded <- as.data.frame(lapply(results, function(x) if (is.factor(x)) as.character(x) else x))
+  unrounded$intensity <- unname(attr(results, "lactater")$intensity[unrounded$method])
   joined <- merge(
-    as.data.frame(lapply(results, function(x) if (is.factor(x)) as.character(x) else x)),
+    unrounded,
     expected,
     by = c("method_category", "method"),
     suffixes = c("_obs", "_exp")

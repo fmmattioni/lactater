@@ -33,8 +33,11 @@ run_data_input <- function(width = 1200, height = 900) {
       shiny::column(
         width = 6,
 
-        shiny::strong("Please, choose the sport", shiny::icon("info-circle"), ":") %>%
-          bsplus::bs_embed_tooltip(title = "Select the sport that the incremental test was performed in.", placement = "right"),
+        shiny::strong("Please, choose the sport", shiny::icon("info-circle"), ":") |>
+          bsplus::bs_embed_tooltip(
+            title = "Select the sport that the incremental test was performed in.",
+            placement = "right"
+          ),
 
         shinyWidgets::pickerInput(
           inputId = "choose_sport",
@@ -43,13 +46,19 @@ run_data_input <- function(width = 1200, height = 900) {
           multiple = FALSE,
           selected = "Cycling",
           choicesOpt = list(
-            content = sprintf("<i class='fas fa-%s'>&nbsp;%s</i>",
-                              c("biking", "running", "swimmer"),
-                              c("Cycling", "Running", "Swimming")))
+            content = sprintf(
+              "<i class='fas fa-%s'>&nbsp;%s</i>",
+              c("biking", "running", "swimmer"),
+              c("Cycling", "Running", "Swimming")
+            )
+          )
         ),
 
-        shiny::strong("Would you like to include heart rate (HR) data", shiny::icon("info-circle"), "?") %>%
-          bsplus::bs_embed_tooltip(title = "Select this option in case you also have HR data for each step.", placement = "right"),
+        shiny::strong("Would you like to include heart rate (HR) data", shiny::icon("info-circle"), "?") |>
+          bsplus::bs_embed_tooltip(
+            title = "Select this option in case you also have HR data for each step.",
+            placement = "right"
+          ),
 
         shinyWidgets::switchInput(
           inputId = "heart_rate_data",
@@ -60,51 +69,78 @@ run_data_input <- function(width = 1200, height = 900) {
           offLabel = "Nah, I'm good!"
         ),
 
-        shiny::strong("Please, indicate below how many steps were done (including rest)", shiny::icon("info-circle"), ":") %>%
-          bsplus::bs_embed_tooltip(title = "For example, if you performed 9 steps plus rest, input 10 here.", placement = "right"),
+        shiny::strong(
+          "Please, indicate below how many steps were done (including rest)", shiny::icon("info-circle"), ":"
+        ) |>
+          bsplus::bs_embed_tooltip(
+            title = "For example, if you performed 9 steps plus rest, input 10 here.",
+            placement = "right"
+          ),
 
-        shiny::numericInput(inputId = "steps",
-                     label = NULL,
-                     value = 5,
-                     min = 1,
-                     max = Inf,
-                     step = 1),
+        shiny::numericInput(
+          inputId = "steps",
+          label = NULL,
+          value = 5,
+          min = 1,
+          max = Inf,
+          step = 1
+        ),
 
         shiny::div(
           id = "options_if_no_swimming",
 
-          shiny::strong("Please, indicate below the length (in minutes) of each step", shiny::icon("info-circle"), ":") %>%
-            bsplus::bs_embed_tooltip(title = "This is the time of each step (usually 3 or 4 minutes).", placement = "right"),
+          shiny::strong(
+            "Please, indicate below the length (in minutes) of each step", shiny::icon("info-circle"), ":"
+          ) |>
+            bsplus::bs_embed_tooltip(
+              title = "This is the time of each step (usually 3 or 4 minutes).",
+              placement = "right"
+            ),
 
-          shiny::numericInput(inputId = "length_steps",
-                       label = NULL,
-                       value = 3,
-                       min = 1,
-                       max = 5,
-                       step = 1),
+          shiny::numericInput(
+            inputId = "length_steps",
+            label = NULL,
+            value = 3,
+            min = 1,
+            max = 5,
+            step = 1
+          ),
 
-          shiny::strong("Please, indicate the starting load", shiny::icon("info-circle"), ":") %>%
-            bsplus::bs_embed_tooltip(title = "Indicate here the load (in power output or speed) after rest (e.g., 50 W).", placement = "right"),
+          shiny::strong("Please, indicate the starting load", shiny::icon("info-circle"), ":") |>
+            bsplus::bs_embed_tooltip(
+              title = "Indicate here the load (in power output or speed) after rest (e.g., 50 W).",
+              placement = "right"
+            ),
 
-          shiny::numericInput(inputId = "starting_load",
-                       label = NULL,
-                       value = 0,
-                       min = 1,
-                       max = Inf,
-                       step = 1),
+          shiny::numericInput(
+            inputId = "starting_load",
+            label = NULL,
+            value = 0,
+            min = 1,
+            max = Inf,
+            step = 1
+          ),
 
-          shiny::strong("Please, indicate the step increase", shiny::icon("info-circle"), ":") %>%
-            bsplus::bs_embed_tooltip(title = "Indicate by how many watts, km/h, or m/s the load was increased on each step (e.g., 25 W).", placement = "right"),
+          shiny::strong("Please, indicate the step increase", shiny::icon("info-circle"), ":") |>
+            bsplus::bs_embed_tooltip(
+              title = "Indicate by how many watts, km/h, or m/s the load was increased on each step (e.g., 25 W).",
+              placement = "right"
+            ),
 
-          shiny::numericInput(inputId = "step_increase",
-                       label = NULL,
-                       value = 0,
-                       min = 1,
-                       max = Inf,
-                       step = 1),
+          shiny::numericInput(
+            inputId = "step_increase",
+            label = NULL,
+            value = 0,
+            min = 1,
+            max = Inf,
+            step = 1
+          ),
 
-          shiny::strong("Was the last step fully completed", shiny::icon("info-circle"), "?") %>%
-            bsplus::bs_embed_tooltip(title = "Select this option in case the last step was not fully completed.", placement = "right"),
+          shiny::strong("Was the last step fully completed", shiny::icon("info-circle"), "?") |>
+            bsplus::bs_embed_tooltip(
+              title = "Select this option in case the last step was not fully completed.",
+              placement = "right"
+            ),
 
           shinyWidgets::switchInput(
             inputId = "completed",
@@ -120,14 +156,16 @@ run_data_input <- function(width = 1200, height = 900) {
         shiny::div(
           id = "hid_options",
 
-          shiny::strong("Then, please indicate how long it was (in the min:sec format)", shiny::icon("info-circle"), ":") %>%
+          shiny::strong(
+            "Then, please indicate how long it was (in the min:sec format)", shiny::icon("info-circle"), ":"
+          ) |>
             bsplus::bs_embed_tooltip(title = "Indicate length of last step (e.g., 2:15).", placement = "right"),
 
           shiny::textInput(
             inputId = "last_length_step",
             label = NULL
           )
-        ) %>%
+        ) |>
           shinyjs::hidden(),
 
 
@@ -143,13 +181,17 @@ run_data_input <- function(width = 1200, height = 900) {
       shiny::column(
         width = 6,
 
-        shiny::p("Please, note that in Swimming you should input the intensity as m/s.\nAdditionally, make sure you include a baseline value (first row).") %>%
-          shiny::div(id = "info_swimming") %>%
+        shiny::p(paste(
+          "Please, note that in Swimming you should input the intensity as m/s.",
+          "Additionally, make sure you include a baseline value (first row).",
+          sep = "\n"
+        )) |>
+          shiny::div(id = "info_swimming") |>
           shinyjs::hidden(),
 
         rhandsontable::rHandsontableOutput(outputId = "data_input"),
 
-        shiny::br(),shiny::br(),
+        shiny::br(), shiny::br(),
 
         shinyWidgets::actionBttn(
           inputId = "btn_done",
@@ -157,7 +199,7 @@ run_data_input <- function(width = 1200, height = 900) {
           style = "jelly",
           color = "danger",
           size = "sm"
-        ) %>%
+        ) |>
           shinyjs::hidden()
       )
 
@@ -179,7 +221,10 @@ run_data_input <- function(width = 1200, height = 900) {
 
     # hide protocol options if swimming -------------------
     shiny::observe({
-      shinyjs::toggle(id = "options_if_no_swimming", anim = TRUE, asis = TRUE, condition = input$choose_sport != "Swimming")
+      shinyjs::toggle(
+        id = "options_if_no_swimming", anim = TRUE, asis = TRUE,
+        condition = input$choose_sport != "Swimming"
+      )
     })
 
     # show important info if swimming -------------------

@@ -12,6 +12,7 @@ plot_overview(object, info)
 \item{info}{Its \code{lactater} attribute.}
 }
 \description{
-Overview plot
+The fitted curve on top, and below it every threshold as a dot on the same intensity axis, grouped by
+method family, with the value written next to it (and the confidence interval as a line, when present).
 }
 \keyword{internal}

@@ -1,0 +1,62 @@
+run <- function(data, ...) lactate_threshold(data, intensity, lactate, heart_rate, plot = FALSE, ...)
+before <- run(demo_data)
+shifted <- function(by) transform(demo_data, intensity = intensity * by)
+
+test_that("compare_tests calls a change real only beyond the noise of the method", {
+  ## +5% on every threshold, typical error 1% of the intensity: interval about +/- 2.3%
+  small_noise <- compare_tests(before, run(shifted(1.05)), cv = 1)
+  expect_true(all(small_noise$verdict == "increase"))
+  big_noise <- compare_tests(before, run(shifted(1.05)), cv = 5)
+  expect_true(all(big_noise$verdict == "unclear"))
+  ## a smallest worthwhile change above the change itself
+  expect_true(all(compare_tests(before, run(shifted(1.05)), cv = 1, swc = 6)$verdict == "unclear"))
+  ## default values only where a study reports them
+  default <- compare_tests(before, run(shifted(1.05)))
+  expect_false(is.na(default$verdict[default$method == "ModDmax"]))
+  expect_true(is.na(default$verdict[default$method == "LTP2"]))
+  expect_true(all(c("heart_rate_before", "heart_rate_after") %in% names(default)))
+  expect_error(compare_tests(before, before, cv = c(1, 2)), "`cv`")
+})
+
+test_that("compare_tests notes a different protocol and a fall in peak lactate", {
+  tired <- transform(demo_data, lactate = ifelse(intensity > 150, lactate * 0.8, lactate))
+  notes <- attr(compare_tests(before, run(tired)), "notes")
+  expect_match(notes, "Peak lactate fell", all = FALSE)
+  other_protocol <- transform(demo_data, intensity = ifelse(intensity > 0, intensity + 10, 0))
+  expect_match(attr(compare_tests(before, run(other_protocol)), "notes"), "protocol differs", all = FALSE)
+  expect_null(attr(compare_tests(before, before), "notes"))
+})
+
+test_that("curve_shift finds the intensity gained at each lactate", {
+  shift <- curve_shift(before, run(shifted(1.1)), lactate = c(2, 4))
+  at_2 <- retrieve_intensity(attr(before, "lactater")$curve, 2)
+  expect_equal(shift$shift[1], round(0.1 * at_2), tolerance = 1)
+  saved <- curve_shift(before, run(shifted(1.1)), lactate = 2, intensity = 150)
+  expect_lt(saved$lactate_change[2], 0)
+})
+
+test_that("relative_thresholds expresses thresholds per kg and as % of peak", {
+  rel <- relative_thresholds(before, body_mass = 70)
+  i <- which(rel$method == "OBLA 4.0")
+  expect_equal(rel$intensity_per_kg[i], round(attr(before, "lactater")$intensity[["OBLA 4.0"]] / 70, 2))
+  expect_equal(rel$percent_peak[i], round(100 * attr(before, "lactater")$intensity[["OBLA 4.0"]] / 191, 1))
+  expect_true("percent_peak_heart_rate" %in% names(rel))
+  expect_error(relative_thresholds(before, body_mass = -1), "`body_mass`")
+})
+
+test_that("lactate_trend recovers a steady change per 30 days", {
+  ## +1% per 30 days, with test-to-test scatter
+  days <- c(0, 30, 60, 90)
+  tests <- lapply(seq_along(days), function(k) run(shifted(1 + days[k] / 3000 + c(0, 0.004, -0.003, 0.002)[k])))
+  trend <- do.call(lactate_trend, c(tests, list(day = days)))
+  obla <- trend[trend$method == "OBLA 4.0", ]
+  at_start <- attr(tests[[1]], "lactater")$intensity[["OBLA 4.0"]]
+  expect_equal(obla$per_30_days, at_start / 100, tolerance = 0.25)
+  expect_lt(obla$low, obla$per_30_days)
+  expect_s3_class(autoplot(trend), "ggplot")
+  expect_error(lactate_trend(tests[[1]], tests[[2]], day = 1:2), "at least three")
+})
+
+test_that("the comparison plot draws the shift arrows", {
+  expect_s3_class(autoplot(compare_tests(before, run(shifted(1.05)))), "ggplot")
+})

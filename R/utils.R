@@ -21,14 +21,14 @@ is_installed <- function() {
 #' This function was copied from golem
 #'
 #' @keywords internal
-add_external_resources <- function(){
+add_external_resources <- function() {
 
   shiny::addResourcePath(
-    'extra', system.file('extra', package = 'lactater')
+    "extra", system.file("extra", package = "lactater")
   )
 
   shiny::tags$head(
-    shiny::tags$link(rel="stylesheet", type="text/css", href="extra/style.css")
+    shiny::tags$link(rel = "stylesheet", type = "text/css", href = "extra/style.css")
   )
 }
 
@@ -61,10 +61,12 @@ helper_data_protocol <- function(
     df <- data.frame(step = step, intensity = 0, lactate = 0)
   } else {
     length <- c(0, rep(input_length_steps, input_steps - 1))
-    if(!input_completed) length[input_steps] <- helper_last_length_step(input_last_length_step)
+    ## the protocol starts at stage 1, so only a later stage can be shortened
+    if(!input_completed && input_steps >= 3) length[input_steps] <- helper_last_length_step(input_last_length_step)
     ## stage 1 is at the starting load; later stages add the increase pro rata to their length
     increase <- cumsum(c(0, input_step_increase * length[-(1:2)] / input_length_steps))
-    df <- data.frame(step = step, length = length, intensity = c(0, round(input_starting_load + increase, 2)), lactate = 0)
+    intensity <- c(0, round(input_starting_load + increase, 2))
+    df <- data.frame(step = step, length = length, intensity = intensity, lactate = 0)
   }
 
   if(input_heart_rate_data) df$heart_rate <- 0L
@@ -95,30 +97,30 @@ helper_last_length_step <- function(last_length_step) {
 #' @keywords internal
 helper_render_table <- function(.data, sport) {
   if(sport == "Swimming") {
-    rhandsontable::rhandsontable(.data) %>%
-      rhandsontable::hot_cols(colWidths = 80, halign = 'htCenter',
+    rhandsontable::rhandsontable(.data) |>
+      rhandsontable::hot_cols(colWidths = 80, halign = "htCenter",
                               renderer = "
            function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.NumericRenderer.apply(this, arguments);
              if (col > 0) {
               td.style.background = 'lightgreen';
              }
-           }") %>%
-      rhandsontable::hot_col("intensity", format = "0") %>%
-      rhandsontable::hot_col("step", format = "0", readOnly = TRUE) %>%
+           }") |>
+      rhandsontable::hot_col("intensity", format = "0") |>
+      rhandsontable::hot_col("step", format = "0", readOnly = TRUE) |>
       rhandsontable::hot_cell(row = 1, col = "intensity", readOnly = TRUE)
   } else {
-    rhandsontable::rhandsontable(.data) %>%
-      rhandsontable::hot_cols(colWidths = 80, halign = 'htCenter',
+    rhandsontable::rhandsontable(.data) |>
+      rhandsontable::hot_cols(colWidths = 80, halign = "htCenter",
                               renderer = "
            function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.NumericRenderer.apply(this, arguments);
              if (col > 2) {
               td.style.background = 'lightgreen';
              }
-           }") %>%
-      rhandsontable::hot_col("step", format = "0", readOnly = TRUE) %>%
-      rhandsontable::hot_col("length", format = "0", readOnly = TRUE) %>%
+           }") |>
+      rhandsontable::hot_col("step", format = "0", readOnly = TRUE) |>
+      rhandsontable::hot_col("length", format = "0", readOnly = TRUE) |>
       rhandsontable::hot_col("intensity", format = "0", readOnly = TRUE)
   }
 }

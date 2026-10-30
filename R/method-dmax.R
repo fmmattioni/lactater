@@ -15,8 +15,9 @@
 #'
 #' The line always ends at the last stage. The resting sample is never used. With
 #' `settings$dmax_anchor = "observed"` the line's ends sit at the measured lactate of the start
-#' and end stages instead of on the fitted curve; the Log-log start has no measured value, so it
-#' always sits on the curve.
+#' and end stages instead of on the fitted curve; the Log-log and LTP1 starts have no measured
+#' value, so they always sit on the curve. `"original"` follows each paper: on the curve for Dmax
+#' and Exp-Dmax, at the measured values for the ModDmax variants.
 #'
 #' @inheritParams method_obla
 #'
@@ -34,22 +35,30 @@ method_dmax <- function(data, curve, settings) {
   wanted <- settings$dmax_methods
   loglog_intensity <- if(any(grepl("^Log-", wanted))) loglog_breakpoint(stages, settings$loglog_restrainer)$intensity
   ltp1_intensity <- if("LTP1-Poly-ModDmax" %in% wanted) {
-    fit_breakpoints(stages$intensity, stages$lactate, n_breakpoints = 2, flat_first = settings$ltp_fix_first_slope)$psi[1]
+    fit_breakpoints(
+      stages$intensity, stages$lactate,
+      n_breakpoints = settings$ltp_breakpoints, flat_first = settings$ltp_fix_first_slope
+    )$psi[1]
   }
 
+  ## original: "the two end points of the curve" (Cheng et al., 1992); ModDmax from "the LT and the final
+  ## lactate point" (Bishop et al., 1998); Log-*-ModDmax to "the final lactate point" (Jamnick et al., 2018)
   variants <- list(
-    "Dmax" = list(curve = poly, x0 = stages$intensity[1], y0 = stages$lactate[1]),
-    "ModDmax" = list(curve = poly, x0 = stages$intensity[first_rise], y0 = stages$lactate[first_rise]),
-    "Exp-Dmax" = list(curve = expo, x0 = stages$intensity[1], y0 = stages$lactate[1]),
-    "LTP1-Poly-ModDmax" = list(curve = poly, x0 = ltp1_intensity, y0 = NA_real_),
-    "Log-Poly-ModDmax" = list(curve = poly, x0 = loglog_intensity, y0 = NA_real_),
-    "Log-Exp-ModDmax" = list(curve = expo, x0 = loglog_intensity, y0 = NA_real_)
+    "Dmax" = list(curve = poly, x0 = stages$intensity[1], y0 = stages$lactate[1], original = "fitted"),
+    "ModDmax" = list(
+      curve = poly, x0 = stages$intensity[first_rise], y0 = stages$lactate[first_rise], original = "observed"
+    ),
+    "Exp-Dmax" = list(curve = expo, x0 = stages$intensity[1], y0 = stages$lactate[1], original = "fitted"),
+    "LTP1-Poly-ModDmax" = list(curve = poly, x0 = ltp1_intensity, y0 = NA_real_, original = "observed"),
+    "Log-Poly-ModDmax" = list(curve = poly, x0 = loglog_intensity, y0 = NA_real_, original = "observed"),
+    "Log-Exp-ModDmax" = list(curve = expo, x0 = loglog_intensity, y0 = NA_real_, original = "observed")
   )[wanted]
 
   results <- lapply(variants, function(v) {
     x0 <- v$x0
     x1 <- stages$intensity[n]
-    observed <- settings$dmax_anchor == "observed"
+    anchor <- if(settings$dmax_anchor == "original") v$original else settings$dmax_anchor
+    observed <- anchor == "observed"
     y0 <- if(is.na(x0)) NA_real_ else if(observed && !is.na(v$y0)) v$y0 else v$curve$predict(x0)
     y1 <- if(observed) stages$lactate[n] else v$curve$predict(x1)
     intensity <- dmax_point(v$curve$predict, x0, y0, x1, y1)
@@ -66,7 +75,7 @@ method_dmax <- function(data, curve, settings) {
 
   method_result(
     method = names(variants),
-    fitting = ifelse(vapply(variants, function(v) v$curve$fit, "") == "Exponential", "Exponential (default)", "3rd degree polynomial (default)"),
+    fitting = paste(vapply(variants, function(v) v$curve$fit, ""), "(default)"),
     intensity = vapply(results, `[[`, numeric(1), "intensity"),
     lactate = vapply(results, `[[`, numeric(1), "lactate"),
     plot_data = unname(lapply(results, `[[`, "plot_data"))

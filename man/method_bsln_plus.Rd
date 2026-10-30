@@ -18,8 +18,8 @@ a list with the result \code{rows} (method, fitting, intensity, lactate) and the
 for each row.
 }
 \description{
-It applies the \verb{Bsln+} methods: the intensity at which the fitted curve reaches 0.5, 1.0, and
-1.5 mmol/L above the baseline. The baseline is the first sample: the resting sample when there
-is one, otherwise the first stage.
+It applies the \verb{Bsln+} methods: the intensity at which the fitted curve reaches each rise in
+\code{settings$baseline_plus} (0.5, 1.0, and 1.5 mmol/L by default) above the baseline. The baseline is the
+first sample: the resting sample when there is one, otherwise the first stage.
 }
 \keyword{internal}

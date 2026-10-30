@@ -21,8 +21,14 @@ a \code{ggplot2} (one method) or \code{patchwork} (overview) object.
 }
 \description{
 Plots the result of \code{\link[=lactate_threshold]{lactate_threshold()}}. Without \code{method}, an overview: the fitted lactate
-curve on top and every threshold below, one row per method, on the same intensity axis, so you
-can see at a glance how much the methods agree. With \code{method}, the plot of that one method.
+curve on top and every threshold below, grouped by method family, on the same intensity axis, so
+you can see at a glance how much the methods agree. With \code{method}, the plot of that one method:
+what the method fitted, the measured stages, and the threshold with its intensity, lactate and
+heart rate.
+}
+\details{
+The plots are \code{ggplot2} objects: add layers, scales or a \code{theme()} to change them. See
+\code{\link[=theme_lactater]{theme_lactater()}} for the dark style (\code{options(lactater.style = "night")}) and the font.
 }
 \examples{
 results <- lactate_threshold(

@@ -8,15 +8,18 @@
 #' @param heart_rate_column The name of the heart rate column, if applicable.
 #' @param fit The fit you would like to use for plotting the lactate curve.
 #' Options are `3rd degree polynomial`, `4th degree polynomial`, or `B-spline`.
-#' @param include_baseline A boolean to indicate whether to include the resting (baseline) sample in the fit. The resting sample is
+#' @param include_baseline A boolean to indicate whether to include the resting (baseline) sample in the fit. The
+#' resting sample is
 #' the row with intensity 0; it is placed one median step before the first stage. Data without a resting sample is fine.
 #' Rows with a missing intensity or lactate are dropped with a warning.
 #' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
 #'
 #' @return a list with the following elements:
 #' \item{data}{a tibble containing the raw data with the columns `intensity`, `lactate`, and `heart_rate`.}
-#' \item{lactate_curve}{a tibble containing the data with the columns `intensity` and `lactate` for plotting the lactate curve according to the `fit` method chosen.}
-#' \item{heart_rate_response}{a tibble with the columns `intensity` and `heart_rate` at each exercise stage. A line through
+#' \item{lactate_curve}{a tibble containing the data with the columns `intensity` and `lactate` for plotting the lactate
+#' curve according to the `fit` method chosen.}
+#' \item{heart_rate_response}{a tibble with the columns `intensity` and `heart_rate` at each exercise stage. A line
+#' through
 #' these points is the interpolation used for the heart rate at each threshold.}
 #'
 #' @export
@@ -34,13 +37,13 @@
 #' )
 #' }
 lactate_curve <- function(
-    .data,
-    intensity_column,
-    lactate_column,
-    heart_rate_column,
-    fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
-    include_baseline = FALSE,
-    sport = c("cycling", "running", "swimming")
+  .data,
+  intensity_column,
+  lactate_column,
+  heart_rate_column,
+  fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
+  include_baseline = FALSE,
+  sport = c("cycling", "running", "swimming")
 ) {
   if(missing(.data))
     stop("No data, no fun. Please, include your data to the function.", call. = FALSE)

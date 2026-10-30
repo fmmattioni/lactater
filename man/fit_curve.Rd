@@ -27,8 +27,9 @@ Fits the lactate curve used by the threshold methods. For internal use only.
 \item \code{"3rd degree polynomial"} and \code{"4th degree polynomial"}: ordinary least squares on raw powers.
 \item \code{"B-spline"}: a natural cubic regression spline with 4 degrees of freedom (\code{splines::ns()}).
 \item \code{"Exponential"}: the exponential plus constant \code{a + b * exp(c * x)} (Hughson et al., 1987). For a
-fixed \code{c} the model is linear in \code{a} and \code{b}, so only \code{c} is searched (variable projection):
-no starting values are needed and the fit cannot fail to converge.
+fixed \code{c} the model is linear in \code{a} and \code{b}, so only \code{c} is searched (variable projection), and only
+"in the positive range" as in Hughson et al.: no starting values are needed and the fit cannot fail to
+converge.
 }
 }
 \keyword{internal}

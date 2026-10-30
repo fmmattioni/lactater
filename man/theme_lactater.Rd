@@ -4,19 +4,36 @@
 \alias{theme_lactater}
 \title{lactater ggplot2 theme}
 \usage{
-theme_lactater(base_size = 11, base_family = "")
+theme_lactater(
+  base_size = 11,
+  base_family = getOption("lactater.font", ""),
+  style = getOption("lactater.style", "light")
+)
 }
 \arguments{
 \item{base_size}{Base font size, in points.}
 
 \item{base_family}{Base font family.}
+
+\item{style}{\code{"light"}, \code{"night"} or \code{"journal"}.}
 }
 \value{
 a \code{ggplot2} theme.
 }
 \description{
-The theme used by every lactater plot: a quiet canvas with hairline grids, so the lactate
-curve and the thresholds carry the colour. Use it to make your own plots match.
+The theme used by every lactater plot: axis lines, no grid, and quiet text, so the lactate curve
+and the threshold carry the color. Use it to make your own plots match.
+}
+\details{
+Two options change every lactater plot:
+\itemize{
+\item \code{options(lactater.style = "night")} switches to a dark version, and \code{"journal"} to a quieter print look (an ink
+curve with one amber accent). \code{"light"}, a blue curve with a green threshold, is the default.
+\item \code{options(lactater.font = "IBM Plex Sans")} sets the font of the text and the annotations. The font
+must be installed (see \code{systemfonts::require_font()}).
+}
+
+Plots are \code{ggplot2} objects, so anything else can be changed by adding layers, scales or a \code{theme()}.
 }
 \examples{
 library(ggplot2)

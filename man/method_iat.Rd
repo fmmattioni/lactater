@@ -18,7 +18,7 @@ a list with the result \code{rows} (method, fitting, intensity, lactate) and the
 for each row.
 }
 \description{
-It applies the \code{IAT} method: the intensity at which the B-spline curve is 1.5 mmol/L above the
-lactate at LTratio (Dickhuth et al., 1999).
+It applies the \code{IAT} method: the intensity at which the B-spline curve is \code{settings$iat_rise}
+(1.5 mmol/L by default) above the lactate at LTratio (Dickhuth et al., 1999).
 }
 \keyword{internal}

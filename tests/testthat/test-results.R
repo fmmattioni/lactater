@@ -12,6 +12,22 @@ test_that("autoplot draws the overview and single methods", {
   expect_error(autoplot(results, method = "Nope"), "must be one of")
 })
 
+test_that("every method plots in both styles, labelled in whole watts", {
+  old <- options(lactater.style = "night")
+  on.exit(options(old))
+  for(style in c("night", "light")) {
+    options(lactater.style = style)
+    for(m in as.character(results$method)) {
+      p <- autoplot(results, method = m)
+      expect_s3_class(p, "ggplot")
+      expect_silent(ggplot2::ggplot_build(p))
+    }
+  }
+  labels <- unlist(lapply(autoplot(results, "OBLA 4.0")$layers, function(l) l$aes_params$label))
+  expect_true(paste(round(attr(results, "lactater")$intensity[["OBLA 4.0"]]), "W") %in% labels)
+  expect_error(theme_lactater(style = "pink"), "should be one of")
+})
+
 test_that("autoplot explains when the attributes are gone", {
   stripped <- results
   attr(stripped, "lactater") <- NULL

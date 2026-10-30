@@ -18,8 +18,8 @@ a list with the result \code{rows} (method, fitting, intensity, lactate) and the
 for each row.
 }
 \description{
-It applies the \code{Log-log} method. The two-segment regression of log(lactate) on log(intensity)
-is fitted to the measured points, and the breakpoint with the lowest residual sum of squares
-is found by exhaustive search (see \code{fit_breakpoints()}).
+It applies the \code{Log-log} method. Two straight lines are fitted to log(lactate) vs log(intensity),
+split at the measured stage with the lowest total residual sum of squares, and the threshold is
+where they cross (see \code{fit_two_lines()}). The lactate at the threshold is read off the lines.
 }
 \keyword{internal}

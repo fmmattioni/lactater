@@ -5,42 +5,78 @@
 \alias{autoplot.lactate_zones}
 \title{Training zones from two lactate thresholds}
 \usage{
-lactate_zones(x, lt1 = "LTP1", lt2 = "LTP2")
+lactate_zones(x, lt1 = "LTP1", lt2 = "LTP2", model = 3, split = "equal")
 
 \method{autoplot}{lactate_zones}(object, ...)
 }
 \arguments{
 \item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
 
-\item{lt1, lt2}{The thresholds that mark LT1 and LT2: a method in \code{x$method}, or an intensity. Default to
-\code{"LTP1"} and \code{"LTP2"}, the turn points that define the zones in Hofmann & Tschakert (2017).}
+\item{lt1, lt2}{The thresholds that mark LT1 and LT2: a method in \code{x$method}, or an intensity. Default to \code{"LTP1"}
+and \code{"LTP2"}, the turn points that define the zones in Hofmann & Tschakert (2017).}
+
+\item{model}{The number of zones: \code{3} (default) or \code{5}.}
+
+\item{split}{How to split the moderate and severe domains in the five-zone model: \code{"equal"} (default),
+\code{"seiler"}, or two intensities. Ignored with three zones.}
 
 \item{object}{The result of \code{\link[=lactate_zones]{lactate_zones()}}.}
 
 \item{...}{Not used.}
 }
 \value{
-a \code{lactate_zones} tibble with one row per zone: \code{zone}, \code{description}, \code{intensity_from},
-\code{intensity_to}, the matching \code{pace} range (running, swimming, rowing), \code{lactate} range on the fitted curve,
-and \code{heart_rate} range (when available). Zone 1 has no lower bound and zone 3 no upper bound. Plot it with
-\code{\link[=autoplot]{autoplot()}}.
+a \code{lactate_zones} tibble with one row per zone: \code{zone}, \code{domain}, \code{description}, \code{intensity_from},
+\code{intensity_to}, the matching \code{pace} range (running, swimming, rowing), the \code{lactate} range on the fitted curve, and
+the \code{heart_rate} and \code{rpe} ranges (when available; a boundary below the first stage is extrapolated from the first
+three stages). The first zone has no lower bound and the last no upper bound.
+Plot it with \code{\link[=autoplot]{autoplot()}}.
 }
 \description{
-Builds the three-zone model from a first (LT1) and a second (LT2) lactate threshold: zone 1 below LT1,
-zone 2 between LT1 and LT2, and zone 3 above LT2 (Hofmann & Tschakert, 2017). You choose which
-thresholds mark LT1 and LT2.
+Builds three or five training zones from a first (LT1) and a second (LT2) lactate threshold, with the zone
+boundaries placed at the boundaries of the exercise intensity domains: below LT1 is the moderate domain, from LT1
+to LT2 the heavy domain, and above LT2 the severe domain (Jamnick et al., 2020). You choose which thresholds mark
+LT1 and LT2.
 }
 \details{
-LT1 is usually a "first rise" threshold (e.g. \code{"LTP1"}, \code{"Log-log"}, \code{"Bsln + 1.0"}), and LT2 a threshold
-near the maximal lactate steady state (e.g. \code{"LTP2"}, \code{"ModDmax"}, \code{"Log-Poly-ModDmax"}, \code{"OBLA 4.0"}, \code{"IAT"}).
-Different choices give different zones, so report which ones you used.
+\itemize{
+\item \strong{Three zones} (\code{model = 3}): zone 1 below LT1, zone 2 from LT1 to LT2, zone 3 above LT2 (Hofmann & Tschakert,
+2017).
+\item \strong{Five zones} (\code{model = 5}): zones 1 and 2 split the moderate domain, zone 3 is the heavy domain, and zones 4 and
+5 split the severe domain, as in the five-zone scale described by Seiler (2010) and Tonnessen et al. (2014),
+where zones 1-2 lie below LT1, zone 3 between LT1 and LT2, and zones 4-5 above LT2. The two splits inside a
+domain are set by \code{split}:
+\itemize{
+\item \code{"equal"} (default): zone 1|2 at half of LT1, and zone 4|5 halfway between LT2 and the highest intensity of
+the test.
+\item \code{"seiler"}: where the fitted curve reaches 1.5 mmol/L (zone 1|2) and 6.0 mmol/L (zone 4|5), the blood lactate
+limits of the five-zone scale in Seiler (2010). A cut that falls outside its domain, or is not reached, uses
+the equal split instead, with a warning.
+\item Two intensities, \verb{c(zone 1|2, zone 4|5)}, for your own cuts.
+}
+}
+
+LT1 is usually a "first rise" threshold (e.g. \code{"LTP1"}, \code{"Log-log"}, \code{"Bsln + 0.5"}), and LT2 a threshold near the
+maximal metabolic steady state (e.g. \code{"LTP2"}, \code{"ModDmax"}, \code{"Log-Poly-ModDmax"}, \code{"OBLA 4.0"}, \code{"IAT"}).
+Different choices give different zones, so report which ones you used. No published five-zone scale is built on
+individual thresholds alone: its lactate and heart-rate limits are averages, so treat the splits inside a domain
+as a convention and check them against how the athlete responds.
 }
 \examples{
 results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
-lactate_zones(results)
 lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax")
+lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5)
+lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5, split = "seiler")
 }
 \references{
 Hofmann P, Tschakert G. Intensity- and duration-based options to regulate endurance training. Frontiers in
 Physiology. 2017;8:337.
+
+Jamnick NA, Pettitt RW, Granata C, Pyne DB, Bishop DJ. An examination and critique of current methods to determine
+exercise intensity. Sports Medicine. 2020;50(10):1729-1756.
+
+Seiler S. What is best practice for training intensity and duration distribution in endurance athletes?
+International Journal of Sports Physiology and Performance. 2010;5(3):276-291.
+
+Tonnessen E, Sylta O, Haugen TA, Hem E, Svendsen IS, Seiler S. The road to gold: training and peaking
+characteristics in the year prior to a gold medal endurance performance. PLOS ONE. 2014;9(7):e101796.
 }

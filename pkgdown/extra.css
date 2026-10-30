@@ -1,3 +1,32 @@
 pre, code, pre code {
   white-space: pre !important;
 }
+
+/* the logo's pink-to-blue gradient as a thin accent under the navbar */
+.navbar {
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg, #ef5a7a, #a46ad8, #33c3f0) 1;
+}
+
+/* section headings on the home page, set apart like a report */
+.template-home h2 {
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 1.05rem;
+  font-weight: 700;
+  padding-top: 1.4rem;
+  margin-top: 2.4rem;
+  border-top: 1px solid var(--bs-border-color);
+}
+
+/* figures on a light card, so they read well in dark mode too */
+.template-home img:not(.logo),
+.template-article img {
+  background: #fcfcfb;
+  border-radius: 0.5rem;
+}
+
+.template-reference-index h2 {
+  border-bottom: 2px solid var(--bs-primary);
+  padding-bottom: 0.3rem;
+}

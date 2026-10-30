@@ -1,0 +1,125 @@
+---
+title: "Get started with lactater"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Get started with lactater}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 4.5,
+  dpi = 110,
+  out.width = "100%"
+)
+```
+
+```{r setup}
+library(lactater)
+```
+
+## Your data
+
+One row per stage of a step test: the intensity (power in W, or speed), the lactate measured at the end of the
+stage and, if you have it, the heart rate. A resting sample, if you took one, is the row with intensity 0.
+
+```{r}
+demo_data
+```
+
+Rows with a missing lactate (a missed sample) are dropped with a warning. If the last stage was not completed,
+enter its time-weighted intensity (as `demo_data` does for its 2-min last stage at 191 W), or leave it out with
+`max_intensity`.
+
+## Estimate the thresholds
+
+```{r}
+results <- lactate_threshold(
+  demo_data,
+  intensity_column = intensity,
+  lactate_column = lactate,
+  heart_rate_column = heart_rate,
+  sport = "cycling",
+  plot = FALSE
+)
+results
+```
+
+Every method runs by default. Pick some with `method`, e.g. `method = c("Dmax", "LTP")`.
+
+## Look at them
+
+The overview puts every threshold on the same intensity axis as the curve, so you see how much the methods
+agree:
+
+```{r, fig.height = 8}
+autoplot(results)
+```
+
+Or look at one method in detail:
+
+```{r}
+autoplot(results, method = "ModDmax")
+```
+
+## How sure are we?
+
+With 7 to 10 samples, a threshold reported to 0.1 W is false precision. `ci = TRUE` adds bootstrap confidence
+intervals (this takes a few seconds; use more replicates than this for real work):
+
+```{r}
+set.seed(2024)
+with_ci <- lactate_threshold(
+  demo_data, intensity, lactate, heart_rate,
+  method = c("OBLA", "Dmax", "LTP"), plot = FALSE, ci = TRUE, n_boot = 200
+)
+with_ci[c("method", "intensity", "intensity_low", "intensity_high")]
+```
+
+## Check the analysis
+
+```{r}
+lactate_checks(results)
+lactate_fit_quality(results)
+```
+
+## Training zones
+
+Choose which thresholds mark LT1 and LT2:
+
+```{r}
+zones <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax")
+zones
+autoplot(zones)
+```
+
+## A table for your report
+
+```{r, eval = requireNamespace("gt", quietly = TRUE)}
+lactate_report(results)
+```
+
+## Many tests at once
+
+Use `.by` with the columns that identify each test. `lactate_tests` holds 15 tests across sports and fitness levels;
+here, the six tests of one cyclist:
+
+```{r}
+series <- subset(lactate_tests, athlete == "cyclist_series")
+lactate_threshold(series, intensity, lactate, method = "Dmax", dmax_methods = "ModDmax", plot = FALSE, .by = "day")
+```
+
+## Learn more
+
+* [The methods and the evidence](https://fmmattioni.github.io/lactater/articles/methods.html): how each method is
+  defined, what the evidence says, and how to collect good data.
+* [Zones, uncertainty and checks](https://fmmattioni.github.io/lactater/articles/zones-uncertainty-checks.html):
+  choosing LT1 and LT2, and reading the intervals and checks.
+* [Comparing tests and training load](https://fmmattioni.github.io/lactater/articles/compare-and-load.html): is a
+  change real, how far the curve moved, trends, and time in zone.
+* [VLamax](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html): the maximal lactate accumulation
+  rate from a sprint test.

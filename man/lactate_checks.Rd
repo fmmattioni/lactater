@@ -16,14 +16,19 @@ a tibble with one row per check: \code{check}, \code{status} (\code{"ok"}, \code
 \description{
 Runs a set of checks on the test and the results of \code{\link[=lactate_threshold]{lactate_threshold()}}, so problems that are easy
 to miss in a table of numbers are flagged: too few stages, no resting sample, thresholds that were not
-reached or sit at the edge of the tested range, an early lactate dip or a final plateau, and methods
-that rely on fixed blood lactate concentrations used on another sample type.
+reached or sit at the edge of the tested range, an early lactate dip or a final plateau, a test that may
+have stopped before the second lactate turn point, and methods that rely on fixed blood lactate
+concentrations used on another sample type.
 }
 \examples{
 results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
 lactate_checks(results)
 }
 \references{
+Hofmann P, Pokan R, von Duvillard SP, Seibert FJ, Zweiker R, Schmid P. Heart rate performance curve during
+incremental cycle ergometer exercise in healthy young male subjects. Medicine & Science in Sports & Exercise.
+1997;29(6):762-768.
+
 Bonaventura JM, Sharpe K, Knight E, Fuller KL, Tanner RK, Gore CJ. Reliability and accuracy of six hand-held
 blood lactate analysers. Journal of Sports Science and Medicine. 2015;14:203-214.
 

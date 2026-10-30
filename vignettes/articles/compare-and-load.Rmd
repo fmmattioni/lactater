@@ -1,0 +1,135 @@
+---
+title: "Comparing tests and training load"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5, dpi = 110, out.width = "100%")
+library(lactater)
+plex <- requireNamespace("systemfonts", quietly = TRUE) &&
+  isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
+if (plex) options(lactater.font = "IBM Plex Sans")
+```
+
+A step test is most useful the second time: did the athlete improve, by how much, and is that more than the noise
+of the test? And between tests, how was the training spread across the zones? This article uses the six tests of
+one trained cyclist in `lactate_tests` (real data from Trinity College Dublin, CC BY 4.0).
+
+```{r}
+series <- subset(lactate_tests, athlete == "cyclist_series")
+unique(series[c("test", "day")])
+
+analyse <- function(d) lactate_threshold(subset(series, day == d), intensity, lactate, heart_rate, plot = FALSE)
+before <- analyse(0)
+after <- analyse(58)
+```
+
+## Is the change real?
+
+A threshold moves between two tests even when fitness does not, through day-to-day variation and the error of the
+analyser and the method. `compare_tests()` gives every change an interval from the test-retest variation of the
+method (Hopkins, 2000; Swinton et al., 2018) and calls it an increase or a decrease only when the whole interval is
+on one side of zero, or of the smallest worthwhile change you set with `swc`.
+
+```{r}
+comparison <- compare_tests(before, after)
+comparison[c("method", "before", "after", "change", "change_low", "change_high", "verdict")]
+```
+
+The default test-retest variation comes from trained male cyclists (Heuberger et al., 2018; Pallares et al., 2016)
+and exists only for some methods; the others get a verdict once you give their `cv`, best measured on your own
+athletes with your own protocol. `attr(comparison, "notes")` lists what could make two tests hard to compare: a
+different protocol, sample type or resting sample, or a fall in peak lactate, which also moves the curve to the
+right.
+
+## How far did the curve move?
+
+Thresholds are single points; the whole curve tells more. `curve_shift()` gives the intensity gained at each lactate,
+and the lactate saved at the intensities you choose.
+
+```{r}
+curve_shift(before, after, intensity = c(250, 300))
+autoplot(comparison)
+```
+
+## A series of tests
+
+Over three or more tests, a straight-line trend with its interval shows the direction without reading noise from
+one test to the next (Hopkins, 2017).
+
+```{r, fig.height = 5.5}
+days <- unique(series$day)
+tests <- lapply(days, analyse)
+trend <- do.call(lactate_trend, c(tests, list(day = days)))
+trend[trend$method %in% c("OBLA 4.0", "ModDmax", "LTP2", "IAT"), ]
+autoplot(trend, method = c("OBLA 4.0", "ModDmax", "LTP2", "IAT"))
+```
+
+## Comparing athletes
+
+Per kg of body mass, and as a percentage of the highest intensity and heart rate of the test:
+
+```{r}
+relative <- relative_thresholds(after, body_mass = series$body_mass[series$day == 58][1])
+columns <- c("method", "intensity", "intensity_per_kg", "percent_peak", "percent_peak_heart_rate")
+relative[relative$method %in% c("Log-log", "ModDmax", "IAT"), columns]
+```
+
+A fixed lactate concentration falls at a similar percentage of peak power in trained and untrained people (Maassen &
+Busse, 1989), so a percentage of peak does not rank fitness on its own.
+
+## Training load in the zones
+
+`training_load()` sorts the samples of training sessions into the zones of `lactate_zones()`: the time in each zone,
+the training intensity distribution with its polarization index (Treff et al., 2019), and Lucia's training impulse.
+Here, a made-up week of heart-rate data (one sample every 5 s) for this cyclist:
+
+```{r}
+zones <- lactate_zones(after, lt1 = "Log-log", lt2 = "ModDmax")
+zones[c("zone", "heart_rate_from", "heart_rate_to")]
+
+set.seed(1)
+session <- function(name, minutes, heart_rate) {
+  data.frame(session = name, heart_rate = round(stats::rnorm(minutes * 12, heart_rate, 3)))
+}
+week <- rbind(
+  session("Mon easy", 90, 135),
+  session("Tue intervals", 20, 140), session("Tue intervals", 24, 182), session("Tue intervals", 20, 140),
+  session("Thu easy", 60, 138),
+  session("Sat long", 240, 142),
+  session("Sun tempo", 50, 165)
+)
+training_load(week, zones, interval = 5, .by = "session")
+training_load(week, zones, interval = 5)
+```
+
+Heart rate lags behind intensity in short intervals, so heart-rate time in zone under-counts zone 3 in interval
+sessions; power or speed samples (`measure = "intensity"`) avoid that (Seiler, 2010).
+
+## References
+
+Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive
+value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
+doi:10.1371/journal.pone.0206846
+
+Hopkins WG. Measures of reliability in sports medicine and science. Sports Med. 2000;30(1):1-15.
+doi:10.2165/00007256-200030010-00001
+
+Hopkins WG. A spreadsheet for monitoring an individual's changes and trend. Sportscience. 2017;21:5-9.
+
+Maassen N, Busse MW. The relationship between lactic acid and work load: a measure for endurance capacity or an
+indicator of carbohydrate deficiency? Eur J Appl Physiol Occup Physiol. 1989;58(7):728-37. doi:10.1007/BF00637384
+
+Pallares JG, Moran-Navarro R, Ortega JF, Fernandez-Elias VE, Mora-Rodriguez R. Validity and reliability of
+ventilatory and blood lactate thresholds in well-trained cyclists. PLOS ONE. 2016;11(9):e0163389.
+doi:10.1371/journal.pone.0163389
+
+Seiler S. What is best practice for training intensity and duration distribution in endurance athletes? Int J Sports
+Physiol Perform. 2010;5(3):276-91. doi:10.1123/ijspp.5.3.276
+
+Swinton PA, Hemingway BS, Saunders B, Gualano B, Dolan E. A statistical framework to interpret individual response to
+intervention: paving the way for personalized nutrition and exercise prescription. Front Nutr. 2018;5:41.
+doi:10.3389/fnut.2018.00041
+
+Treff G, Winkert K, Sareban M, Steinacker JM, Sperlich B. The polarization-index: a simple calculation to distinguish
+polarized from non-polarized training intensity distributions. Front Physiol. 2019;10:707.
+doi:10.3389/fphys.2019.00707

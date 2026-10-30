@@ -4,7 +4,14 @@
 \alias{prepare_data}
 \title{Prepare raw data}
 \usage{
-prepare_data(.data, intensity_column, lactate_column, heart_rate_column = NULL)
+prepare_data(
+  .data,
+  intensity_column,
+  lactate_column,
+  heart_rate_column = NULL,
+  rpe_column = NULL,
+  rpe_scale = "6-20"
+)
 }
 \arguments{
 \item{.data}{The raw data.}
@@ -14,12 +21,17 @@ prepare_data(.data, intensity_column, lactate_column, heart_rate_column = NULL)
 \item{lactate_column}{The name of the lactate column, as a string.}
 
 \item{heart_rate_column}{The name of the heart rate column, as a string, or \code{NULL}.}
+
+\item{rpe_column}{The name of the rating of perceived exertion column, as a string, or \code{NULL}.}
+
+\item{rpe_scale}{The RPE scale, \code{"6-20"} or \code{"CR10"}, used to check the values.}
 }
 \value{
 a tibble with the following columns:
 \item{intensity}{The intensity column.}
 \item{lactate}{The lactate column.}
 \item{heart_rate}{The heart rate column, if applicable.}
+\item{rpe}{The rating of perceived exertion column, if applicable.}
 }
 \description{
 It organizes and renames the raw data.

@@ -29,13 +29,33 @@ convert_to_pace <- function(intensity, sport = "swimming") {
 #' @keywords internal
 format_pace <- function(seconds, sport) {
   seconds <- round(seconds)
-  sprintf("%d:%02d %s", seconds %/% 60, seconds %% 60, switch(sport, swimming = "/100 m", running = "/km", rowing = "/500 m"))
+  distance <- switch(sport, swimming = "/100 m", running = "/km", rowing = "/500 m")
+  sprintf("%d:%02d %s", seconds %/% 60, seconds %% 60, distance)
+}
+
+#' Intensity unit of each sport
+#'
+#' @param sport The sport.
+#' @keywords internal
+intensity_unit <- function(sport) {
+  switch(sport, cycling = "W", rowing = "W", running = "km/h", swimming = "m/s")
 }
 
 #' Decimals shown for the intensity of each sport
 #'
+#' Whole watts, km/h to 0.1 and m/s to 0.01: finer than that is below what a step test can resolve.
+#'
 #' @param sport The sport.
 #' @keywords internal
 intensity_digits <- function(sport) {
-  switch(sport, cycling = 1, rowing = 1, running = 2, swimming = 3)
+  switch(sport, cycling = 0, rowing = 0, running = 1, swimming = 2)
+}
+
+#' Format an intensity with the decimals of its sport
+#'
+#' @param x Intensities.
+#' @param sport The sport.
+#' @keywords internal
+format_intensity <- function(x, sport) {
+  formatC(round(x, intensity_digits(sport)), format = "f", digits = intensity_digits(sport))
 }

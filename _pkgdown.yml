@@ -4,9 +4,13 @@ destination: docs
 
 template:
   bootstrap: 5
-  bootswatch: simplex
+  light-switch: true
   bslib:
-    primary: "#0054AD"
+    primary: "#183A53"
+    link-color: "#1F5FA8"
+    base_font: {google: "IBM Plex Sans"}
+    heading_font: {google: "IBM Plex Sans"}
+    code_font: {google: "IBM Plex Mono"}
     border-radius: 0.5rem
     btn-border-radius: 0.25rem
   opengraph:
@@ -16,63 +20,83 @@ template:
     twitter:
       creator: "@felipe_mattioni"
       card: summary_large_image
-  params:
-    ganalytics: UA-126092763-1
 
 authors:
   Felipe Mattioni Maturana:
     href: https://fmattioni.me
 
-toc:
-  depth: 3
-
 development:
   mode: auto
 
 navbar:
-  bg: dark
-  type: dark
-  title: ~
-  left:
-    - icon: fa-home fa-lg
-      href: index.html
-    - text: Reference
-      icon: fa-balance-scale
-      href: reference/index.html
-    - text: News
-      icon: fa-newspaper
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github, lightswitch]
+  components:
+    articles:
+      text: Articles
       menu:
-      - text: "Change log"
-        href: news/index.html
-  right:
-  - icon: fa-github fa-lg
-    href: https://github.com/fmmattioni/lactater
-  - icon: fa-twitter fa-lg
-    href: https://twitter.com/felipe_mattioni
+      - text: The methods and the evidence
+        href: articles/methods.html
+      - text: Zones, uncertainty and checks
+        href: articles/zones-uncertainty-checks.html
+      - text: Comparing tests and training load
+        href: articles/compare-and-load.html
+      - text: "VLamax: the maximal lactate accumulation rate"
+        href: articles/beyond-the-step-test.html
+      - text: -------
+      - text: What's new in lactater 1.0
+        href: articles/whats-new.html
 
 reference:
-- title: Demo data
+- title: Analyze a test
   desc: >
-    Data for demonstration purposes
-  contents:
-  - demo_data
-- title: Lactate threshold estimations
-  desc: >
-    Function that estimates different lactate threshold methods
+    Start here. `lactate_threshold()` takes the stages of a step test (intensity, lactate and, optionally,
+    heart rate) and estimates every threshold method in one call. It returns a tibble that remembers the
+    data and the fitted curve, so it can be plotted, checked and turned into zones afterwards.
   contents:
   - lactate_threshold
-- title: Plot methods
-  desc: >
-    Combine different methods into a single plot
-  contents:
-  - plot_methods
-- title: Lactate curve
-  desc: >
-    Retrieve data for plotting the lactate curve
-  contents:
+  - demo_data
+  - lactate_tests
   - lactate_curve
-- title: Input the data interactively
+- title: Look at the results
   desc: >
-    Widget to input the data in an interactive way
+    `autoplot()` draws an overview of every threshold on one intensity axis, or a single method in detail.
+    `lactate_report()` formats the results as a table for reports and papers. `theme_lactater()` gives your
+    own plots the same look.
+  contents:
+  - autoplot.lactate_thresholds
+  - lactate_report
+  - plot_methods
+  - theme_lactater
+- title: Check the analysis
+  desc: >
+    A threshold is only as good as the test behind it. `lactate_checks()` flags what is easy to miss in a
+    table of numbers, and `lactate_fit_quality()` shows how well each curve follows the measured lactate.
+  contents:
+  - lactate_checks
+  - lactate_fit_quality
+- title: Use the results
+  desc: >
+    Turn two thresholds of your choice into training zones and count the training time in them; compare two tests of one athlete (is the change
+    real, how far did the curve move), follow a series of tests, and compare athletes per kg or % of peak.
+  contents:
+  - lactate_zones
+  - training_load
+  - compare_tests
+  - curve_shift
+  - lactate_trend
+  - relative_thresholds
+- title: Beyond the step test
+  desc: >
+    The maximal lactate accumulation rate from a sprint test.
+  contents:
+  - vlamax
+- title: Data entry
+  desc: >
+    An RStudio gadget that writes the test protocol for you, so you only type in the lactate values.
   contents:
   - run_data_input
+- title: Re-exported functions
+  contents:
+  - reexports

@@ -1,0 +1,64 @@
+---
+title: "What's new in lactater 1.0"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(lactater)
+plex <- requireNamespace("systemfonts", quietly = TRUE) &&
+  isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
+if (plex) options(lactater.font = "IBM Plex Sans")
+```
+
+lactater 1.0 follows each method's original paper, solves every threshold exactly, and adds plots that explain
+themselves, tools to compare tests and measure training load, and real example data. Because the methods are now
+computed as their authors defined them, some thresholds differ from version 0.3.0. This page shows by how much on
+`demo_data` (with the resting sample included in the fit), and why.
+
+## How the numbers compare with 0.3.0
+
+```{r}
+old <- data.frame(
+  method = c("Log-log", "OBLA 2.0", "OBLA 2.5", "OBLA 3.0", "OBLA 3.5", "OBLA 4.0",
+             "Bsln + 0.5", "Bsln + 1.0", "Bsln + 1.5", "Dmax", "ModDmax", "Exp-Dmax",
+             "Log-Poly-ModDmax", "Log-Exp-ModDmax", "LTP1", "LTP2", "LTratio"),
+  version_0.3.0 = c(83.4, 105.4, 118.5, 129.0, 137.0, 145.0, 82.5, 103.6, 116.7,
+                    131.5, 140.1, 134.8, 143.0, 145.7, 88.8, 147.6, 71.2)
+)
+new <- lactate_threshold(demo_data, intensity, lactate, include_baseline = TRUE, plot = FALSE)
+## the unrounded intensities, to compare at 0.1 W
+unrounded <- attr(new, "lactater")$intensity
+changes <- merge(old, data.frame(method = names(unrounded), version_1.0 = round(unname(unrounded), 1)), sort = FALSE)
+changes$difference <- changes$version_1.0 - changes$version_0.3.0
+changes
+```
+
+## Why they differ
+
+* **OBLA and Bsln+ (about +1 to +2 W).** The intensity at a target lactate is solved on the fitted curve itself
+  (issue #8, thanks to Simon Dierickx).
+* **Dmax family.** Each variant takes the point where the fitted curve lies furthest below its line, so a curve that
+  levels off at the end (a last-stage plateau, or sweat lactate) gets a sensible Dmax at any lactate scale. The
+  line runs from its start to the last stage, and its ends sit where each paper put them: on the curve for Dmax and
+  Exp-Dmax, at the measured values for ModDmax and at the last stage of the Log-log variants (`dmax_anchor` changes
+  this). The Log-log start is computed without the resting sample, as documented.
+* **Log-log.** Two separate straight lines that share the stage between them, as in Beaver et al. (1985), split at
+  the stage with the lowest residual sum of squares; the threshold is where they cross.
+* **LTP.** The turn points are the exact least-squares optimum on the measured stages, found by exhaustive search,
+  so they never depend on starting values.
+* **LTratio.** The exact minimum, within the exercise stages.
+* **Heart rate.** Interpolated between the measured stages, so it follows the bend of the heart-rate curve.
+* **Resting sample.** It is the row with intensity 0, so tests without one keep all their stages.
+
+## New in 1.0
+
+* Plots that show how each method works, a dark style, and a one-color overview of every threshold.
+* IAT, flexible targets (`fixed`, `baseline_plus`, `iat_rise`), and one turn point for submaximal tests
+  (`ltp_breakpoints = 1`).
+* Confidence intervals (`ci = TRUE`), `lactate_checks()`, `lactate_fit_quality()` and `lactate_report()`.
+* `lactate_zones()` and `training_load()`: time in zone, intensity distribution and training impulse.
+* `compare_tests()`, `curve_shift()`, `lactate_trend()` and `relative_thresholds()` to compare tests and athletes.
+* `lactate_tests`: 15 real and simulated tests across sports and fitness levels.
+* Rowing, grouped analysis (`.by`), and `vlamax()`.
+
+See the [news](../news/index.html) for the full list.

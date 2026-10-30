@@ -21,8 +21,8 @@ method_ltratio <- function(data, curve, settings) {
 
 #' Individual Anaerobic Threshold (IAT)
 #'
-#' It applies the `IAT` method: the intensity at which the B-spline curve is 1.5 mmol/L above the
-#' lactate at LTratio (Dickhuth et al., 1999).
+#' It applies the `IAT` method: the intensity at which the B-spline curve is `settings$iat_rise`
+#' (1.5 mmol/L by default) above the lactate at LTratio (Dickhuth et al., 1999).
 #'
 #' @inheritParams method_obla
 #'
@@ -31,13 +31,17 @@ method_ltratio <- function(data, curve, settings) {
 #' @keywords internal
 method_iat <- function(data, curve, settings) {
   minimum <- ltratio_minimum(data, curve, settings)
-  target <- minimum$spline$predict(minimum$intensity) + 1.5
+  start <- minimum$spline$predict(minimum$intensity)
+  target <- start + settings$iat_rise
   method_result(
     method = "IAT",
     fitting = "B-Spline (default)",
     intensity = retrieve_intensity(minimum$spline, target),
     lactate = round(target, 1),
-    plot_data = list(curve = curve_points(minimum$spline), fitting = "B-spline")
+    plot_data = list(
+      curve = curve_points(minimum$spline), from = c(intensity = minimum$intensity, lactate = start),
+      fitting = "B-spline"
+    )
   )
 }
 

@@ -18,7 +18,7 @@ a list with the result \code{rows} (method, fitting, intensity, lactate) and the
 for each row.
 }
 \description{
-It applies the \code{OBLA} methods: the intensity at which the fitted curve reaches 2.0, 2.5, 3.0,
-3.5, and 4.0 mmol/L.
+It applies the \code{OBLA} methods: the intensity at which the fitted curve reaches each fixed
+concentration in \code{settings$fixed} (2.0, 2.5, 3.0, 3.5, and 4.0 mmol/L by default).
 }
 \keyword{internal}

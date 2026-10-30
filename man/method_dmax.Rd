@@ -35,7 +35,8 @@ line between two anchors. The variants differ in the fitted curve and in where t
 
 The line always ends at the last stage. The resting sample is never used. With
 \code{settings$dmax_anchor = "observed"} the line's ends sit at the measured lactate of the start
-and end stages instead of on the fitted curve; the Log-log start has no measured value, so it
-always sits on the curve.
+and end stages instead of on the fitted curve; the Log-log and LTP1 starts have no measured
+value, so they always sit on the curve. \code{"original"} follows each paper: on the curve for Dmax
+and Exp-Dmax, at the measured values for the ModDmax variants.
 }
 \keyword{internal}

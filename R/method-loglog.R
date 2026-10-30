@@ -1,8 +1,8 @@
 #' Log-log
 #'
-#' It applies the `Log-log` method. The two-segment regression of log(lactate) on log(intensity)
-#' is fitted to the measured points, and the breakpoint with the lowest residual sum of squares
-#' is found by exhaustive search (see `fit_breakpoints()`).
+#' It applies the `Log-log` method. Two straight lines are fitted to log(lactate) vs log(intensity),
+#' split at the measured stage with the lowest total residual sum of squares, and the threshold is
+#' where they cross (see `fit_two_lines()`). The lactate at the threshold is read off the lines.
 #'
 #' @inheritParams method_obla
 #'
@@ -15,29 +15,29 @@ method_loglog <- function(data, curve, settings) {
     method = "Log-log",
     fitting = user_fitting(settings),
     intensity = breakpoint$intensity,
-    lactate = retrieve_lactate(curve, breakpoint$intensity),
-    plot_data = list(breakpoints = breakpoint$fit, log = TRUE, fitting = "two straight segments, log-log")
+    lactate = round(exp(predict_breakpoints(breakpoint$fit, log(breakpoint$intensity))), 1),
+    plot_data = list(breakpoints = breakpoint$fit, log = TRUE, fitting = "two straight lines, log-log")
   )
 }
 
 #' Log-log breakpoint
 #'
-#' Fits the two-segment regression of log(lactate) on log(intensity) to the measured points and
-#' returns the unrounded breakpoint intensity. For internal use only.
+#' Fits two straight lines to log(lactate) vs log(intensity) of the measured points and returns the
+#' unrounded intensity where they cross. For internal use only.
 #'
 #' @param points The measured points (`intensity`, `lactate`) used for the fit.
 #' @param loglog_restrainer The share of the points to use (see [lactate_threshold()]).
 #'
-#' @return a list with the breakpoint `intensity` and the breakpoint `fit` (in log-log space).
+#' @return a list with the breakpoint `intensity` and the `fit` from `fit_two_lines()` (in log-log space).
 #' @keywords internal
 loglog_breakpoint <- function(points, loglog_restrainer = 1) {
   points <- points[points$intensity > 0, ]
   points <- points[seq_len(floor(loglog_restrainer * nrow(points))), ]
 
-  if(nrow(points) < 4) {
-    stop("Log-log method requires at least 4 measured stages after applying `loglog_restrainer`.", call. = FALSE)
+  if(nrow(points) < 5) {
+    stop("Log-log method requires at least 5 measured stages after applying `loglog_restrainer`.", call. = FALSE)
   }
 
-  breakpoint_fit <- fit_breakpoints(log(points$intensity), log(points$lactate), n_breakpoints = 1)
-  list(intensity = exp(breakpoint_fit$psi), fit = breakpoint_fit)
+  fit <- fit_two_lines(log(points$intensity), log(points$lactate))
+  list(intensity = exp(fit$psi), fit = fit)
 }

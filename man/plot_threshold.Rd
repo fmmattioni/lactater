@@ -12,16 +12,17 @@ plot_threshold(
   plot_data,
   data,
   settings,
-  interval = NULL
+  interval = NULL,
+  rpe = NA
 )
 }
 \arguments{
 \item{method}{The method label.}
 
-\item{intensity, lactate, heart_rate}{The threshold values shown in the subtitle.}
+\item{intensity, lactate, heart_rate, rpe}{The threshold values.}
 
-\item{plot_data}{What the method drew on: the fitted \code{curve}, a Dmax \code{line}, a \code{breakpoints} fit,
-or a \code{ratio} curve, and the \code{fitting} label.}
+\item{plot_data}{What the method drew on: the fitted \code{curve} (with a Dmax \code{line}, a Bsln+ \code{baseline},
+or the IAT \code{from} point), a \code{breakpoints} fit, or a \code{ratio} curve, and the \code{fitting} label.}
 
 \item{data}{The data retrieved from \code{prepare_data()}.}
 
@@ -33,6 +34,7 @@ or a \code{ratio} curve, and the \code{fitting} label.}
 a \code{ggplot2} object, or \code{NA} when the threshold could not be estimated.
 }
 \description{
-For internal use only.
+Draws what the method fitted, the measured stages, and the threshold with a two-line label joined by
+an arrow: the intensity, then the pace, lactate and heart rate. For internal use only.
 }
 \keyword{internal}

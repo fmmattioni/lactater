@@ -36,7 +36,7 @@ the power curve was much less reliable (CV 12-26\%), and a 1-s change in it can 
 26\% (Meixner et al., 2024). Protocols vary a lot between studies (Langley et al., 2025), and whether
 VLamax measures the maximal glycolytic rate is still debated: Clark & Macdermid (2025) found it adds
 little beyond the sprint power itself. Compare values only within the same protocol, ergometer and
-lactate analyser.
+lactate analyzer.
 }
 \examples{
 vlamax(lactate_pre = 1.1, lactate_post = c(8.9, 10.4, 10.9, 10.6, 10.1))
@@ -46,7 +46,8 @@ Meixner B, Nusser V, Koehler K, Sablain M, Boone J, Sperlich B. Reliability of p
 capillary blood lactate accumulation, and phosphagen contribution time following 15-s sprint cycling in amateur
 cyclists. Physiological Reports. 2024;12(10):e16086. doi:10.14814/phy2.16086
 
-Langley J, Haase R, Nitzsche N, Porter M. Methodological approaches in testing maximal lactate accumulation rate - vLamax: a
+Langley J, Haase R, Nitzsche N, Porter M. Methodological approaches in testing maximal lactate accumulation rate -
+vLamax: a
 systematic review. Journal of Science and Cycling. 2025;14(1):9. doi:10.28985/1425.jsc.09
 
 Clark B, Macdermid PW. VLamax correlates strongly with glycolytic performance. Research Quarterly for

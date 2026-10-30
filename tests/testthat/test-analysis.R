@@ -2,12 +2,28 @@ results <- lactate_threshold(demo_data, "intensity", "lactate", "heart_rate", pl
 
 test_that("ci adds intervals that contain the estimate", {
   set.seed(1)
-  with_ci <- lactate_threshold(demo_data, "intensity", "lactate", method = c("OBLA", "Dmax"), plot = FALSE, ci = TRUE, n_boot = 60)
+  with_ci <- lactate_threshold(
+    demo_data, "intensity", "lactate",
+    method = c("OBLA", "Dmax"), plot = FALSE, ci = TRUE, n_boot = 60
+  )
   expect_true(all(c("intensity_low", "intensity_high") %in% names(with_ci)))
   ok <- !is.na(with_ci$intensity_low)
   expect_true(all(with_ci$intensity_low[ok] <= with_ci$intensity[ok] + 0.1))
   expect_true(all(with_ci$intensity_high[ok] >= with_ci$intensity[ok] - 0.1))
   expect_error(lactate_threshold(demo_data, "intensity", "lactate", ci = TRUE, n_boot = 5), "n_boot")
+})
+
+test_that("a threshold that was not found gets no interval", {
+  # nearly straight on log-log: the two Log-log lines cross outside the stages
+  straight <- data.frame(
+    intensity = c(0, 100 * 1.25^(0:4)),
+    lactate = c(0.8, exp(0.4 * c(1, 2.1, 3.1, 3.8, 5.1) - 0.5))
+  )
+  set.seed(1)
+  res <- lactate_threshold(straight, intensity, lactate, method = "Log-log", plot = FALSE, ci = TRUE, n_boot = 30)
+  expect_true(is.na(res$intensity))
+  expect_true(is.na(res$intensity_low) && is.na(res$intensity_high))
+  expect_true(all(is.na(attr(res, "lactater")$intervals)))
 })
 
 test_that(".by analyses each test on its own", {
@@ -60,7 +76,8 @@ test_that("lactate_fit_quality compares the curves on the same points", {
 })
 
 test_that("compare_tests reports the change for shared methods", {
-  after <- lactate_threshold(transform(demo_data, intensity = intensity * 1.05), "intensity", "lactate", method = "OBLA", plot = FALSE)
+  faster <- transform(demo_data, intensity = intensity * 1.05)
+  after <- lactate_threshold(faster, "intensity", "lactate", method = "OBLA", plot = FALSE)
   before <- lactate_threshold(demo_data, "intensity", "lactate", method = c("OBLA", "Dmax"), plot = FALSE)
   comparison <- compare_tests(before, after)
   expect_equal(nrow(comparison), 5)

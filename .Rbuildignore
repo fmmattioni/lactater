@@ -13,3 +13,5 @@
 ^man/figures/readme$
 ^CRAN-SUBMISSION$
 ^\.git$
+^vignettes/articles$
+^\.lintr$

@@ -35,9 +35,15 @@ test_that("Dmax family ignores include_baseline", {
 })
 
 test_that("dmax_anchor and moddmax_rise are honoured and validated", {
-  fitted <- dmax_run(demo_data)
+  fitted <- dmax_run(demo_data, dmax_anchor = "fitted")
   observed <- dmax_run(demo_data, dmax_anchor = "observed")
   expect_false(isTRUE(all.equal(fitted$intensity, observed$intensity)))
+
+  # original: Dmax and Exp-Dmax on the curve, ModDmax and Log-*-ModDmax at the measured values
+  original <- dmax_run(fixtures$plateau)
+  on_curve <- original$method %in% c("Dmax", "Exp-Dmax")
+  expect_equal(original$intensity[on_curve], dmax_run(fixtures$plateau, dmax_anchor = "fitted")$intensity[on_curve])
+  expect_equal(original$intensity[!on_curve], dmax_run(fixtures$plateau, dmax_anchor = "observed")$intensity[!on_curve])
   expect_true(is.na(dmax_run(demo_data, moddmax_rise = 50)$intensity[2]))
   expect_error(dmax_run(demo_data, moddmax_rise = -1), "moddmax_rise")
   expect_error(dmax_run(demo_data, dmax_anchor = "middle"), "should be one of")

@@ -13,11 +13,12 @@ retrieve_intensity(curve, lactate_value)
 }
 \value{
 the intensity associated with the estimated lactate threshold, or \code{NA} when the
-curve never reaches \code{lactate_value} within the tested range.
+curve never rises through \code{lactate_value} within the tested range.
 }
 \description{
-Retrieves the intensity at which the fitted lactate curve reaches a given lactate value,
-by solving the fitted curve (not by interpolating between fitted points, which
-under-estimates the intensity on a convex curve, see issue #8).
+Retrieves the intensity at which the fitted lactate curve reaches a given lactate value, by
+solving the fitted curve. When the curve crosses the value more than once (an early lactate dip,
+or a plateau at the end), the last crossing where lactate rises through the value is used: from
+there on, lactate stays above it.
 }
 \keyword{internal}

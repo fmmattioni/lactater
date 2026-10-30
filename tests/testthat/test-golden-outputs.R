@@ -14,7 +14,7 @@ golden_run <- function(.data) {
 test_that("demo_data golden outputs stay stable", {
   expected <- tibble::tribble(
     ~method_category, ~method, ~intensity, ~lactate, ~heart_rate,
-    "Log-log", "Log-log", 85.3, 1.4, 142,
+    "Log-log", "Log-log", 77.7, 1.2, 136,
     "OBLA", "OBLA 2.0", 106.8, 2.0, 158,
     "OBLA", "OBLA 2.5", 119.7, 2.5, 167,
     "OBLA", "OBLA 3.0", 129.9, 3.0, 172,
@@ -24,12 +24,12 @@ test_that("demo_data golden outputs stay stable", {
     "Bsln+", "Bsln + 1.0", 104.6, 1.93, 157,
     "Bsln+", "Bsln + 1.5", 118.1, 2.43, 166,
     "Dmax", "Dmax", 131.7, 3.1, 173,
-    "Dmax", "ModDmax", 139.7, 3.6, 177,
+    "Dmax", "ModDmax", 140.1, 3.6, 177,
     "Dmax", "Exp-Dmax", 134.8, 3.3, 175,
-    "Dmax", "Log-Poly-ModDmax", 153.2, 4.5, 183,
-    "Dmax", "Log-Exp-ModDmax", 155.4, 4.7, 184,
-    "LTP", "LTP1", 88.9, 1.5, 145,
-    "LTP", "LTP2", 157.3, 4.9, 185,
+    "Dmax", "Log-Poly-ModDmax", 149.4, 4.2, 182,
+    "Dmax", "Log-Exp-ModDmax", 151.5, 4.4, 183,
+    "LTP", "LTP1", 88.9, 1.3, 145,
+    "LTP", "LTP2", 157.3, 4.5, 185,
     "LTratio", "LTratio", 71.2, 1.2, 131,
     "IAT", "IAT", 122.2, 2.7, 168
   )
@@ -39,7 +39,7 @@ test_that("demo_data golden outputs stay stable", {
 test_that("noisy fixture outputs stay stable", {
   expected <- tibble::tribble(
     ~method_category, ~method, ~intensity, ~lactate, ~heart_rate,
-    "Log-log", "Log-log", 86.7, 1.5, 142,
+    "Log-log", "Log-log", 78.3, 1.3, 136,
     "OBLA", "OBLA 2.0", 105.3, 2.0, 157,
     "OBLA", "OBLA 2.5", 118.9, 2.5, 167,
     "OBLA", "OBLA 3.0", 129.5, 3.0, 173,
@@ -49,12 +49,12 @@ test_that("noisy fixture outputs stay stable", {
     "Bsln+", "Bsln + 1.0", 103.0, 1.93, 155,
     "Bsln+", "Bsln + 1.5", 117.2, 2.43, 165,
     "Dmax", "Dmax", 132.1, 3.1, 174,
-    "Dmax", "ModDmax", 139.9, 3.6, 178,
+    "Dmax", "ModDmax", 140.6, 3.6, 178,
     "Dmax", "Exp-Dmax", 134.8, 3.3, 176,
-    "Dmax", "Log-Poly-ModDmax", 154.7, 4.6, 185,
-    "Dmax", "Log-Exp-ModDmax", 156.6, 4.7, 186,
-    "LTP", "LTP1", 113.7, 2.3, 163,
-    "LTP", "LTP2", 167.9, 5.8, 191,
+    "Dmax", "Log-Poly-ModDmax", 158.1, 4.9, 187,
+    "Dmax", "Log-Exp-ModDmax", 159.4, 5.0, 187,
+    "LTP", "LTP1", 113.7, 2.0, 163,
+    "LTP", "LTP2", 167.9, 5.5, 191,
     "LTratio", "LTratio", 74.4, 1.3, 133,
     "IAT", "IAT", 125.0, 2.8, 171
   )

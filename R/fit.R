@@ -5,8 +5,9 @@
 #' * `"3rd degree polynomial"` and `"4th degree polynomial"`: ordinary least squares on raw powers.
 #' * `"B-spline"`: a natural cubic regression spline with 4 degrees of freedom (`splines::ns()`).
 #' * `"Exponential"`: the exponential plus constant `a + b * exp(c * x)` (Hughson et al., 1987). For a
-#'   fixed `c` the model is linear in `a` and `b`, so only `c` is searched (variable projection):
-#'   no starting values are needed and the fit cannot fail to converge.
+#'   fixed `c` the model is linear in `a` and `b`, so only `c` is searched (variable projection), and only
+#'   "in the positive range" as in Hughson et al.: no starting values are needed and the fit cannot fail to
+#'   converge.
 #'
 #' @param points A data frame with `intensity` and `lactate`.
 #' @param fit The curve type.
@@ -59,7 +60,7 @@ fit_exponential <- function(x, y) {
   linear_part <- function(k) stats::lm.fit(cbind(1, exp(k * scaled)), y)
   rss <- function(k) sum(linear_part(k)$residuals^2)
   ## shortcut: rates beyond 40 (a 2e17-fold rise across the test) are not lactate curves
-  grid <- c(seq(-20, -0.05, length.out = 100), seq(0.05, 40, length.out = 400))
+  grid <- seq(0.05, 40, length.out = 400)
   best <- which.min(vapply(grid, rss, numeric(1)))
   k <- stats::optimize(rss, grid[c(max(best - 1, 1), min(best + 1, length(grid)))], tol = 1e-10)$minimum
   ab <- linear_part(k)$coefficients

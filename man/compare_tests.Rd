@@ -5,12 +5,19 @@
 \alias{autoplot.lactate_comparison}
 \title{Compare two lactate tests}
 \usage{
-compare_tests(before, after)
+compare_tests(before, after, cv = NULL, swc = 0, level = 0.9)
 
 \method{autoplot}{lactate_comparison}(object, ...)
 }
 \arguments{
 \item{before, after}{The results of \code{\link[=lactate_threshold]{lactate_threshold()}} for the two tests, with the same sport.}
+
+\item{cv}{The test-retest coefficient of variation (\%) of each method: one number for all methods, or a
+named vector (e.g. \code{c("LTP2" = 3)}) that adds to or replaces the defaults.}
+
+\item{swc}{The smallest worthwhile change, in \% of the intensity before. Default to \code{0}.}
+
+\item{level}{The probability of the interval. Default to \code{0.9}.}
 
 \item{object}{The result of \code{\link[=compare_tests]{compare_tests()}}.}
 
@@ -18,16 +25,45 @@ compare_tests(before, after)
 }
 \value{
 a \code{lactate_comparison} tibble with one row per method found in both tests: \code{method}, \code{before},
-\code{after}, \code{change}, and \code{change_percent}. Plot both curves with \code{\link[=autoplot]{autoplot()}}.
+\code{after}, \code{change}, \code{change_percent}, the interval of the change (\code{change_low}, \code{change_high}), the \code{verdict},
+and the heart rate at each threshold in both tests (when recorded). The \code{notes} attribute lists what differs
+between the two tests (stages, step, resting sample, sample type) and a fall in peak lactate. Plot both
+curves with \code{\link[=autoplot]{autoplot()}}.
 }
 \description{
-Compares the thresholds of two tests of the same athlete (e.g. before and after a training block). A
-rightward shift of the lactate curve shows as higher intensities at the fixed concentrations (\code{OBLA})
-and at the curve-based thresholds.
+Compares two tests of the same athlete (e.g. before and after a training block): the change of each
+threshold, whether it is larger than the noise of the method, the heart rate at each threshold, and
+notes on what could make the comparison unfair.
+}
+\details{
+A threshold moves between two tests even without any change in fitness, by the day-to-day variation of
+the athlete and the error of the analyser and the method. Each change is therefore given with an
+interval, change +/- z * sqrt(2) * typical error, where the typical error is the coefficient of
+variation (\code{cv}) times the intensity before (Hopkins, 2000; Swinton et al., 2018). The change is called
+an \code{"increase"} or a \code{"decrease"} when the whole interval lies beyond the smallest worthwhile change
+(\code{swc}), and \code{"unclear"} otherwise.
+
+The default \code{cv} comes from test-retest studies of trained male cyclists: 3.6\% for IAT, 3.8\% for OBLA 4.0,
+3.4\% for Dmax and 4.3\% for ModDmax (Heuberger et al., 2018), and 3.4-3.7\% for Bsln+ (Pallares et al.,
+2016, ramp test). Other methods have no published value, so their \code{verdict} is \code{NA} unless you give one.
+The best \code{cv} is the one of your own athletes, measured with your protocol and analyser.
 }
 \examples{
-before <- lactate_threshold(demo_data, intensity, lactate, plot = FALSE)
-after_data <- transform(demo_data, intensity = intensity * 1.05)
-after <- lactate_threshold(after_data, intensity, lactate, plot = FALSE)
+series <- subset(lactate_tests, athlete == "cyclist_series")
+before <- lactate_threshold(subset(series, day == 0), intensity, lactate, heart_rate, plot = FALSE)
+after <- lactate_threshold(subset(series, day == 58), intensity, lactate, heart_rate, plot = FALSE)
 compare_tests(before, after)
+}
+\references{
+Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and
+predictive value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
+
+Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.
+
+Pallares JG, Moran-Navarro R, Ortega JF, Fernandez-Elias VE, Mora-Rodriguez R. Validity and reliability of
+ventilatory and blood lactate thresholds in well-trained cyclists. PLOS ONE. 2016;11(9):e0163389.
+
+Swinton PA, Hemingway BS, Saunders B, Gualano B, Dolan E. A statistical framework to interpret individual
+response to intervention: paving the way for personalized nutrition and exercise prescription. Frontiers
+in Nutrition. 2018;5:41.
 }

@@ -26,7 +26,8 @@ lactate_curve(
 \item{fit}{The fit you would like to use for plotting the lactate curve.
 Options are \verb{3rd degree polynomial}, \verb{4th degree polynomial}, or \code{B-spline}.}
 
-\item{include_baseline}{A boolean to indicate whether to include the resting (baseline) sample in the fit. The resting sample is
+\item{include_baseline}{A boolean to indicate whether to include the resting (baseline) sample in the fit. The
+resting sample is
 the row with intensity 0; it is placed one median step before the first stage. Data without a resting sample is fine.
 Rows with a missing intensity or lactate are dropped with a warning.}
 
@@ -35,8 +36,10 @@ Rows with a missing intensity or lactate are dropped with a warning.}
 \value{
 a list with the following elements:
 \item{data}{a tibble containing the raw data with the columns \code{intensity}, \code{lactate}, and \code{heart_rate}.}
-\item{lactate_curve}{a tibble containing the data with the columns \code{intensity} and \code{lactate} for plotting the lactate curve according to the \code{fit} method chosen.}
-\item{heart_rate_response}{a tibble with the columns \code{intensity} and \code{heart_rate} at each exercise stage. A line through
+\item{lactate_curve}{a tibble containing the data with the columns \code{intensity} and \code{lactate} for plotting the lactate
+curve according to the \code{fit} method chosen.}
+\item{heart_rate_response}{a tibble with the columns \code{intensity} and \code{heart_rate} at each exercise stage. A line
+through
 these points is the interpolation used for the heart rate at each threshold.}
 }
 \description{

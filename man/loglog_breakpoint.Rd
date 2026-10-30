@@ -12,10 +12,10 @@ loglog_breakpoint(points, loglog_restrainer = 1)
 \item{loglog_restrainer}{The share of the points to use (see \code{\link[=lactate_threshold]{lactate_threshold()}}).}
 }
 \value{
-a list with the breakpoint \code{intensity} and the breakpoint \code{fit} (in log-log space).
+a list with the breakpoint \code{intensity} and the \code{fit} from \code{fit_two_lines()} (in log-log space).
 }
 \description{
-Fits the two-segment regression of log(lactate) on log(intensity) to the measured points and
-returns the unrounded breakpoint intensity. For internal use only.
+Fits two straight lines to log(lactate) vs log(intensity) of the measured points and returns the
+unrounded intensity where they cross. For internal use only.
 }
 \keyword{internal}

@@ -1,0 +1,42 @@
+---
+title: "VLamax: the maximal lactate accumulation rate"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5, dpi = 110, out.width = "100%")
+library(lactater)
+plex <- requireNamespace("systemfonts", quietly = TRUE) &&
+  isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
+if (plex) options(lactater.font = "IBM Plex Sans")
+```
+
+## The maximal lactate accumulation rate (VLamax)
+
+VLamax comes from its own test, a short all-out sprint, not from the step test:
+
+$$VLamax = \frac{La_{peak} - La_{pre}}{t_{test} - t_{alactic}}$$
+
+Take a lactate sample before the sprint and every minute for several minutes after it; the highest value is the
+peak. `vlamax()` does the arithmetic:
+
+```{r}
+vlamax(lactate_pre = 1.1, lactate_post = c(8.9, 10.4, 10.9, 10.6, 10.1), test_duration = 15)
+```
+
+The alactic time is the part of the sprint assumed to be covered by phosphocreatine. In 50 cyclists, fixing it at
+3.5 s gave the most reliable VLamax (ICC 0.91, CV 3.1%), while estimating it from the power curve did not (CV 12-26%);
+a 1-s change in it can change VLamax by up to 26% (Meixner et al., 2024). Protocols differ widely between studies
+(Langley et al., 2025), and whether VLamax measures the maximal glycolytic rate is still debated: in 11 cyclists it
+added little beyond the power of the sprint itself (Clark & Macdermid, 2025). Compare VLamax only within the same
+protocol, ergometer and analyzer.
+
+## References
+
+Clark B, Macdermid PW. VLamax correlates strongly with glycolytic performance. Res Q Exerc Sport. 2025:1-8.
+
+Langley J, Haase R, Nitzsche N, Porter M. Methodological approaches in testing maximal lactate accumulation rate -
+vLamax: a systematic review. J Sci Cycling. 2025;14(1):9. doi:10.28985/1425.jsc.09
+
+Meixner B, Nusser V, Koehler K, Sablain M, Boone J, Sperlich B. Reliability of power output, maximal rate of capillary
+blood lactate accumulation, and phosphagen contribution time following 15-s sprint cycling in amateur cyclists.
+Physiol Rep. 2024;12(10):e16086. doi:10.14814/phy2.16086

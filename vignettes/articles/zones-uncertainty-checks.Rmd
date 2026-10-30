@@ -1,0 +1,98 @@
+---
+title: "Zones, uncertainty and checks"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5, dpi = 110, out.width = "100%")
+library(lactater)
+plex <- requireNamespace("systemfonts", quietly = TRUE) &&
+  isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
+if (plex) options(lactater.font = "IBM Plex Sans")
+```
+
+```{r}
+results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, include_baseline = TRUE, plot = FALSE)
+```
+
+## Training zones
+
+`lactate_zones()` builds the three-zone model: zone 1 below LT1, zone 2 between LT1 and LT2, and zone 3 above LT2
+(Hofmann & Tschakert, 2017). You decide which thresholds mark LT1 and LT2. By default they are the two lactate turn
+points, which define the zones in that model.
+
+```{r}
+lactate_zones(results)
+```
+
+Any threshold in the results works, and so does an intensity you set yourself:
+
+```{r}
+zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax")
+zones
+autoplot(zones)
+```
+
+Zones built from different thresholds differ, sometimes by tens of watts, so report the pair you used.
+
+## How sure is a threshold?
+
+A step test gives 6 to 12 lactate samples, each with an analyzer error of a few percent (Bonaventura et al., 2015).
+`ci = TRUE` shows how much each threshold moves with that much scatter: every replicate keeps the fitted curve, adds
+residuals resampled with replacement (leverage-adjusted and centered; Davison & Hinkley, 1997), and runs every method
+again. The interval is the middle 95% of the replicate thresholds.
+
+```{r, fig.height = 8}
+set.seed(1)
+with_ci <- lactate_threshold(demo_data, intensity, lactate, heart_rate, include_baseline = TRUE,
+                             plot = FALSE, ci = TRUE, n_boot = 300)
+with_ci[c("method", "intensity", "intensity_low", "intensity_high")]
+autoplot(with_ci)
+```
+
+Thresholds read off the fitted curve at a fixed concentration (OBLA) move little. Breakpoint methods (Log-log, LTP)
+move a lot, because a breakpoint between two stages can jump to the neighboring interval. The intervals do not
+include errors that are the same in every sample, such as analyzer bias or the sampling site, and this bootstrap has
+not been validated specifically for lactate thresholds; read the intervals as a lower bound of the uncertainty.
+
+## Checks
+
+`lactate_checks()` lists what is easy to miss in a table of numbers. The printed results say how many checks need
+attention.
+
+```{r}
+plateau <- data.frame(
+  intensity = c(0, 100, 150, 200, 250, 300, 350, 400),
+  lactate = c(1.0, 1.1, 1.3, 2.0, 3.4, 5.2, 6.4, 6.4)
+)
+plateau_results <- lactate_threshold(plateau, intensity, lactate, plot = FALSE)
+plateau_results
+lactate_checks(plateau_results)
+```
+
+Here lactate did not rise in the last stage. If that stage was not completed, leave it out:
+
+```{r}
+lactate_threshold(plateau, intensity, lactate, method = "Dmax", plot = FALSE, max_intensity = 350)
+```
+
+## Which curve?
+
+`lactate_fit_quality()` fits every curve to the same points:
+
+```{r}
+lactate_fit_quality(results)
+```
+
+A curve with more parameters always follows the points more closely. With 7 stages, a 4th degree polynomial or the
+spline uses 5 of the 7 points' worth of information, so prefer the simplest curve that follows the data, and keep the
+same curve between tests of the same athlete.
+
+## References
+
+Bonaventura JM, Sharpe K, Knight E, Fuller KL, Tanner RK, Gore CJ. Reliability and accuracy of six hand-held blood
+lactate analysers. J Sports Sci Med. 2015;14:203-14.
+
+Davison AC, Hinkley DV. Bootstrap Methods and Their Application. Cambridge University Press; 1997.
+
+Hofmann P, Tschakert G. Intensity- and duration-based options to regulate endurance training. Front Physiol.
+2017;8:337. doi:10.3389/fphys.2017.00337

@@ -16,7 +16,7 @@
 #' 26% (Meixner et al., 2024). Protocols vary a lot between studies (Langley et al., 2025), and whether
 #' VLamax measures the maximal glycolytic rate is still debated: Clark & Macdermid (2025) found it adds
 #' little beyond the sprint power itself. Compare values only within the same protocol, ergometer and
-#' lactate analyser.
+#' lactate analyzer.
 #'
 #' @param lactate_pre Blood lactate before the sprint (mmol/L).
 #' @param lactate_post Blood lactate samples after the sprint (mmol/L); the highest is used.
@@ -31,7 +31,8 @@
 #' capillary blood lactate accumulation, and phosphagen contribution time following 15-s sprint cycling in amateur
 #' cyclists. Physiological Reports. 2024;12(10):e16086. doi:10.14814/phy2.16086
 #'
-#' Langley J, Haase R, Nitzsche N, Porter M. Methodological approaches in testing maximal lactate accumulation rate - vLamax: a
+#' Langley J, Haase R, Nitzsche N, Porter M. Methodological approaches in testing maximal lactate accumulation rate -
+#' vLamax: a
 #' systematic review. Journal of Science and Cycling. 2025;14(1):9. doi:10.28985/1425.jsc.09
 #'
 #' Clark B, Macdermid PW. VLamax correlates strongly with glycolytic performance. Research Quarterly for
@@ -47,7 +48,7 @@ vlamax <- function(lactate_pre, lactate_post, test_duration = 15, alactic_time =
   if(!is.numeric(lactate_post) || length(lactate_post) == 0 || all(is.na(lactate_post)))
     stop("`lactate_post` must contain at least one lactate value.", call. = FALSE)
   if(!is.numeric(test_duration) || !is.numeric(alactic_time) || length(test_duration) != 1 ||
-     length(alactic_time) != 1 || alactic_time < 0 || test_duration <= alactic_time)
+       length(alactic_time) != 1 || alactic_time < 0 || test_duration <= alactic_time)
     stop("`test_duration` must be longer than `alactic_time` (both in seconds).", call. = FALSE)
 
   peak <- max(lactate_post, na.rm = TRUE)

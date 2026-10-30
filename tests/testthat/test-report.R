@@ -1,0 +1,11 @@
+test_that("lactate_report builds a gt table with notes for flagged checks", {
+  skip_if_not_installed("gt")
+  results <- lactate_threshold(fixtures$plateau_x3, "intensity", "lactate", sample = "sweat", plot = FALSE)
+  report <- lactate_report(results)
+  expect_s3_class(report, "gt_tbl")
+  notes <- unlist(report[["_source_notes"]])
+  expect_true(any(grepl("Sample type", notes)))
+  body <- gt::extract_body(report)
+  expect_equal(nrow(body), nrow(results))
+  expect_false(any(body$lactate == "NA"))
+})

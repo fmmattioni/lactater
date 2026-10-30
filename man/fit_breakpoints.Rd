@@ -6,7 +6,7 @@
 \alias{predict_breakpoints}
 \title{Fit a continuous piecewise-linear model by exhaustive breakpoint search}
 \usage{
-fit_breakpoints(x, y, n_breakpoints, flat_first = FALSE, min_points = 2)
+fit_breakpoints(x, y, n_breakpoints = 2, flat_first = FALSE, min_points = 2)
 
 breakpoint_design(x, psi, flat_first = FALSE)
 
@@ -23,7 +23,7 @@ predict_breakpoints(fit, newx)
 
 \item{psi}{The breakpoints.}
 
-\item{fit}{A fit from \code{fit_breakpoints()}.}
+\item{fit}{A fit from \code{fit_breakpoints()} or \code{fit_two_lines()}.}
 
 \item{newx}{Where to evaluate the fitted lines.}
 }
@@ -31,9 +31,9 @@ predict_breakpoints(fit, newx)
 a list with the breakpoints \code{psi}, the \code{coefficients}, \code{x}, \code{y}, and \code{flat_first}.
 }
 \description{
-For fixed breakpoints the model \verb{y = b0 + b1 x + sum(c_j * max(x - psi_j, 0))} is linear, so
-the residual sum of squares can be computed for every candidate. All breakpoint positions on a
-grid are tried and the best one is refined locally. Unlike iterative fits (e.g. \code{segmented}), the
-result is the global least-squares optimum (up to the grid) and is deterministic. For internal use only.
+For fixed breakpoints the model \verb{y = b0 + b1 x + sum(c_j max(x - psi_j, 0))} is linear, so the
+residual sum of squares can be computed for every candidate. All breakpoint positions on a grid are
+tried and the best one is refined locally. Unlike iterative fits (e.g. \code{segmented}), the result is the
+global least-squares optimum (up to the grid) and is deterministic. For internal use only.
 }
 \keyword{internal}

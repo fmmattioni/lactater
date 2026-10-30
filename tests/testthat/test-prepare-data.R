@@ -7,6 +7,7 @@ test_that("position_rest uses the median step, so missed stages do not shift it"
 test_that("data without a resting sample keeps every stage", {
   no_rest <- demo_data[-1, ]
   expect_equal(position_rest(no_rest)$intensity, no_rest$intensity)
-  curve <- fit_curve(modeling_data(prepare_data(no_rest, "intensity", "lactate"), include_baseline = FALSE), "3rd degree polynomial")
+  points <- modeling_data(prepare_data(no_rest, "intensity", "lactate"), include_baseline = FALSE)
+  curve <- fit_curve(points, "3rd degree polynomial")
   expect_equal(curve$domain[1], 50)
 })
