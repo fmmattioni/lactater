@@ -12,7 +12,9 @@ plot_overview(object, info)
 \item{info}{Its \code{lactater} attribute.}
 }
 \description{
-The fitted curve on top, and below it every threshold as a dot on the same intensity axis, grouped by
-method family, with the value written next to it (and the confidence interval as a line, when present).
+Every threshold of the test on one intensity axis: the fitted curve on top, and below it one row per method,
+grouped by family, with the threshold as a dot and its confidence interval as a line (when computed). A table on
+the right prints the lactate, heart rate, RPE and percentage of the highest intensity at each threshold, with the
+lactate shaded by its value and, with intervals, their width shaded by how wide they are.
 }
 \keyword{internal}

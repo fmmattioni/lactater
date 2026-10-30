@@ -105,10 +105,12 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   the rise above the baseline or LTratio, and Log-log and LTP their fitted
   straight lines, dashed beyond the part they fit. Axis lines, no grid, lactate
   axes in whole numbers, and colors checked for color-vision deficiency.
-* `autoplot(x)` draws an overview: the fitted curve on top and every threshold
-  below on the same intensity axis, grouped by method family, so you can see at
-  a glance how much the methods agree. `autoplot(x, method = "Dmax")` draws one
-  method; `autoplot()` is re-exported from ggplot2.
+* `autoplot(x)` draws an overview, in the style of a forest plot: the fitted
+  curve on top and one row per threshold below on the same intensity axis,
+  grouped by method family, with confidence intervals when computed, and a
+  table beside it with the lactate, heart rate, RPE and % of peak at each
+  threshold. `autoplot(x, method = "Dmax")` draws one method; `autoplot()` is
+  re-exported from ggplot2.
 * `options(lactater.style = "night")` gives every plot a dark style and
   `"journal"` a quieter print style (an ink curve with one amber accent);
   `options(lactater.font = )` sets the font, annotations included.
@@ -129,8 +131,14 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   lactate dip, no rise in the last stage, a test that may have stopped before
   LTP2, and fixed-concentration methods used on a non-blood `sample`.
 * `lactate_fit_quality()` compares the curves on your data (R-squared, RMSE,
-  standard error of the estimate, largest residual) to help choose `fit`
+  standard error of the estimate, largest residual, and the leave-one-out
+  prediction error, which does not reward overfitting) to help choose `fit`
   (thanks @Victorivus for the idea and #11).
+* New `lactate_diagnostics()`: residuals, leverage and Cook's distance of the
+  curve (flagged against the median of F, which works with 6 to 10 stages),
+  every threshold computed again without each stage (range and jackknife
+  standard error), and a six-panel plot with a line under each panel on what
+  to look for.
 * `lactate_zones()` builds three or five training zones from the thresholds
   you choose as LT1 and LT2, with the zone boundaries at the intensity domains
   (moderate below LT1, heavy from LT1 to LT2, severe above LT2). Five zones
@@ -155,7 +163,15 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 * New `curve_shift()`: the intensity gained at each lactate and the lactate saved
   at chosen intensities; the comparison plot shows the shift at 2 and 4 mmol/L.
 * New `lactate_trend()`: a straight-line trend with its 90% interval for each
-  threshold over three or more tests.
+  threshold over three or more tests. Its plot shows each test against a band
+  for the noise of the method around the first test (tests outside it are
+  filled), or, with `view = "curves"`, the lactate curves light to dark by date.
+* New `curve_shape()`: did the curve only shift, or change its shape? Both
+  tests are fitted with one exponential shape moved by a shift, and with a
+  shape each; an F test and AICc compare the two, and the shift comes with a
+  confidence interval. The cyclist in `lactate_tests` shifted by +24 W in the
+  first 58 days (no evidence of a shape change, p = 0.11) and changed shape
+  by day 2046 (p = 0.004).
 * New `relative_thresholds()`: thresholds per kg, as % of peak intensity, and
   heart rate as % of peak, to compare athletes.
 

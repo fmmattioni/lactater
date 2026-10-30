@@ -100,8 +100,10 @@ plot.lactate_thresholds <- function(x, method = NULL, ...) {
 
 #' Overview plot
 #'
-#' The fitted curve on top, and below it every threshold as a dot on the same intensity axis, grouped by
-#' method family, with the value written next to it (and the confidence interval as a line, when present).
+#' Every threshold of the test on one intensity axis: the fitted curve on top, and below it one row per method,
+#' grouped by family, with the threshold as a dot and its confidence interval as a line (when computed). A table on
+#' the right prints the lactate, heart rate, RPE and percentage of the highest intensity at each threshold, with the
+#' lactate shaded by its value and, with intervals, their width shaded by how wide they are.
 #'
 #' @param object The result of [lactate_threshold()].
 #' @param info Its `lactater` attribute.
@@ -111,83 +113,137 @@ plot_overview <- function(object, info) {
   sport <- info$settings$sport
   points <- position_rest(info$data)
   methods <- as.character(object$method)
-  thresholds <- data.frame(
+  rows <- data.frame(
     method = methods,
     family = as.character(object$method_category),
-    intensity = unname(info$intensity[methods])
+    intensity = unname(info$intensity[methods]),
+    lactate = object$lactate
   )
+  if("heart_rate" %in% names(object)) rows$heart_rate <- object$heart_rate
+  if("rpe" %in% names(object)) rows$rpe <- object$rpe
   if(!is.null(info$intervals)) {
-    thresholds$low <- unname(info$intervals[methods, "low"])
-    thresholds$high <- unname(info$intervals[methods, "high"])
+    rows$low <- unname(info$intervals[methods, "low"])
+    rows$high <- unname(info$intervals[methods, "high"])
   }
-  thresholds <- thresholds[!is.na(thresholds$intensity), ]
-  ## one row per threshold, the first method on top, grouped by family
-  thresholds$method <- factor(thresholds$method, levels = rev(thresholds$method))
-  thresholds$family <- factor(toupper(thresholds$family), levels = unique(toupper(thresholds$family)))
-  ## values sit past the interval, so they never cover it
-  thresholds$value_at <- thresholds$intensity
-  if(!is.null(thresholds$high)) thresholds$value_at <- pmax(thresholds$intensity, thresholds$high, na.rm = TRUE)
+  rows <- rows[!is.na(rows$intensity), ]
+  rows$row <- rev(seq_len(nrow(rows)))
+  rows$peak <- 100 * rows$intensity / max(info$data$intensity)
+  family_end <- which(rows$family[-1] != rows$family[-nrow(rows)])
+  separators <- rows$row[family_end] - 0.5
   curve <- curve_points(info$curve)
-
-  limits <- range(
-    points$intensity, curve$intensity, thresholds$intensity, thresholds$low, thresholds$high,
-    na.rm = TRUE
+  limits <- range(points$intensity, curve$intensity, rows$intensity, rows$low, rows$high, na.rm = TRUE)
+  x_scale <- ggplot2::scale_x_continuous(limits = limits, expand = ggplot2::expansion(mult = 0.03))
+  y_rows <- ggplot2::scale_y_continuous(breaks = rows$row, labels = rows$method, expand = c(0, 0.6))
+  bands <- ggplot2::annotate(
+    "rect", xmin = -Inf, xmax = Inf, ymin = rows$row[rows$row %% 2 == 0] - 0.5,
+    ymax = rows$row[rows$row %% 2 == 0] + 0.5, fill = colours[["faint"]], alpha = 0.18
   )
-  ## both panels share one intensity axis; patchwork lines up their panels
-  x_scale <- ggplot2::scale_x_continuous(limits = limits + c(-0.02, 0.06) * diff(limits))
-  top_lactate <- max(points$lactate, curve$lactate) * 1.06
+  lines <- ggplot2::geom_hline(yintercept = separators, colour = colours[["faint"]], linewidth = 0.4)
 
   top <- ggplot2::ggplot() +
     ggplot2::geom_line(ggplot2::aes(intensity, lactate), curve, colour = colours[["curve"]], linewidth = 0.9) +
     stage_layers(points, info$data, colours) +
     x_scale +
-    ggplot2::scale_y_continuous(limits = c(0, top_lactate), breaks = lactate_breaks(top_lactate), expand = c(0, 0)) +
-    ggplot2::labs(x = NULL, y = "Blood lactate (mmol/L)") +
+    ggplot2::scale_y_continuous(
+      limits = c(0, max(points$lactate, curve$lactate) * 1.08),
+      breaks = lactate_breaks(max(points$lactate, curve$lactate) * 1.08), expand = c(0, 0)
+    ) +
+    ggplot2::labs(x = NULL, y = "Lactate (mmol/L)") +
     theme_lactater() +
     ggplot2::theme(
       axis.text.x = ggplot2::element_blank(), axis.ticks.x = ggplot2::element_blank(),
       axis.line.x = ggplot2::element_blank()
     )
 
-  dots <- ggplot2::ggplot(thresholds) +
-    ggplot2::geom_segment(
-      ggplot2::aes(x = -Inf, xend = intensity, y = method, yend = method),
-      colour = colours[["faint"]], linewidth = 0.3, linetype = "13"
-    )
-  if(!is.null(thresholds$low)) {
+  dots <- ggplot2::ggplot(rows) + bands + lines
+  if(!is.null(rows$low)) {
     dots <- dots + ggplot2::geom_segment(
-      ggplot2::aes(x = low, xend = high, y = method, yend = method),
-      colour = colours[["accent"]], linewidth = 0.7, alpha = 0.5, na.rm = TRUE
+      ggplot2::aes(x = low, xend = high, y = row, yend = row), colour = colours[["muted"]], alpha = 0.55,
+      linewidth = 0.9, lineend = "round", na.rm = TRUE
     )
   }
   dots <- dots +
     ggplot2::geom_point(
-      ggplot2::aes(intensity, method), shape = 21, size = 3, stroke = 0.9, fill = colours[["accent"]],
+      ggplot2::aes(intensity, row), shape = 21, size = 2.8, stroke = 0.7, fill = colours[["curve"]],
       colour = colours[["paper"]]
     ) +
-    ggplot2::geom_text(
-      ggplot2::aes(value_at, method, label = format_intensity(intensity, sport)),
-      hjust = -0.35, size = 3.1, colour = colours[["ink"]]
-    ) +
-    ggplot2::facet_grid(family ~ ., scales = "free_y", space = "free_y", switch = "y") +
-    x_scale +
+    x_scale + y_rows +
     ggplot2::labs(x = intensity_label(sport), y = NULL) +
     theme_lactater() +
     ggplot2::theme(
-      axis.text.y = ggplot2::element_text(colour = colours[["ink"]], size = ggplot2::rel(0.9)),
-      axis.ticks.y = ggplot2::element_blank(), axis.line.y = ggplot2::element_blank(),
-      strip.placement = "outside",
-      strip.text.y.left = ggplot2::element_text(
-        angle = 0, hjust = 1, vjust = 1, face = "bold", size = ggplot2::rel(0.7), colour = colours[["muted"]]
-      ),
-      panel.spacing.y = ggplot2::unit(6, "pt")
+      axis.text.y = ggplot2::element_text(colour = colours[["ink"]], size = ggplot2::rel(0.95)),
+      axis.ticks.y = ggplot2::element_blank(), axis.line.y = ggplot2::element_blank()
     )
 
-  patchwork::wrap_plots(top, dots, ncol = 1, heights = c(1, max(1, nrow(thresholds) / 11))) +
+  table <- overview_table(rows, colours, sport, intervals = !is.null(rows$low)) + bands + lines
+  design <- "AB\nCD"
+  patchwork::wrap_plots(
+    A = top, B = patchwork::plot_spacer(), C = dots, D = table, design = design,
+    widths = c(2, 1.35), heights = c(0.75, max(1.4, nrow(rows) / 7))
+  ) +
     patchwork::plot_annotation(
-      title = sprintf("%d thresholds from %d methods", nrow(thresholds), nlevels(thresholds$family)),
-      subtitle = "Every threshold found for this test, by method family",
+      title = sprintf(
+        "%d thresholds from %d methods, %s to %s %s", nrow(rows), length(unique(rows$family)),
+        format_intensity(min(rows$intensity), sport), format_intensity(max(rows$intensity), sport),
+        intensity_unit(sport)
+      ),
+      subtitle = paste0(
+        "Each method as a dot", if(!is.null(rows$low)) " with its confidence interval" else "",
+        ", grouped by family; the table gives the values at each threshold"
+      ),
       caption = paste("Fit:", info$settings$fit),
       theme = theme_lactater()
+    )
+}
+
+#' The table beside the overview plot
+#'
+#' @param rows The thresholds (one row each, with `row`).
+#' @param colours The plot colours.
+#' @param sport The sport.
+#' @param intervals Whether the thresholds have confidence intervals.
+#' @keywords internal
+overview_table <- function(rows, colours, sport, intervals) {
+  columns <- list(
+    list("lactate", "Lactate\nmmol/L", "%.1f", shade = TRUE),
+    if(!is.null(rows$heart_rate)) list("heart_rate", "Heart rate\nbpm", "%.0f", shade = FALSE),
+    if(!is.null(rows$rpe)) list("rpe", "RPE", "%.1f", shade = FALSE),
+    list("peak", "% of\npeak", "%.0f", shade = FALSE),
+    if(intervals) list("width", paste0("CI width\n", intensity_unit(sport)), "%.0f", shade = TRUE)
+  )
+  columns <- Filter(Negate(is.null), columns)
+  if(intervals) rows$width <- rows$high - rows$low
+  cells <- do.call(rbind, lapply(seq_along(columns), function(k) {
+    column <- columns[[k]]
+    values <- rows[[column[[1]]]]
+    span <- diff(range(values, na.rm = TRUE))
+    data.frame(
+      row = rows$row, column = k, label = ifelse(is.na(values), "", sprintf(column[[3]], values)),
+      shade = if(column$shade && span > 0) (values - min(values, na.rm = TRUE)) / span else NA_real_
+    )
+  }))
+  tint <- if(identical(colours[["paper"]], "#ffffff")) colours[["curve"]] else colours[["accent"]]
+  shaded <- cells[!is.na(cells$shade), ]
+  ggplot2::ggplot(cells, ggplot2::aes(column, row)) +
+    ggplot2::geom_tile(
+      ggplot2::aes(alpha = 0.08 + 0.72 * shade), shaded,
+      ## fixed size: otherwise the width is guessed from the gaps between the shaded columns
+      width = 0.94, height = 0.92, fill = tint
+    ) +
+    ggplot2::geom_text(
+      ggplot2::aes(label = label), size = 3,
+      colour = ifelse(!is.na(cells$shade) & cells$shade > 0.6, colours[["paper"]], colours[["ink"]])
+    ) +
+    ggplot2::scale_alpha_identity() +
+    ggplot2::scale_x_continuous(
+      breaks = seq_along(columns), labels = vapply(columns, `[[`, "", 2), position = "top", expand = c(0, 0)
+    ) +
+    ggplot2::scale_y_continuous(expand = c(0, 0.6)) +
+    ggplot2::labs(x = NULL, y = NULL) +
+    theme_lactater() +
+    ggplot2::theme(
+      axis.text.y = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank(),
+      axis.line = ggplot2::element_blank(),
+      axis.text.x.top = ggplot2::element_text(size = ggplot2::rel(0.75), lineheight = 0.9, vjust = 0)
     )
 }

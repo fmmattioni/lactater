@@ -72,19 +72,23 @@ reference:
 - title: Check the analysis
   desc: >
     A threshold is only as good as the test behind it. `lactate_checks()` flags what is easy to miss in a
-    table of numbers, and `lactate_fit_quality()` shows how well each curve follows the measured lactate.
+    table of numbers, `lactate_fit_quality()` shows how well each curve follows and predicts the measured lactate,
+    and `lactate_diagnostics()` plots the regression checks and how much each threshold rests on single stages.
   contents:
   - lactate_checks
   - lactate_fit_quality
+  - lactate_diagnostics
 - title: Use the results
   desc: >
-    Turn two thresholds of your choice into training zones and count the training time in them; compare two tests of one athlete (is the change
-    real, how far did the curve move), follow a series of tests, and compare athletes per kg or % of peak.
+    Turn two thresholds of your choice into training zones and count the training time in them; compare two tests
+    of one athlete (is the change real, how far did the curve move, did it shift or change shape), follow a series
+    of tests, and compare athletes per kg or % of peak.
   contents:
   - lactate_zones
   - training_load
   - compare_tests
   - curve_shift
+  - curve_shape
   - lactate_trend
   - relative_thresholds
 - title: Beyond the step test

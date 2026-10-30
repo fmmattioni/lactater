@@ -47,7 +47,8 @@ female <- analyse("cycling_female")
 mass <- function(name) subset(lactate_tests, test == name)$body_mass[1]
 relative <- function(results, name) {
   out <- relative_thresholds(results, mass(name))
-  cbind(rider = name, out[out$method %in% c("LTP1", "LTP2"), c("method", "intensity", "intensity_per_kg", "percent_peak")])
+  columns <- c("method", "intensity", "intensity_per_kg", "percent_peak")
+  cbind(rider = name, out[out$method %in% c("LTP1", "LTP2"), columns])
 }
 rbind(relative(elite, "cycling_elite"), relative(female, "cycling_female"))
 ```

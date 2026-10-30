@@ -124,11 +124,15 @@ lactate_checks <- function(x) {
 #' lactate, to help choose `fit` in [lactate_threshold()]. The statistics are computed on the measured
 #' stages (plus the resting sample when `include_baseline = TRUE`).
 #'
+#' A curve with more parameters always follows the points more closely, so the RMSE favors it. The prediction error
+#' does not: each stage is predicted by the curve fitted without it, which punishes a curve that bends to follow
+#' single points (leave-one-out cross-validation).
+#'
 #' @param x The result of [lactate_threshold()].
 #'
 #' @return a tibble with one row per curve: `fit`, `used` (the curve chosen in [lactate_threshold()]),
 #' `n_points`, `parameters`, `r_squared`, `rmse` and `see` (standard error of the estimate) in mmol/L, and
-#' `max_abs_residual` in mmol/L.
+#' `max_abs_residual` and the leave-one-out `prediction_error` (root-mean-square) in mmol/L.
 #' @export
 #'
 #' @examples
@@ -152,7 +156,11 @@ lactate_fit_quality <- function(x) {
       r_squared = 1 - rss / sum((points$lactate - mean(points$lactate))^2),
       rmse = sqrt(rss / n),
       see = if(n > p) sqrt(rss / (n - p)) else NA_real_,
-      max_abs_residual = max(abs(residuals))
+      max_abs_residual = max(abs(residuals)),
+      prediction_error = sqrt(mean(vapply(seq_len(n), function(i) {
+        part <- tryCatch(fit_curve(points[-i, ], fit), error = function(e) NULL)
+        if(is.null(part)) NA_real_ else (points$lactate[i] - part$predict(points$intensity[i]))^2
+      }, numeric(1))))
     )
   })
   tibble::as_tibble(do.call(rbind, rows))

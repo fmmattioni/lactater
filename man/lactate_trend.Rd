@@ -7,7 +7,13 @@
 \usage{
 lactate_trend(..., day)
 
-\method{autoplot}{lactate_trend}(object, method = utils_head(levels(object$method), 4), ...)
+\method{autoplot}{lactate_trend}(
+  object,
+  method = NULL,
+  view = c("thresholds", "curves"),
+  cv = NULL,
+  ...
+)
 }
 \arguments{
 \item{...}{The results of \code{\link[=lactate_threshold]{lactate_threshold()}}, in any order.}
@@ -16,7 +22,15 @@ lactate_trend(..., day)
 
 \item{object}{The result of \code{\link[=lactate_trend]{lactate_trend()}}.}
 
-\item{method}{The methods to plot. Default to the first four.}
+\item{method}{The methods to plot in the \code{"thresholds"} view. Default to ModDmax, IAT, OBLA 4.0 and Dmax, which have
+a published test-retest variation (see \code{\link[=compare_tests]{compare_tests()}}), when present.}
+
+\item{view}{\code{"thresholds"} (default): one panel per method, each test as a dot (with its confidence interval when
+computed) and a gray band for the noise of the method around the first test, so that dots outside the band are
+changes larger than the noise (as in monitoring charts; Hopkins, 2017). \code{"curves"}: the lactate curves of all
+tests on one plot, light to dark by date, to see where along the intensity range the curve moved.}
+
+\item{cv}{The test-retest coefficient of variation (\%) for the noise band, as in \code{\link[=compare_tests]{compare_tests()}}.}
 }
 \value{
 a \code{lactate_trend} tibble with one row per method found in every test: \code{method}, \code{tests}, the
@@ -30,9 +44,16 @@ with its uncertainty instead of reading noise from one test to the next (Hopkins
 \examples{
 series <- subset(lactate_tests, athlete == "cyclist_series")
 days <- unique(series$day)
-tests <- lapply(days, function(d) lactate_threshold(subset(series, day == d), intensity, lactate, plot = FALSE))
-do.call(lactate_trend, c(tests, list(day = days)))
+tests <- lapply(days, function(d) {
+  lactate_threshold(subset(series, day == d), intensity, lactate, plot = FALSE)
+})
+trend <- do.call(lactate_trend, c(tests, list(day = days)))
+trend
+autoplot(trend)
+autoplot(trend, view = "curves")
 }
 \references{
+Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.
+
 Hopkins WG. A spreadsheet for monitoring an individual's changes and trend. Sportscience. 2017;21:5-9.
 }

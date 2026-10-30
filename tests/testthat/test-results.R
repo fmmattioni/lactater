@@ -8,6 +8,10 @@ test_that("lactate_threshold returns a lactate_thresholds tibble", {
 
 test_that("autoplot draws the overview and single methods", {
   expect_s3_class(autoplot(results), "patchwork")
+  ## the table beside the overview: one column per value, with heart rate when given
+  table <- autoplot(results)[[4]]
+  expect_equal(table$scales$get_scales("x")$labels, c("Lactate\nmmol/L", "Heart rate\nbpm", "% of\npeak"))
+  expect_silent(print(autoplot(results)))
   expect_s3_class(autoplot(results, method = "Dmax"), "ggplot")
   expect_error(autoplot(results, method = "Nope"), "must be one of")
 })

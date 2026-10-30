@@ -57,6 +57,19 @@ test_that("lactate_trend recovers a steady change per 30 days", {
   expect_error(lactate_trend(tests[[1]], tests[[2]], day = 1:2), "at least three")
 })
 
+test_that("the trend plot marks tests outside the noise band, and draws the curves", {
+  days <- c(0, 30, 60)
+  tests <- lapply(c(1, 1.005, 1.1), function(by) run(shifted(by)))
+  trend <- do.call(lactate_trend, c(tests, list(day = days)))
+  ## +0.5% stays inside the band of a 1% typical error (+/- 2.3%); +10% lies outside
+  points <- autoplot(trend, method = "OBLA 4.0", cv = 1)$data
+  expect_equal(points$outside, c(FALSE, FALSE, TRUE))
+  curves <- autoplot(trend, view = "curves")
+  expect_s3_class(curves, "ggplot")
+  expect_silent(ggplot2::ggplot_build(curves))
+  expect_error(autoplot(trend, cv = c(1, 2)), "`cv`")
+})
+
 test_that("the comparison plot draws the shift arrows", {
   expect_s3_class(autoplot(compare_tests(before, run(shifted(1.05)))), "ggplot")
 })
