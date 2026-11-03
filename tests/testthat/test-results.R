@@ -11,7 +11,11 @@ test_that("autoplot draws the overview and single methods", {
   ## the table beside the overview: one column per value, with heart rate when given
   table <- autoplot(results)[[4]]
   expect_equal(table$scales$get_scales("x")$labels, c("Lactate\nmmol/L", "Heart rate\nbpm", "% of\npeak"))
+  ## every column, the outer ones included, sits inside the panel
+  expect_equal(ggplot2::ggplot_build(table)$layout$panel_params[[1]]$x.range, c(0.5, 3.5))
+  grDevices::pdf(NULL)
   expect_silent(print(autoplot(results)))
+  grDevices::dev.off()
   expect_s3_class(autoplot(results, method = "Dmax"), "ggplot")
   expect_error(autoplot(results, method = "Nope"), "must be one of")
 })

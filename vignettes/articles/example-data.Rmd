@@ -20,15 +20,40 @@ tests <- unique(lactate_tests[c("test", "sport", "source", "description")])
 knitr::kable(tests)
 ```
 
-A small helper analyses one test, with heart rate when it was recorded:
+A small helper analyses one test, with heart rate and RPE when they were recorded (the RPE of the three simulated
+tests is simulated too):
 
 ```{r}
 analyse <- function(name, ...) {
   one <- subset(lactate_tests, test == name)
-  heart_rate <- if (!anyNA(one$heart_rate)) "heart_rate"
-  lactate_threshold(one, intensity, lactate, heart_rate, sport = one$sport[1], plot = FALSE, ...)
+  hr <- if (!anyNA(one$heart_rate)) "heart_rate"
+  rating <- if (!anyNA(one$rpe)) "rpe"
+  lactate_threshold(one, intensity, lactate, heart_rate_column = hr, rpe_column = rating, sport = one$sport[1],
+                    plot = FALSE, ...)
 }
 ```
+
+## How far apart do the methods land?
+
+Every method answers a slightly different question, so on the same test they land at different intensities. Here,
+for each test, the lowest and highest threshold as a percentage of the highest intensity of the test:
+
+```{r}
+spread <- do.call(rbind, lapply(unique(lactate_tests$test), function(name) {
+  one <- subset(lactate_tests, test == name)
+  results <- analyse(name, ltp_breakpoints = if (name == "submaximal") 1 else 2)
+  percent <- 100 * attr(results, "lactater")$intensity / max(one$intensity)
+  data.frame(
+    test = name, sport = one$sport[1], thresholds = sum(!is.na(percent)),
+    lowest = round(min(percent, na.rm = TRUE)), highest = round(max(percent, na.rm = TRUE))
+  )
+}))
+spread
+```
+
+In every test the thresholds span a wide part of the intensity range, from the first rise of lactate to the methods
+aimed at the maximal lactate steady state. That is why a threshold means little without the name of its method,
+and why [Training zones](zones.html) asks you to choose LT1 and LT2.
 
 ## Cycling: an elite and a trained rider
 
@@ -79,6 +104,7 @@ A 7 x 200 m step test, +0.05 m/s per step. Speeds are shown to 0.01 m/s, and the
 
 ```{r}
 swimming <- analyse("swimming")
+swimming[swimming$method %in% c("Log-log", "ModDmax", "IAT"), c("method", "intensity", "pace", "heart_rate", "rpe")]
 autoplot(swimming, "ModDmax")
 ```
 
@@ -118,7 +144,7 @@ submaximal[submaximal$method %in% c("LTP1", "LTP2", "OBLA 4.0"), c("method", "in
 
 ## One athlete over five years
 
-The six `cycling_series` tests come from one rider. See [Comparing tests and training load](compare-and-load.html)
+The six `cycling_series` tests come from one rider. See [Comparing tests](compare.html)
 for how to tell a real change from noise.
 
 ```{r}

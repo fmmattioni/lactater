@@ -52,12 +52,16 @@ changes
 
 ## New in 1.0
 
-* Plots that show how each method works, a dark style, and a one-color overview of every threshold.
+* Plots that show how each method works, a forest-style overview of every threshold with a table of values, and
+  night and journal styles.
 * IAT, flexible targets (`fixed`, `baseline_plus`, `iat_rise`), and one turn point for submaximal tests
   (`ltp_breakpoints = 1`).
-* Confidence intervals (`ci = TRUE`), `lactate_checks()`, `lactate_fit_quality()` and `lactate_report()`.
-* `lactate_zones()` and `training_load()`: time in zone, intensity distribution and training impulse.
-* `compare_tests()`, `curve_shift()`, `lactate_trend()` and `relative_thresholds()` to compare tests and athletes.
+* Confidence intervals (`ci = TRUE`), `lactate_checks()`, `lactate_diagnostics()`, `lactate_fit_quality()` and
+  `lactate_report()`.
+* RPE (6-20 and CR10) at each threshold and in the zones.
+* `lactate_zones()` (three or five zones) and `training_load()`: time in zone and intensity distribution.
+* `compare_tests()`, `curve_shift()`, `curve_shape()`, `lactate_trend()` and `relative_thresholds()` to compare tests
+  and athletes.
 * `lactate_tests`: 15 real and simulated tests across sports and fitness levels.
 * Rowing, grouped analysis (`.by`), and `vlamax()`.
 

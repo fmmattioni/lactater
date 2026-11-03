@@ -175,6 +175,19 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 * New `relative_thresholds()`: thresholds per kg, as % of peak intensity, and
   heart rate as % of peak, to compare athletes.
 
+## Predicting performance
+
+* New `predict_performance()`: race times from a step test with a 95%
+  prediction range. Running: 5 km to the marathon from IAT (Roecker et al.,
+  1998, 427 runners) and the marathon from OBLA 4.0 (Sjödin & Jacobs, 1981).
+  Cycling: 45-min time-trial power from six thresholds, fitted with lactater's
+  own methods on the open data of Heuberger et al. (2018). It warns when the
+  steps of the test differ from the source protocol or a threshold lies outside
+  the source sample.
+* New `calibrate_performance()`: fit your own equation on your athletes' tests
+  and races, for any threshold, sport and protocol, and use it in
+  `predict_performance()`.
+
 ## Training load
 
 * New `training_load()`: sorts heart-rate, power or speed samples of training
@@ -191,7 +204,16 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   5-min steps and a submaximal test. Twelve are real (Trinity College Dublin
   open data and Heuberger et al. 2018, both CC BY 4.0, credited in
   `?lactate_tests` and `COPYRIGHTS`); three are simulated from published
-  protocols and values where no open data exists.
+  protocols and values where no open data exists, with a simulated RPE.
+
+## Documentation for teaching
+
+* New articles: "Best practices for a step test" (a checklist with sources for
+  preparing the athlete, the protocol, sampling, the analyzer and reporting),
+  "Checking the analysis" (checks, regression diagnostics explained panel by
+  panel, confidence intervals), "Training zones", "Training load", "Comparing
+  tests" and "The example data".
+* "Get started" opens with an interactive map of the workflow on the website.
 
 ## Beyond the step test
 

@@ -78,16 +78,18 @@ training_load <- function(data, zones, column = "heart_rate", measure = c("heart
     key <- do.call(paste, c(data[.by], sep = "\r"))
     split(data, factor(key, levels = unique(key)))
   }
-  rows <- lapply(groups, function(group) {
+  minutes <- lapply(groups, function(group) {
     values <- group[[column]]
-    minutes <- tabulate(findInterval(values[!is.na(values)], bounds) + 1, n) * interval / 60
+    tabulate(findInterval(values[!is.na(values)], bounds) + 1, n) * interval / 60
+  })
+  rows <- Map(function(group, minutes) {
     keys <- if(!is.null(.by)) tibble::as_tibble(group[1, .by, drop = FALSE])
     vctrs::vec_cbind(keys, zone_summary(minutes, zones$domain))
-  })
+  }, groups, minutes)
   out <- tibble::as_tibble(vctrs::vec_rbind(!!!unname(rows)))
-  all_minutes <- colSums(as.matrix(out[paste0("zone_", seq_len(n))]))
+  ## the overall summary from the unrounded minutes, so it matches a single group exactly
   attr(out, "lactater_load") <- list(
-    zones = zones, measure = measure, by = .by, overall = zone_summary(all_minutes, zones$domain)
+    zones = zones, measure = measure, by = .by, overall = zone_summary(Reduce(`+`, minutes, numeric(n)), zones$domain)
   )
   class(out) <- c("lactate_load", class(out))
   out

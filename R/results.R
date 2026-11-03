@@ -235,8 +235,10 @@ overview_table <- function(rows, colours, sport, intervals) {
       colour = ifelse(!is.na(cells$shade) & cells$shade > 0.6, colours[["paper"]], colours[["ink"]])
     ) +
     ggplot2::scale_alpha_identity() +
+    ## half a column on each side, or the outer columns without shading sit on the panel edge and are clipped
     ggplot2::scale_x_continuous(
-      breaks = seq_along(columns), labels = vapply(columns, `[[`, "", 2), position = "top", expand = c(0, 0)
+      breaks = seq_along(columns), labels = vapply(columns, `[[`, "", 2), position = "top",
+      limits = c(0.5, length(columns) + 0.5), expand = c(0, 0)
     ) +
     ggplot2::scale_y_continuous(expand = c(0, 0.6)) +
     ggplot2::labs(x = NULL, y = NULL) +

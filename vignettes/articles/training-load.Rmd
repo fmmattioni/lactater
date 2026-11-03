@@ -1,0 +1,143 @@
+---
+title: "Training load in the lactate zones"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7.5, fig.height = 4.6, dpi = 110, out.width = "100%")
+library(lactater)
+plex <- requireNamespace("systemfonts", quietly = TRUE) &&
+  isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
+if (plex) options(lactater.font = "IBM Plex Sans")
+```
+
+A step test gives the zones; training happens between tests. `training_load()` sorts the heart-rate, power or speed
+samples of training sessions into the zones of `lactate_zones()` and answers two questions: how much time was spent
+in each zone, and how was the training spread across the intensity domains?
+
+## Zones from a test
+
+The second test of the cyclist in `lactate_tests`, with LT1 at Log-log and LT2 at ModDmax:
+
+```{r}
+test <- subset(lactate_tests, test == "cycling_series_2")
+results <- lactate_threshold(test, intensity, lactate, heart_rate, plot = FALSE)
+zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax")
+zones[c("zone", "domain", "intensity_from", "intensity_to", "heart_rate_from", "heart_rate_to")]
+```
+
+## Time in zone
+
+Any data frame with one row per sample works: a CSV exported from a heart-rate monitor, a bike computer or a
+training platform. Here is a made-up week of heart rate, one sample every 5 s:
+
+```{r}
+set.seed(1)
+session <- function(name, minutes, heart_rate) {
+  data.frame(session = name, heart_rate = round(stats::rnorm(minutes * 12, heart_rate, 3)))
+}
+week <- rbind(
+  session("Mon easy", 90, 135),
+  session("Tue intervals", 20, 140), session("Tue intervals", 24, 182), session("Tue intervals", 20, 140),
+  session("Thu easy", 60, 138),
+  session("Sat long", 240, 142),
+  session("Sun tempo", 50, 165)
+)
+head(week)
+```
+
+Every sample counts for `interval` seconds in the zone of its value. With `.by`, each session gets its own row, in
+the order the sessions appear:
+
+```{r}
+training_load(week, zones, interval = 5, .by = "session")
+```
+
+Without `.by`, the whole week is one row. The header says how the time was spread:
+
+```{r}
+load <- training_load(week, zones, interval = 5)
+load
+```
+
+The plot shows the share of time in each zone, per session and for all of them, colored by domain like the zones:
+
+```{r}
+autoplot(training_load(week, zones, interval = 5, .by = "session"))
+```
+
+Five zones work the same way, and the distribution is still computed on the three domains:
+
+```{r}
+five <- lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5)
+training_load(week, five, interval = 5)
+```
+
+## How the training was spread
+
+The share of time in the moderate, heavy and severe domains is the training intensity distribution. Treff et al.
+(2019) proposed a polarization index to tell the common distributions apart:
+
+`polarization index = log10(moderate / heavy * severe * 100)`
+
+with each domain as a fraction of the total time. A distribution is labeled:
+
+* **polarized** when the index is above 2.00 and moderate > severe > heavy: much easy training, some hard, little in
+  between;
+* **pyramidal** when moderate > heavy > severe;
+* **threshold** when the heavy domain holds the most time;
+* **high intensity** when the severe domain holds the most time;
+* **other** for anything else.
+
+This week is pyramidal: `r round(load$zone_1_percent)`% moderate, `r round(load$zone_2_percent)`% heavy and
+`r round(load$zone_3_percent)`% severe, with an index of `r load$polarization_index`. The distribution describes a
+period of training, not one session, so give `training_load()` all the sessions of the period, for example with
+`.by = "week"`. Treff et al. (2019) note that a threshold distribution can also be pyramidal; the label is a summary,
+not a diagnosis.
+
+## Heart rate or power?
+
+Heart rate lags behind intensity: in short intervals it is still rising when the interval ends, so time in zone from
+heart rate under-counts the highest zones (Seiler, 2010). Power or speed samples, with `measure = "intensity"`, do
+not lag. Here is one interval session, 6 x (3 min at 330 W, 3 min at 150 W), with a heart rate that follows power
+with a delay (simulated, with a time constant of 40 s):
+
+```{r}
+power <- rep(rep(c(330, 150), each = 36), times = 6)
+stages <- test[test$intensity > 0, ]
+steady <- stats::approx(stages$intensity, stages$heart_rate, power, rule = 2)$y
+heart_rate <- numeric(length(power))
+heart_rate[1] <- 110
+for (k in seq_along(power)[-1]) {
+  heart_rate[k] <- heart_rate[k - 1] + (steady[k] - heart_rate[k - 1]) * (1 - exp(-5 / 40))
+}
+intervals <- data.frame(power = power, heart_rate = round(heart_rate))
+
+by_power <- training_load(intervals, zones, column = "power", measure = "intensity", interval = 5)
+by_heart_rate <- training_load(intervals, zones, interval = 5)
+data.frame(
+  samples = c("power", "heart rate"),
+  moderate = c(by_power$zone_1, by_heart_rate$zone_1),
+  heavy = c(by_power$zone_2, by_heart_rate$zone_2),
+  severe = c(by_power$zone_3, by_heart_rate$zone_3)
+)
+```
+
+The power samples put `r by_power$zone_3` minutes in the severe domain; the heart rate only
+`r by_heart_rate$zone_3`. When power or
+speed is available, use it for interval sessions.
+
+## Why time in zone, and not a training impulse?
+
+Training impulse (TRIMP) scores multiply the time spent at each heart rate or in each zone by a weight and add it up
+into one number. lactater reports the time in each zone instead: it is what the lactate zones measure directly, it
+keeps the distribution that a single number hides, and it needs no weights from outside the test. If you need a
+zone-based TRIMP, the minutes in each zone are what it is computed from.
+
+## References
+
+Seiler S. What is best practice for training intensity and duration distribution in endurance athletes? Int J Sports
+Physiol Perform. 2010;5(3):276-91. doi:10.1123/ijspp.5.3.276
+
+Treff G, Winkert K, Sareban M, Steinacker JM, Sperlich B. The polarization-index: a simple calculation to distinguish
+polarized from non-polarized training intensity distributions. Front Physiol. 2019;10:707.
+doi:10.3389/fphys.2019.00707

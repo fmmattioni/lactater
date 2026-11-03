@@ -107,23 +107,9 @@ Most of this evidence comes from trained, male, cycling populations; check how w
 
 ## Collecting good data
 
-* **Stage duration** changes the thresholds: shorter stages can put the lactate threshold at a higher intensity (Bentley
-  et al., 2007, review; Jamnick et al., 2018, compared stages from 1 to 10 min). Stages of at least 3 min have been
-  recommended (Jamnick et al., 2020). Keep the protocol the same between tests of the same athlete.
-* **Analyzer.** Portable analyzers had coefficients of variation of about 2-4% and mostly negative bias, largest above
-  15 mmol/L; use the same unit for an athlete's repeated tests (Bonaventura et al., 2015).
-* **Sampling site.** In cycling, fingertip and earlobe samples differed by 9.2% on average (95% of differences between
-  -24.9% and 58.7%) without changing the prescribed power (Moran et al., 2012). Do not switch sites between tests.
-* **Sample type.** Plasma lactate was about 50% higher than erythrocyte lactate, and capillary and venous whole blood
-  also differed, so values from different sample types cannot be compared directly (Foxdal et al., 1990; 10 healthy
-  men).
-  Fixed-concentration methods (OBLA, Bsln+, IAT) assume blood lactate; `lactate_checks()` warns when `sample` says
-  otherwise.
-
-```{r}
-results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
-lactate_checks(results)
-```
+The methods are only as good as the test behind them: stage duration, sampling site, sample type and analyzer
+all change the numbers. [Best practices for a step test](best-practices.html) collects what the literature says,
+as a checklist for running a test and analyzing it.
 
 ## Methods lactater does not include
 
@@ -148,9 +134,6 @@ Berg A, Jakob E, Lehmann M, Dickhuth HH, Huber G, Keul J. Current aspects of mod
 Bishop D, Jenkins DG, Mackinnon LT. The relationship between plasma lactate parameters, Wpeak and 1-h cycling
 performance in women. Med Sci Sports Exerc. 1998;30(8):1270-5. doi:10.1097/00005768-199808000-00014
 
-Bonaventura JM, Sharpe K, Knight E, Fuller KL, Tanner RK, Gore CJ. Reliability and accuracy of six hand-held blood
-lactate analysers. J Sports Sci Med. 2015;14:203-14.
-
 Cheng B, Kuipers H, Snyder A, Keizer H, Jeukendrup A, Hesselink M. A new approach for the determination of
 ventilatory and lactate thresholds. Int J Sports Med. 1992;13(7):518-22. doi:10.1055/s-2007-1021309
 
@@ -159,10 +142,6 @@ treadmill running: relationship and reproducibility. Int J Sports Med. 1999;20(2
 
 Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid are they? Sports Med. 2009;39(6):469-90.
 doi:10.2165/00007256-200939060-00003
-
-Foxdal P, Sjodin B, Rudstam H, Ostman C, Ostman B, Hedenstierna GC. Lactate concentration differences in plasma,
-whole blood, capillary finger blood and erythrocytes during submaximal graded exercise in humans. Eur J Appl Physiol.
-1990;61(3-4):218-22. doi:10.1007/BF00357603
 
 Heck H, Mader A, Hess G, Mucke S, Muller R, Hollmann W. Justification of the 4-mmol/l lactate threshold. Int J Sports
 Med. 1985;6(3):117-30. doi:10.1055/s-2008-1025824
@@ -189,9 +168,6 @@ exercise intensity. Sports Med. 2020;50(10):1729-56. doi:10.1007/s40279-020-0132
 
 Kindermann W, Simon G, Keul J. The significance of the aerobic-anaerobic transition for the determination of work
 load intensities during endurance training. Eur J Appl Physiol Occup Physiol. 1979;42(1):25-34. doi:10.1007/BF00421101
-
-Moran P, Pritchard J, Ansley L, Howatson G. The influence of blood lactate sample site on exercise prescription.
-J Strength Cond Res. 2012;26(2):563-7. doi:10.1519/JSC.0b013e318225f395
 
 Pokan R, Hofmann P, von Duvillard SP, et al. Left ventricular function in response to the transition from aerobic to
 anaerobic metabolism. Med Sci Sports Exerc. 1997;29(8):1040-7. doi:10.1097/00005768-199708000-00009

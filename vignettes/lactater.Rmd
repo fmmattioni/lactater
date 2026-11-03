@@ -22,10 +22,49 @@ knitr::opts_chunk$set(
 library(lactater)
 ```
 
+lactater turns the stages of a step test into lactate thresholds, checks them, and puts them to use: training zones,
+training load, and comparisons between tests.
+`r if (identical(Sys.getenv("IN_PKGDOWN"), "true")) "Click the steps below to unfold them."`
+
+```{r workflow, echo = FALSE, eval = identical(Sys.getenv("IN_PKGDOWN"), "true") && requireNamespace("collapsibleTree", quietly = TRUE)}
+steps <- read.csv(text = '
+step,tool,detail
+"1. Collect","One row per stage","intensity, lactate, HR, RPE"
+"1. Collect","One row per stage","resting sample at intensity 0"
+"1. Collect","lactate_tests","15 tests, 4 sports"
+"2. Estimate","lactate_threshold()","Log-log"
+"2. Estimate","lactate_threshold()","OBLA (fixed lactate)"
+"2. Estimate","lactate_threshold()","Bsln+ (rise above baseline)"
+"2. Estimate","lactate_threshold()","Dmax family"
+"2. Estimate","lactate_threshold()","LTP1 and LTP2"
+"2. Estimate","lactate_threshold()","LTratio and IAT"
+"2. Estimate","ci = TRUE","bootstrap confidence intervals"
+"3. Check","lactate_checks()","dips, plateaus, missing rest"
+"3. Check","lactate_diagnostics()","residuals, influence, jackknife"
+"3. Check","lactate_fit_quality()","which curve predicts best"
+"4. Look","autoplot()","all methods, or one"
+"4. Look","lactate_report()","a table for reports"
+"5. Use","lactate_zones()","3 or 5 zones"
+"5. Use","training_load()","time in zone, distribution"
+"5. Use","predict_performance()","race times, with a range"
+"5. Use","calibrate_performance()","your own equation"
+"6. Compare","compare_tests()","change vs noise"
+"6. Compare","curve_shift()","how far the curve moved"
+"6. Compare","curve_shape()","shift, or new shape?"
+"6. Compare","lactate_trend()","a series of tests"
+"6. Compare","relative_thresholds()","per kg, % of peak"
+')
+collapsibleTree::collapsibleTree(
+  steps, hierarchy = c("step", "tool", "detail"), root = "lactater", collapsed = TRUE,
+  fill = "#1f5fa8", fontSize = 13, width = "100%", height = 520, zoomable = FALSE
+)
+```
+
 ## Your data
 
 One row per stage of a step test: the intensity (power in W, or speed), the lactate measured at the end of the
-stage and, if you have it, the heart rate. A resting sample, if you took one, is the row with intensity 0.
+stage and, if you have them, the heart rate and the rating of perceived exertion (RPE). A resting sample, if you took
+one, is the row with intensity 0.
 
 ```{r}
 demo_data
@@ -33,7 +72,8 @@ demo_data
 
 Rows with a missing lactate (a missed sample) are dropped with a warning. If the last stage was not completed,
 enter its time-weighted intensity (as `demo_data` does for its 2-min last stage at 191 W), or leave it out with
-`max_intensity`.
+`max_intensity`. How to collect data that does the methods justice is in [Best practices for a step
+test](https://fmmattioni.github.io/lactater/articles/best-practices.html).
 
 ## Estimate the thresholds
 
@@ -49,14 +89,15 @@ results <- lactate_threshold(
 results
 ```
 
-Every method runs by default. Pick some with `method`, e.g. `method = c("Dmax", "LTP")`.
+Every method runs by default. Pick some with `method`, e.g. `method = c("Dmax", "LTP")`. Add `rpe_column` (and
+`rpe_scale = "CR10"` for the 0-10 scale) to get the RPE at each threshold.
 
 ## Look at them
 
-The overview puts every threshold on the same intensity axis as the curve, so you see how much the methods
-agree:
+The overview puts every threshold on the same intensity axis as the curve, one row per method, with a table of the
+values at each threshold:
 
-```{r, fig.height = 8}
+```{r, fig.height = 7.5, fig.width = 8}
 autoplot(results)
 ```
 
@@ -64,6 +105,21 @@ Or look at one method in detail:
 
 ```{r}
 autoplot(results, method = "ModDmax")
+```
+
+## Check the analysis
+
+`lactate_checks()` flags what is easy to miss in a table of numbers, and `lactate_diagnostics()` checks the fitted
+curve and how much each threshold rests on single stages:
+
+```{r}
+lactate_checks(results)
+diagnostics <- lactate_diagnostics(results)
+diagnostics
+```
+
+```{r, fig.height = 10, fig.width = 9}
+autoplot(diagnostics)
 ```
 
 ## How sure are we?
@@ -80,19 +136,12 @@ with_ci <- lactate_threshold(
 with_ci[c("method", "intensity", "intensity_low", "intensity_high")]
 ```
 
-## Check the analysis
-
-```{r}
-lactate_checks(results)
-lactate_fit_quality(results)
-```
-
 ## Training zones
 
-Choose which thresholds mark LT1 and LT2:
+Choose which thresholds mark LT1 and LT2, and three or five zones:
 
 ```{r}
-zones <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax")
+zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax", model = 5)
 zones
 autoplot(zones)
 ```
@@ -115,11 +164,20 @@ lactate_threshold(series, intensity, lactate, method = "Dmax", dmax_methods = "M
 
 ## Learn more
 
+* [Best practices for a step test](https://fmmattioni.github.io/lactater/articles/best-practices.html): how to run
+  a test and analyze it, as a checklist with sources.
 * [The methods and the evidence](https://fmmattioni.github.io/lactater/articles/methods.html): how each method is
-  defined, what the evidence says, and how to collect good data.
-* [Zones, uncertainty and checks](https://fmmattioni.github.io/lactater/articles/zones-uncertainty-checks.html):
-  choosing LT1 and LT2, and reading the intervals and checks.
-* [Comparing tests and training load](https://fmmattioni.github.io/lactater/articles/compare-and-load.html): is a
-  change real, how far the curve moved, trends, and time in zone.
+  defined and what the evidence says.
+* [Checking the analysis](https://fmmattioni.github.io/lactater/articles/checking.html): checks, regression
+  diagnostics, and confidence intervals.
+* [Training zones](https://fmmattioni.github.io/lactater/articles/zones.html): choosing LT1 and LT2, three and five
+  zones.
+* [Training load](https://fmmattioni.github.io/lactater/articles/training-load.html): time in zone and intensity
+  distribution.
+* [Comparing tests](https://fmmattioni.github.io/lactater/articles/compare.html): is a change real, did the curve
+  shift or change shape, and trends.
+* [Predicting performance](https://fmmattioni.github.io/lactater/articles/performance.html): race times from a step
+  test, how sure they are, and your own equation.
+* [The example data](https://fmmattioni.github.io/lactater/articles/example-data.html): 15 tests across sports.
 * [VLamax](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html): the maximal lactate accumulation
   rate from a sprint test.

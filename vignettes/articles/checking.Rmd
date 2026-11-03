@@ -1,0 +1,207 @@
+---
+title: "Checking the analysis"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5, dpi = 110, out.width = "100%")
+library(lactater)
+plex <- requireNamespace("systemfonts", quietly = TRUE) &&
+  isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
+if (plex) options(lactater.font = "IBM Plex Sans")
+```
+
+A step test gives 6 to 12 lactate samples, each with an analyzer error of a few percent, and every threshold is read
+off a curve fitted to them. Before trusting a number, ask three questions:
+
+1. **Is the test sound?** A missing resting sample, a lactate dip, a last stage that was not completed.
+2. **Does the curve follow the stages?** Regression diagnostics, adapted to so few points.
+3. **How sure is each threshold?** How much it moves without one stage, and its confidence interval.
+
+## Is the test sound?
+
+`lactate_checks()` lists what is easy to miss in a table of numbers. The printed results say how many checks need
+attention.
+
+```{r}
+plateau <- data.frame(
+  intensity = c(0, 100, 150, 200, 250, 300, 350, 400),
+  lactate = c(1.0, 1.1, 1.3, 2.0, 3.4, 5.2, 6.4, 6.4)
+)
+plateau_results <- lactate_threshold(plateau, intensity, lactate, plot = FALSE)
+plateau_results
+lactate_checks(plateau_results)
+```
+
+Here lactate did not rise in the last stage. If that stage was not completed, leave it out:
+
+```{r}
+lactate_threshold(plateau, intensity, lactate, method = "Dmax", plot = FALSE, max_intensity = 350)
+```
+
+## Does the curve follow the stages?
+
+`lactate_diagnostics()` checks the fitted curve the way a regression model is checked, with the adjustments that 6
+to 10 points need, and prints a summary. Here is a trained female cyclist from `lactate_tests`:
+
+```{r}
+female <- lactate_threshold(subset(lactate_tests, test == "cycling_female"), intensity, lactate, plot = FALSE)
+diagnostics <- lactate_diagnostics(female)
+diagnostics
+```
+
+```{r, fig.height = 10, fig.width = 9}
+autoplot(diagnostics)
+```
+
+Each panel answers one question, and its subtitle says what to look for.
+
+**Fit to the stages.** The curve with the measured stages, and a dashed line from each stage to the curve (the
+residual). Look for runs of stages on the same side of the curve, not for single stages a little off it: with an
+analyzer error of 2 to 4% (Bonaventura et al., 2015), a residual of 0.1 to 0.2 mmol/L is expected.
+
+**Residuals vs fitted.** The residuals against the fitted lactate. They should scatter around zero with no pattern.
+An arch (positive at both ends and negative in the middle, or the reverse) means the shape of the curve is wrong for
+this test: an exponential, for example, cannot follow stages that stay flat or dip at the start. A fan that widens
+to the right is expected, because analyzer error grows with lactate (Bonaventura et al., 2015).
+
+**Normality of residuals.** The standardized residuals (each residual divided by its standard error) against the
+values a normal distribution would give. They should follow the line. With 6 to 10 points, no test can tell much:
+in a simulation of cubic fits to 6, 8 and 10 stages, a Shapiro-Wilk test rejected normality in under 2% of runs,
+even when the errors were heavy-tailed or skewed (code below). A check that "passes" means "could not tell", not
+"fine". Look for one point far from the others instead.
+
+**Influential stages.** How much each stage pulls the curve, as Cook's distance: how far all the fitted values would
+move if that stage were left out (Cook, 1977). Two things are special with so few stages:
+
+* The first and last stages always have a high *leverage* (the potential to pull the curve), by design: leverage
+  depends only on where the stages are along the intensity axis, and the ends have no neighbors on one side. For a
+  cubic on 10 stages, the end stages here have a leverage of 0.82 and the inner ones 0.24 to 0.33. Because the
+  curve bends towards a high-leverage stage, its residual looks small exactly when it matters most, which is why
+  Cook's distance combines the residual with the leverage.
+* The usual cut-offs fail. The rule "leverage above 2p/n" (p, the number of curve terms; Hoaglin & Welsch, 1978)
+  gives 2 x 4 / 8 = 1 for a cubic on 8 stages, a value leverage can never exceed, so it flags nothing. lactater
+  flags a stage when its Cook's distance is above the median of the F(p, n - p) distribution, which adapts to n and
+  p (Cook, 1977).
+
+**Leave one stage out.** Every threshold computed again without each stage in turn (a jackknife; Efron, 1982). A
+tight cluster of dots means the threshold does not rest on any single stage; a wide spread means it does. The five
+largest changes are labeled with the stage left out. Dropping the first or last stage changes where the Dmax line
+starts or ends, so large changes there are expected for the Dmax family. The jackknife standard error,
+`sqrt((n - 1) / n * sum((theta_i - mean(theta_i))^2))`, summarizes the spread for each method:
+
+```{r}
+diagnostics$jackknife[order(-diagnostics$jackknife$jackknife_se), ][1:5, ]
+```
+
+**Which curve predicts best.** Each stage predicted by the curve fitted without it; more on this below.
+
+### When one stage drives the curve
+
+In this trained cyclist, lactate falls after the first stage, probably after a hard warm-up:
+
+```{r}
+dip <- lactate_threshold(subset(lactate_tests, test == "cycling_early_dip"), intensity, lactate, plot = FALSE)
+dip_diagnostics <- lactate_diagnostics(dip)
+dip_diagnostics
+```
+
+The first stage has a Cook's distance of 4.9, five times the cut-off: it pulls the fitted curve. Without it,
+Log-log moves by 34 W, while OBLA 2.0, read off the curve higher up, barely moves:
+
+```{r}
+subset(dip_diagnostics$leave_one_out, method %in% c("Log-log", "OBLA 2.0") & stage == 120)
+```
+
+That does not make the stage wrong: the dip is real physiology, and deleting a measurement to get a nicer curve is
+not a check. It means that the first-rise thresholds of this test should be read with care, and that the next test
+needs a lighter warm-up. The summary also names LTP1 as the most sensitive threshold, for another reason: with 8
+stages, each of the three straight segments of LTP holds only a few stages, and leaving out the 320 W stage moves
+LTP1 by 69 W:
+
+```{r}
+subset(dip_diagnostics$leave_one_out, method == "LTP1")
+```
+
+## Which curve?
+
+`lactate_fit_quality()` fits every curve to the same points. A curve with more parameters always follows the points
+more closely, so the RMSE (the typical distance between the curve and the stages) always favors it. The prediction
+error does not: each stage is predicted by the curve fitted without it (leave-one-out cross-validation), which
+punishes a curve that bends to follow single points.
+
+The elite rider in `lactate_tests` shows the difference:
+
+```{r}
+elite <- lactate_threshold(subset(lactate_tests, test == "cycling_elite"), intensity, lactate, plot = FALSE)
+lactate_fit_quality(elite)[c("fit", "parameters", "rmse", "prediction_error")]
+```
+
+The B-spline follows the stages most closely (the lowest RMSE), but predicts a left-out stage worse than the 3rd
+degree polynomial: it follows the noise as well as the curve. The runner is the opposite case: the polynomial cannot
+follow the flat first stages, and the spline and 4th degree polynomial predict better.
+
+```{r}
+runner <- lactate_threshold(subset(lactate_tests, test == "running"), intensity, lactate, sport = "running",
+                            plot = FALSE)
+lactate_fit_quality(runner)[c("fit", "parameters", "rmse", "prediction_error")]
+```
+
+Choose the curve before you look at the thresholds, use the prediction error as a guide rather than a rule, and keep
+the same curve between tests of the same athlete. Some methods fix their curve anyway: Exp-Dmax and Log-Exp-ModDmax
+use the exponential, LTratio and IAT the B-spline, and Log-log and LTP the measured stages.
+
+## How sure is a threshold?
+
+The jackknife shows how much a threshold rests on single stages. `ci = TRUE` asks a different question: how much
+does it move with the scatter of this test? Every replicate keeps the fitted curve, adds residuals resampled with
+replacement (leverage-adjusted and centered; Davison & Hinkley, 1997), and runs every method again. The interval is
+the middle 95% of the replicate thresholds. The overview plot draws it as a line on each row.
+
+```{r, fig.height = 8}
+set.seed(1)
+with_ci <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE, ci = TRUE, n_boot = 300)
+with_ci[c("method", "intensity", "intensity_low", "intensity_high")]
+autoplot(with_ci)
+```
+
+Thresholds read off the fitted curve at a fixed concentration (OBLA) move little. Breakpoint methods (Log-log, LTP)
+move a lot, because a breakpoint between two stages can jump to the neighboring interval. The intervals do not
+include errors that are the same in every sample, such as analyzer bias or the sampling site, and this bootstrap has
+not been validated specifically for lactate thresholds; read the intervals as a lower bound of the uncertainty.
+
+## The simulation of normality tests
+
+<details>
+<summary>The code behind the "under 2%" above (4,000 runs per cell; takes a few seconds)</summary>
+
+```{r, eval = FALSE}
+set.seed(1)
+rejected <- function(n, errors, runs = 4000) {
+  x <- seq_len(n)
+  truth <- 1 + 0.05 * exp(0.6 * x)
+  mean(replicate(runs, {
+    y <- truth + 0.3 * errors(n)
+    stats::shapiro.test(stats::rstandard(stats::lm(y ~ poly(x, 3))))$p.value < 0.05
+  }))
+}
+errors <- list(normal = rnorm, heavy_tailed = function(n) rt(n, 3), skewed = function(n) rexp(n) - 1)
+sapply(errors, function(e) sapply(c(6, 8, 10), rejected, errors = e))
+```
+
+</details>
+
+## References
+
+Bonaventura JM, Sharpe K, Knight E, Fuller KL, Tanner RK, Gore CJ. Reliability and accuracy of six hand-held blood
+lactate analysers. J Sports Sci Med. 2015;14:203-14.
+
+Cook RD. Detection of influential observation in linear regression. Technometrics. 1977;19(1):15-8.
+doi:10.2307/1268249
+
+Davison AC, Hinkley DV. Bootstrap Methods and Their Application. Cambridge University Press; 1997.
+
+Efron B. The Jackknife, the Bootstrap and Other Resampling Plans. Philadelphia: SIAM; 1982.
+doi:10.1137/1.9781611970319
+
+Hoaglin DC, Welsch RE. The hat matrix in regression and ANOVA. Am Stat. 1978;32(1):17-22.
+doi:10.1080/00031305.1978.10479237

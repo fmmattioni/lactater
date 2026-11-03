@@ -28,9 +28,11 @@
 #' step test (+0.05 m/s per step; Pelarigo et al., 2017), and an untrained client tested to exhaustion and
 #' stopped early (25 W steps; untrained men peaked near 250 W in Messonnier et al., 2013). Their lactate
 #' rises exponentially through about 2.5 mmol/L near the first threshold, with analyser scatter of 3% from
-#' 2 mmol/L and 5% below (Bonaventura et al., 2015). See `data-raw/lactate_tests.R`.
+#' 2 mmol/L and 5% below (Bonaventura et al., 2015). Their simulated RPE rises with lactate, from about 11 at
+#' 2 mmol/L to 14 at 4 mmol/L (near the cohort means at the lactate threshold and at 4 mmol/L of Scherr et al.,
+#' 2013) and 19 to 20 at the last stage. See `data-raw/lactate_tests.R`.
 #'
-#' @format A tibble with one row per stage and 12 columns:
+#' @format A tibble with one row per stage and 13 columns:
 #' \describe{
 #'   \item{test}{the test: `cycling_elite`, `cycling_female`, `cycling_early_dip`, `cycling_series_1` to
 #'   `cycling_series_6`, `running`, `rowing`, `cycling_5min_no_rest`, `swimming`, `untrained`,
@@ -48,6 +50,7 @@
 #'   0 for the resting sample.}
 #'   \item{lactate}{blood lactate (mmol/L).}
 #'   \item{heart_rate}{heart rate (bpm), `NA` when not recorded.}
+#'   \item{rpe}{rating of perceived exertion (Borg 6-20), simulated tests only; `NA` for the real tests.}
 #' }
 #'
 #' @source
@@ -66,6 +69,10 @@
 #'
 #' Pelarigo JG, Machado L, Fernandes RJ, Greco CC, Vilas-Boas JP. Oxygen uptake kinetics and energy system's
 #' contribution around maximal lactate steady state swimming intensity. PLOS ONE. 2017;12(2):e0167263.
+#'
+#' Scherr J, Wolfarth B, Christle JW, Pressler A, Wagenpfeil S, Halle M. Associations between Borg's rating of
+#' perceived exertion and physiological measures of exercise intensity. European Journal of Applied Physiology.
+#' 2013;113(1):147-155.
 #'
 #' @examples
 #' unique(lactate_tests[c("test", "sport", "description")])

@@ -12,6 +12,13 @@ test_that("every test in lactate_tests can be analysed", {
   }
 })
 
+test_that("the simulated tests carry an RPE on the 6-20 scale, the real ones none", {
+  untrained <- lactate_tests[lactate_tests$test == "untrained", ]
+  res <- lactate_threshold(untrained, intensity, lactate, heart_rate, rpe_column = "rpe", plot = FALSE)
+  expect_true(all(res$rpe >= 6 & res$rpe <= 20, na.rm = TRUE))
+  expect_true(all(is.na(lactate_tests$rpe[lactate_tests$source != "simulated"])))
+})
+
 test_that("the breakpoint search survives out-of-order proposals (real running test, uneven steps)", {
   running <- lactate_tests[lactate_tests$test == "running" & lactate_tests$intensity > 0, ]
   fit <- fit_breakpoints(running$intensity, running$lactate)

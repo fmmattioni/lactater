@@ -39,7 +39,7 @@ tcd_test <- function(file, test, sport, description, athlete = test, day = 0) {
     test = test, athlete = athlete, sport = sport, sex = t$sex, body_mass = t$body_mass, day = day,
     description = description, source = "Trinity College Dublin (CC BY 4.0)",
     step = seq_len(nrow(t$stages)) - 1L, intensity = t$stages$intensity,
-    lactate = t$stages$lactate, heart_rate = t$stages$heart_rate
+    lactate = t$stages$lactate, heart_rate = t$stages$heart_rate, rpe = NA_real_
   )
 }
 
@@ -80,7 +80,7 @@ heuberger_test <- data.frame(
   test = "cycling_5min_no_rest", athlete = "cycling_5min_no_rest", sport = "cycling", sex = "M",
   body_mass = NA_real_, day = 0L, description = "Well-trained male cyclist, 5-min steps, no resting sample",
   source = "Heuberger et al. 2018 (CC BY 4.0)", step = chosen$k, intensity = 175 + 25 * (chosen$k - 1),
-  lactate = chosen$lactate, heart_rate = NA_real_
+  lactate = chosen$lactate, heart_rate = NA_real_, rpe = NA_real_
 )
 
 ## simulated tests, from published protocols and typical values (see ?lactate_tests)
@@ -97,10 +97,16 @@ simulate <- function(test, sport, sex, body_mass, description, intensity, rest, 
   cv <- ifelse(true < 2, 0.05, 0.03)
   lactate <- round(true * exp(stats::rnorm(length(true), 0, cv)), 1)
   hr <- round(hr_rest + (hr_peak - hr_rest) * (intensity / peak)^0.9 + stats::rnorm(length(true), 0, 1.5))
+  ## RPE (Borg 6-20) rising with lactate: about 11 at 2 mmol/L and 14 at 4 mmol/L, near the cohort means at the
+  ## lactate threshold (10.8) and at 4 mmol/L (14.1) of Scherr et al. (2013), and 19 at the last stage; whole
+  ## numbers that never fall from one stage to the next
+  rpe <- stats::approx(c(rest, 2, 4, peak_lactate), c(7, 11, 14, 19), true, rule = 2)$y
+  rpe <- c(6, cummax(round(rpe[-1] + stats::rnorm(length(true) - 1, 0, 0.7))))
   data.frame(
     test = test, athlete = test, sport = sport, sex = sex, body_mass = body_mass, day = 0L,
     description = description, source = "simulated", step = c(0L, seq_along(intensity[-1])),
-    intensity = c(0, intensity[-1]), lactate = c(round(rest, 1), lactate[-1]), heart_rate = c(70, hr[-1])
+    intensity = c(0, intensity[-1]), lactate = c(round(rest, 1), lactate[-1]), heart_rate = c(70, hr[-1]),
+    rpe = pmin(rpe, 20)
   )
 }
 

@@ -27,9 +27,8 @@ in one call and with the methods sport scientists use: Log-log, OBLA,
 Bsln+, the Dmax family, the lactate turning points, LTratio and the
 individual anaerobic threshold. It shows how much the methods agree, how
 sure each threshold is, what to double-check in your data, and turns the
-thresholds you choose into training zones.
-
-<img src="man/figures/workflow.svg" alt="Workflow: a step test goes into lactate_threshold(); its result goes to autoplot(), lactate_checks(), lactate_zones() and lactate_report()" width="100%"/>
+thresholds you choose into training zones. It is written for teaching
+too: every function and article says what the evidence behind it is.
 
 ## Installation
 
@@ -84,6 +83,9 @@ results
 
 ## See how the methods agree
 
+One row per method, grouped by family, with a table of the values at
+each threshold:
+
 ``` r
 autoplot(results)
 ```
@@ -129,6 +131,11 @@ with_ci[c("method", "intensity", "intensity_low", "intensity_high")]
 
 ## Check before you trust
 
+`lactate_checks()` flags what is easy to miss in a table of numbers, and
+`lactate_diagnostics()` checks the fitted curve and how much each
+threshold rests on single stages, with a line under each panel on what
+to look for:
+
 ``` r
 lactate_checks(results)
 #> # A tibble: 8 x 3
@@ -144,19 +151,25 @@ lactate_checks(results)
 #> 8 Sample type       ok     blood lactate.
 ```
 
+``` r
+autoplot(lactate_diagnostics(results))
+```
+
+<img src="man/figures/readme/README-diagnostics-1.png" alt="" width="100%" style="display: block; margin: auto;" />
+
 ## Turn thresholds into zones
 
-You choose which thresholds mark LT1 and LT2:
+You choose which thresholds mark LT1 and LT2, and three or five zones:
 
 ``` r
 zones <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax")
 zones
-#> # A tibble: 3 x 8
-#>   zone   description         intensity_from intensity_to lactate_from lactate_to
-#>   <chr>  <chr>                        <dbl>        <dbl>        <dbl>      <dbl>
-#> 1 Zone 1 below LT1                       NA          111         NA          2.2
-#> 2 Zone 2 between LT1 and LT2            111          140          2.2        3.6
-#> 3 Zone 3 above LT2                      140           NA          3.6       NA  
+#> # A tibble: 3 x 9
+#>   zone   domain  description intensity_from intensity_to lactate_from lactate_to
+#>   <chr>  <chr>   <chr>                <dbl>        <dbl>        <dbl>      <dbl>
+#> 1 Zone 1 modera~ below LT1               NA          111         NA          2.2
+#> 2 Zone 2 heavy   LT1 to LT2             111          140          2.2        3.6
+#> 3 Zone 3 severe  above LT2              140           NA          3.6       NA  
 #> # i 2 more variables: heart_rate_from <dbl>, heart_rate_to <dbl>
 autoplot(zones)
 ```
@@ -199,6 +212,7 @@ autoplot(comparison)
 
 `compare_tests()` says whether each change is larger than the noise of
 the method, `curve_shift()` how far the whole curve moved,
+`curve_shape()` whether it only shifted or changed its shape,
 `lactate_trend()` where a series of tests is heading, and
 `training_load()` how the training was spread across the zones.
 
@@ -206,12 +220,19 @@ the method, `curve_shift()` how far the whole curve moved,
 
 - `lactate_tests`: 15 real and simulated tests across cycling, running,
   rowing and swimming, from elite to untrained.
+- `predict_performance()` estimates race times (running) and time-trial
+  power (cycling) with a 95% range, from published equations or one you
+  fit on your own athletes with `calibrate_performance()`.
+- Heart rate and RPE (6-20 or CR10) at every threshold and in every
+  zone.
 - Set your own targets (`fixed`, `baseline_plus`, `iat_rise`) and fit
   one turn point for submaximal tests (`ltp_breakpoints = 1`).
-- `options(lactater.style = "night")` gives every plot a dark style.
+- `options(lactater.style = "night")` gives every plot a dark style, and
+  `"journal"` a quieter one for print.
 - `lactate_report()` formats the results as a table for reports and
   papers; `.by` analyses a whole squad in one call.
-- `lactate_fit_quality()` helps you choose the curve.
+- `lactate_fit_quality()` helps you choose the curve, by how well each
+  one predicts a stage it was not fitted to.
 - `vlamax()` estimates the maximal lactate accumulation rate from a
   sprint test.
 - `run_data_input()` is an RStudio gadget that writes the test protocol
@@ -221,7 +242,9 @@ the method, `curve_shift()` how far the whole curve moved,
 
 Every method follows its original definition, and the [methods
 article](https://fmmattioni.github.io/lactater/articles/methods.html)
-says how each is computed, what the evidence says about it, and how to
-collect data that does it justice. lactater 1.0 fixed several
-calculations; see [what
+says how each is computed and what the evidence says about it. [Best
+practices for a step
+test](https://fmmattioni.github.io/lactater/articles/best-practices.html)
+is a checklist, with sources, for running a test and analyzing it.
+lactater 1.0 fixed several calculations; see [what
 changed](https://fmmattioni.github.io/lactater/articles/whats-new.html).

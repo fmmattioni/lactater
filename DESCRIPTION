@@ -38,6 +38,7 @@ Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 Suggests: 
     bsplus,
+    collapsibleTree,
     covr,
     datapasta,
     knitr,

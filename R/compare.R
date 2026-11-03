@@ -420,6 +420,8 @@ autoplot.lactate_trend <- function(object, method = NULL, view = c("thresholds",
       ggplot2::aes(fill = outside), shape = 21, size = 2.8, stroke = 0.7, colour = colours[["paper"]]
     ) +
     ggplot2::scale_fill_manual(values = c(`FALSE` = colours[["faint"]], `TRUE` = colours[["curve"]]), guide = "none") +
+    ## few day labels, so they stay apart in narrow panels
+    ggplot2::scale_x_continuous(n.breaks = 3) +
     ggplot2::facet_wrap(ggplot2::vars(method), nrow = 1, scales = "free_y") +
     ggplot2::labs(
       title = "Did the thresholds change?",

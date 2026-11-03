@@ -36,12 +36,27 @@ navbar:
     articles:
       text: Articles
       menu:
+      - text: Running the test
+      - text: Best practices for a step test
+        href: articles/best-practices.html
       - text: The methods and the evidence
         href: articles/methods.html
-      - text: Zones, uncertainty and checks
-        href: articles/zones-uncertainty-checks.html
-      - text: Comparing tests and training load
-        href: articles/compare-and-load.html
+      - text: -------
+      - text: Analyzing it
+      - text: Checking the analysis
+        href: articles/checking.html
+      - text: The example data
+        href: articles/example-data.html
+      - text: -------
+      - text: Using the thresholds
+      - text: Training zones
+        href: articles/zones.html
+      - text: Training load
+        href: articles/training-load.html
+      - text: Comparing tests
+        href: articles/compare.html
+      - text: Predicting performance
+        href: articles/performance.html
       - text: "VLamax: the maximal lactate accumulation rate"
         href: articles/beyond-the-step-test.html
       - text: -------
@@ -82,13 +97,16 @@ reference:
   desc: >
     Turn two thresholds of your choice into training zones and count the training time in them; compare two tests
     of one athlete (is the change real, how far did the curve move, did it shift or change shape), follow a series
-    of tests, and compare athletes per kg or % of peak.
+    of tests, compare athletes per kg or % of peak, and predict race performance, from published equations or one
+    you calibrate on your own athletes.
   contents:
   - lactate_zones
   - training_load
   - compare_tests
   - curve_shift
   - curve_shape
+  - predict_performance
+  - calibrate_performance
   - lactate_trend
   - relative_thresholds
 - title: Beyond the step test

@@ -10,6 +10,16 @@ test_that("the polarization index follows Treff et al. (2019)", {
   expect_equal(intensity_distribution(c(0.20, 0.20, 0.60)), "high intensity")
 })
 
+test_that("the printed summary uses the unrounded minutes, so it matches a single group", {
+  results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
+  zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax")
+  ## 3000, 500 and 100 one-second samples: rounding the minutes first would give an index of 1.23, not 1.22
+  power <- rep(c(80, 120, 180), times = c(3000, 500, 100))
+  load <- training_load(power, zones, column = "power", measure = "intensity")
+  expect_equal(load$polarization_index, 1.22)
+  expect_equal(attr(load, "lactater_load")$overall$polarization_index, 1.22)
+})
+
 test_that("five zones add up to the three domains for the distribution", {
   results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
   zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5)
