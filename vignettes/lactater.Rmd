@@ -23,42 +23,35 @@ library(lactater)
 library(dplyr)
 ```
 
-lactater turns the stages of a step test into lactate thresholds, checks them, and puts them to use: training zones,
-training load, and comparisons between tests.
-`r if (identical(Sys.getenv("IN_PKGDOWN"), "true")) "Click the steps below to unfold them."`
+lactater turns the stages of a step test into lactate thresholds, checks them, and puts them to use. Find what you want
+to do, and the function that does it:
 
-```{r workflow, echo = FALSE, eval = identical(Sys.getenv("IN_PKGDOWN"), "true") && requireNamespace("collapsibleTree", quietly = TRUE)}
-steps <- read.csv(text = '
-step,tool,detail
-"1. Collect","One row per stage","intensity, lactate, HR, RPE"
-"1. Collect","One row per stage","resting sample at intensity 0"
-"1. Collect","lactate_tests","15 tests, 4 sports"
-"2. Estimate","lactate_threshold()","Log-log"
-"2. Estimate","lactate_threshold()","OBLA (fixed lactate)"
-"2. Estimate","lactate_threshold()","Bsln+ (rise above baseline)"
-"2. Estimate","lactate_threshold()","Dmax family"
-"2. Estimate","lactate_threshold()","LTP1 and LTP2"
-"2. Estimate","lactate_threshold()","LTratio and IAT"
-"2. Estimate","ci = TRUE","bootstrap confidence intervals"
-"3. Check","lactate_checks()","dips, plateaus, missing rest"
-"3. Check","lactate_diagnostics()","residuals, influence, jackknife"
-"3. Check","lactate_fit_quality()","which curve predicts best"
-"4. Look","autoplot()","all methods, or one"
-"4. Look","lactate_report()","a table for reports"
-"5. Use","lactate_zones()","3 or 5 zones"
-"5. Use","training_load()","time in zone, distribution"
-"5. Use","predict_performance()","race times, with a range"
-"5. Use","calibrate_performance()","your own equation"
-"6. Compare","compare_tests()","change vs noise"
-"6. Compare","curve_shift()","how far the curve moved"
-"6. Compare","curve_shape()","shift, or new shape?"
-"6. Compare","lactate_trend()","a series of tests"
-"6. Compare","relative_thresholds()","per kg, % of peak"
-')
-collapsibleTree::collapsibleTree(
-  steps, hierarchy = c("step", "tool", "detail"), root = "lactater", collapsed = TRUE,
-  fill = "#1f5fa8", fontSize = 13, width = "100%", height = 520, zoomable = FALSE
+```{r tasks, echo = FALSE, eval = requireNamespace("gt", quietly = TRUE)}
+site <- "https://fmmattioni.github.io/lactater/articles/"
+tasks <- tibble::tribble(
+  ~step, ~task, ~functions, ~article,
+  "Before the test", "Record every test the same way", "`recording_sheet()`", "best-practices|Best practices",
+  "Analyze it", "Estimate every threshold", "`lactate_threshold()`", "methods|The methods and the evidence",
+  "Analyze it", "See how the methods agree", "`autoplot()`", "",
+  "Analyze it", "Check the data and the curve", "`lactate_checks()`, `lactate_diagnostics()`",
+  "checking|Checking the analysis",
+  "Analyze it", "Know how sure each threshold is", "`ci = TRUE`", "checking|Checking the analysis",
+  "Use it", "Build three or five training zones", "`lactate_zones()`", "zones|Training zones",
+  "Use it", "Count the training in each zone", "`training_load()`", "training-load|Training load",
+  "Use it", "Predict race performance", "`predict_performance()`, `calibrate_performance()`",
+  "performance|Predicting performance",
+  "Use it", "Compare two tests, or follow a series", "`compare_tests()`, `curve_shape()`, `lactate_trend()`",
+  "compare|Comparing tests",
+  "Share it", "Report the test to an athlete or a coach", "`test_report()`", "",
+  "Share it", "A table for a paper", "`lactate_report()`", ""
 )
+parts <- strsplit(tasks$article, "|", fixed = TRUE)
+tasks$article <- vapply(parts, function(p) if (length(p) == 2) sprintf("[%s](%s%s.html)", p[2], site, p[1]) else "", "")
+gt::gt(tasks, groupname_col = "step") |>
+  gt::fmt_markdown(columns = c("functions", "article")) |>
+  gt::cols_label(task = "You want to", functions = "Use", article = "Read more") |>
+  gt::cols_width(task ~ gt::pct(36), functions ~ gt::pct(38), article ~ gt::pct(26)) |>
+  gt_lactater()
 ```
 
 ## Your data
@@ -156,6 +149,10 @@ autoplot(zones)
 ```{r, eval = requireNamespace("gt", quietly = TRUE)}
 lactate_report(results)
 ```
+
+For the athlete or the coach, `test_report()` writes the whole test as one web page (and PDF): their details, LT1 and
+LT2, the zones, every threshold, the predicted performance, the checks and the stages ([see an
+example](https://fmmattioni.github.io/lactater/report-example.html)).
 
 ## Many tests at once
 

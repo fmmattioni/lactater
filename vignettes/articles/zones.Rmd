@@ -119,8 +119,8 @@ lactate_zones(client_results, lt1 = "Log-log", lt2 = "LTP2") |>
 
 Two cautions. Heart rate lags behind intensity in short intervals, so heart-rate zones suit steady efforts better
 than intervals ([Seiler, 2010](https://doi.org/10.1123/ijspp.5.3.276)). And RPE at a threshold varies between people and between tests: in 2,560 adults, RPE
-was 10.8 at the lactate threshold and 13.6 at the individual anaerobic threshold, each with a standard deviation of
-1.8 ([Scherr et al., 2013](https://doi.org/10.1007/s00421-012-2421-x)). Use it as a cross-check of the zones, not as their definition.
+was 10.8 at the last intensity before lactate began to rise and 13.6 at 1.5 mmol/L above it (Dickhuth's individual
+anaerobic threshold), each with a standard deviation of 1.8 ([Scherr et al., 2013](https://doi.org/10.1007/s00421-012-2421-x)). Use it as a cross-check of the zones, not as their definition.
 
 ## Why not seven zones?
 

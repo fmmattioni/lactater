@@ -13,7 +13,8 @@ demo_data <- dplyr::tribble(
 )
 
 ## simulated RPE (Borg 6-20), by the rule of the simulated tests in data-raw/lactate_tests.R: 6 at rest, about 11 at
-## 2 mmol/L and 14 at 4 mmol/L, near the cohort means of Scherr et al. (2013), and 19 at the last stage
+## 2 mmol/L and 14 at 4 mmol/L, near the cohort means at the first rise in lactate (10.8) and at 4 mmol/L (14.1) of
+## Scherr et al. (2013), and 19 at the last stage
 rest <- demo_data$lactate[1]
 peak <- max(demo_data$lactate)
 demo_data$rpe <- c(6L, as.integer(round(stats::approx(c(rest, 2, 4, peak), c(7, 11, 14, 19), demo_data$lactate[-1])$y)))

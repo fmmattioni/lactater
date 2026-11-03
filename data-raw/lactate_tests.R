@@ -98,7 +98,7 @@ simulate <- function(test, sport, sex, body_mass, description, intensity, rest, 
   lactate <- round(true * exp(stats::rnorm(length(true), 0, cv)), 1)
   hr <- round(hr_rest + (hr_peak - hr_rest) * (intensity / peak)^0.9 + stats::rnorm(length(true), 0, 1.5))
   ## RPE (Borg 6-20) rising with lactate: about 11 at 2 mmol/L and 14 at 4 mmol/L, near the cohort means at the
-  ## lactate threshold (10.8) and at 4 mmol/L (14.1) of Scherr et al. (2013), and 19 at the last stage; whole
+  ## first rise in lactate (10.8) and at 4 mmol/L (14.1) of Scherr et al. (2013), and 19 at the last stage; whole
   ## numbers that never fall from one stage to the next
   rpe <- stats::approx(c(rest, 2, 4, peak_lactate), c(7, 11, 14, 19), true, rule = 2)$y
   rpe <- c(6, cummax(round(rpe[-1] + stats::rnorm(length(true) - 1, 0, 0.7))))

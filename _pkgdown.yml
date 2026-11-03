@@ -77,11 +77,15 @@ reference:
 - title: Look at the results
   desc: >
     `autoplot()` draws an overview of every threshold on one intensity axis, or a single method in detail.
-    `lactate_report()` formats the results as a table for reports and papers. `theme_lactater()` gives your
+    `test_report()` writes a report of the test as one web page (and PDF) for the athlete or the coach;
+    `report_start()` builds one step by step. `lactate_report()` formats the results as a table for papers. `theme_lactater()` gives your
     own plots the same look.
   contents:
   - autoplot.lactate_thresholds
+  - test_report
+  - report_start
   - lactate_report
+  - gt_lactater
   - plot_methods
   - theme_lactater
 - title: Check the analysis
@@ -114,10 +118,12 @@ reference:
     The maximal lactate accumulation rate from a sprint test.
   contents:
   - vlamax
-- title: Data entry
+- title: Record a test
   desc: >
-    An RStudio gadget that writes the test protocol for you, so you only type in the lactate values.
+    A printable sheet and a CSV template to record a test the same way every time, and an RStudio gadget that
+    writes the test protocol for you, so you only type in the lactate values.
   contents:
+  - recording_sheet
   - run_data_input
 - title: Re-exported functions
   contents:

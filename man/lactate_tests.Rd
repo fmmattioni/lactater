@@ -52,8 +52,8 @@ step test (+0.05 m/s per step; Pelarigo et al., 2017), and an untrained client t
 stopped early (25 W steps; untrained men peaked near 250 W in Messonnier et al., 2013). Their lactate
 rises exponentially through about 2.5 mmol/L near the first threshold, with analyser scatter of 3\% from
 2 mmol/L and 5\% below (Bonaventura et al., 2015). Their simulated RPE rises with lactate, from about 11 at
-2 mmol/L to 14 at 4 mmol/L (near the cohort means at the lactate threshold and at 4 mmol/L of Scherr et al.,
-2013) and 19 to 20 at the last stage. See \code{data-raw/lactate_tests.R}.
+2 mmol/L to 14 at 4 mmol/L (close to the cohort means at the first rise in lactate and at 4 mmol/L of Scherr et
+al., 2013) and 19 to 20 at the last stage. See \code{data-raw/lactate_tests.R}.
 }
 \examples{
 unique(lactate_tests[c("test", "sport", "description")])

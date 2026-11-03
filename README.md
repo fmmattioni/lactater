@@ -24,12 +24,12 @@ downloads](https://cranlogs.r-pkg.org/badges/grand-total/lactater?color=blue)](h
 
 **lactater** estimates lactate thresholds from a step incremental test,
 in one call and with the methods sport scientists use: Log-log, OBLA,
-Bsln+, the D<sub>max</sub> family, the lactate turning points, LTratio
-and the individual anaerobic threshold. It shows how much the methods
-agree, how sure each threshold is, what to double-check in your data,
-and turns the thresholds you choose into training zones. It is written
-for teaching too: every function and article says what the evidence
-behind it is.
+Bsln+, the D<sub>max</sub> family, the lactate turning points, LTratio,
+and the individual anaerobic thresholds of Dickhuth and of Stegmann. It
+shows how much the methods agree, how sure each threshold is, what to
+double-check in your data, and turns the thresholds you choose into
+training zones. It is written for teaching too: every function and
+article says what the evidence behind it is.
 
 ## Installation
 
@@ -209,6 +209,33 @@ autoplot(five)
 ```
 
 <img src="man/figures/readme/README-zones5-1.png" alt="" width="100%" style="display: block; margin: auto;" />
+
+## Report the test
+
+`test_report()` writes the whole test as one web page for the athlete or
+the coach, two A4 pages when printed: LT1 and LT2 and what they mean,
+the zones, the predicted performance, what to double-check, the stages
+and every method ([see an
+example](https://fmmattioni.github.io/lactater/report-example.html)). Or
+build it step by step, with your lab’s name and logo and only the parts
+you want: `recording_sheet()` gives you a printable sheet
+([PDF](https://fmmattioni.github.io/lactater/step-test-sheet.pdf)) and a
+CSV template, to record every test the same way, and the
+[cheatsheet](https://fmmattioni.github.io/lactater/lactater-cheatsheet.pdf)
+puts the whole package on two pages.
+
+``` r
+report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
+  report_header(
+    name = "Ana Silva", date = "3 November 2026", sex = "female", age = 27, body_mass = 61,
+    lab = "Exercise physiology lab", logo = "logo.png"
+  ) |>
+  report_summary() |>
+  report_zones() |>
+  report_prediction() |>
+  report_text("Training", "Two sessions a week in zone 2, one in zone 3.") |>
+  report_save("ana-2026-11-03.html", pdf = TRUE)
+```
 
 ## Compare tests and count training
 

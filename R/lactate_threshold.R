@@ -12,8 +12,8 @@
 #' @param rpe_scale The RPE scale: `"6-20"` (Borg's RPE scale, default) or `"CR10"` (Borg's category-ratio scale,
 #' 0 to 10, with ratings above 10 allowed for an absolute maximum).
 #' @param method The lactate threshold method to calculate. It can be one or many of the following:
-#' `Log-log`, `OBLA`, `Bsln+`, `Dmax`, `LTP`, `LTratio`, `IAT`. See `Details` for more information.
-#' Default to all of them.
+#' `Log-log`, `OBLA`, `Bsln+`, `Dmax`, `LTP`, `LTratio`, `IAT`, `Stegmann`. See `Details` for more information.
+#' Default to all of them (`Stegmann` only when `recovery` is given).
 #' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate
 #' thresholds.
 #' Please, note that a few lactate thresholds have default methods for this and cannot be changed.
@@ -58,6 +58,11 @@
 #' (Dickhuth et al., 1999).
 #' @param ltp_breakpoints The number of lactate turn points to fit: `2` (default) for a test to exhaustion,
 #' or `1` for a submaximal test that stopped before the second turn point (LTP1 only; LTP2 is `NA`).
+#' @param recovery The lactate samples taken after the end of the test, for `Stegmann`: a data frame with the
+#' columns `time` (minutes after the end of exercise) and `lactate`. Sample until lactate has fallen back below
+#' its end-of-exercise value; Stegmann et al. (1981) sampled at 1, 2, 5 and 10 min.
+#' @param stage_duration The duration of each stage, in minutes. `Stegmann` needs it to put the recovery minutes on
+#' the intensity axis.
 #'
 #' @return a `lactate_thresholds` tibble (plot it with [autoplot()] or [plot()]) with the following columns:
 #' \item{method_category}{the category of the lactate threshold method.}
@@ -181,6 +186,17 @@
 #' lactate at LTratio, on the same B-spline curve (Dickhuth et al., 1999; as described by Heuberger et al., 2018).
 #' Like OBLA and Bsln+, it uses an absolute lactate step, so it assumes blood lactate.
 #'
+#' ## Stegmann
+#'
+#' The individual anaerobic threshold of Stegmann et al. (1981). After the test, blood lactate first rises and then
+#' falls. From the point in recovery where it is back at its end-of-exercise value, a tangent is drawn to the
+#' lactate curve of the test; the point of contact is the threshold, and the slope of the tangent the maximal rate of
+#' lactate elimination. Stegmann et al. plotted lactate against time, so lactater puts the recovery minutes on the
+#' intensity axis at the rate the test rose: the median increment between stages divided by `stage_duration`. The
+#' time lactate is back at its end-of-exercise value is interpolated linearly between the recovery samples after
+#' the post-exercise peak; when lactate never falls back to it, or never rises after the test, the threshold is `NA`.
+#' The tangent touches the curve fitted with `fit`.
+#'
 #' @references
 #'
 #' Beaver WL, Wasserman K, Whipp BJ. Improved detection of lactate threshold during exercise using a log-log
@@ -240,6 +256,9 @@
 #' Dickhuth H-H, Yin L, Niess A, et al. Ventilatory, Lactate-Derived and Catecholamine Thresholds During Incremental
 #' Treadmill Running: Relationship and Reproducibility. International Journal of Sports Medicine. 1999;20(02):122–7.
 #'
+#' Stegmann H, Kindermann W, Schnabel A. Lactate kinetics and individual anaerobic threshold. International Journal
+#' of Sports Medicine. 1981;2(3):160–5. \doi{10.1055/s-2008-1034604}
+#'
 #' @export
 #'
 #' @examples
@@ -262,7 +281,7 @@ lactate_threshold <- function(
   heart_rate_column = NULL,
   rpe_column = NULL,
   rpe_scale = c("6-20", "CR10"),
-  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT"),
+  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT", "Stegmann"),
   fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
   include_baseline = FALSE,
   sport = c("cycling", "running", "swimming", "rowing"),
@@ -276,6 +295,8 @@ lactate_threshold <- function(
   baseline_plus = c(0.5, 1, 1.5),
   iat_rise = 1.5,
   ltp_breakpoints = 2,
+  recovery = NULL,
+  stage_duration = NULL,
   max_intensity = NULL,
   sample = c("blood", "plasma", "sweat", "interstitial fluid"),
   ci = FALSE,
@@ -286,6 +307,7 @@ lactate_threshold <- function(
 
   if(missing(.data))
     stop("No data, no fun. Please, include your data to the function.", call. = FALSE)
+  method_given <- !missing(method)
 
   ## before the argument is touched, or missing() is always FALSE
   restrainer_given <- !missing(loglog_restrainer)
@@ -310,6 +332,12 @@ lactate_threshold <- function(
     stop("`ltp_breakpoints` must be 1 or 2.", call. = FALSE)
 
   method <- match.arg(arg = method, several.ok = TRUE)
+  if("Stegmann" %in% method && is.null(recovery)) {
+    if(method_given)
+      stop("`Stegmann` needs `recovery`: the lactate samples after the end of the test.", call. = FALSE)
+    method <- setdiff(method, "Stegmann")
+  }
+  if(!is.null(recovery)) recovery <- prepare_recovery(recovery, stage_duration)
   fit <- match.arg(arg = fit, several.ok = FALSE)
   sport <- match.arg(arg = sport, several.ok = FALSE)
   dmax_anchor <- match.arg(arg = dmax_anchor)
@@ -342,6 +370,7 @@ lactate_threshold <- function(
   by_expression <- rlang::enexpr(.by)
   if(is.symbol(by_expression) && rlang::as_name(by_expression) %in% names(.data)) .by <- rlang::as_name(by_expression)
   if(!is.null(.by)) {
+    if(!is.null(recovery)) stop("`recovery` works with one test at a time, not with `.by`.", call. = FALSE)
     arguments <- c(columns, list(
       method = method, fit = fit, include_baseline = include_baseline, sport = sport,
       plot = plot, dmax_anchor = dmax_anchor,
@@ -356,6 +385,10 @@ lactate_threshold <- function(
 
   data <- do.call(prepare_data, c(list(.data = .data, rpe_scale = rpe_scale), columns))
   if(!is.null(max_intensity)) {
+    ## the recovery times count from the real end of the test, so its last stage must stay
+    if(!is.null(recovery) && any(data$intensity > max_intensity))
+      stop("`recovery` is timed from the end of the test, so `max_intensity` cannot leave out its last stages.",
+           call. = FALSE)
     data <- data[data$intensity <= max_intensity, ]
     if(sum(data$intensity > 0) < 3)
       stop("Fewer than 3 stages are left at or below `max_intensity`.", call. = FALSE)
@@ -376,7 +409,9 @@ lactate_threshold <- function(
     ltp_breakpoints = as.integer(ltp_breakpoints),
     sample = sample,
     rpe_scale = rpe_scale,
-    ci_level = ci_level
+    ci_level = ci_level,
+    recovery = recovery,
+    stage_duration = stage_duration
   )
   computed <- compute_thresholds(data, settings, method)
   curve <- computed$curve

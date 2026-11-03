@@ -12,26 +12,17 @@ plex <- requireNamespace("systemfonts", quietly = TRUE) &&
   isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
 if (plex) options(lactater.font = "IBM Plex Sans")
 
-## how strong the evidence behind a row is, as a badge styled in pkgdown/extra.css
-badge <- function(kind, text) sprintf('<span class="evidence %s">%s</span>', kind, text)
-
-## one table per section: the topic, what to do, what the studies found, and the strength of the evidence
+## one table per section: the topic, what to do, what the studies found, and how strong that evidence is
 practice_table <- function(rows) {
   rows |>
     gt() |>
     fmt_markdown(columns = everything()) |>
     cols_label(topic = "", advice = "What to do", evidence = "What the studies found", strength = "Evidence") |>
-    cols_width(topic ~ pct(17), advice ~ pct(33), evidence ~ pct(37), strength ~ pct(13)) |>
-    tab_style(cell_text(weight = 600, color = "#183a53"), cells_body(columns = topic)) |>
+    cols_width(topic ~ pct(16), advice ~ pct(32), evidence ~ pct(38), strength ~ pct(14)) |>
+    tab_style(cell_text(weight = 600), cells_body(columns = topic)) |>
     tab_style(cell_text(v_align = "top"), cells_body()) |>
-    opt_table_font(font = list(google_font("IBM Plex Sans"), default_fonts())) |>
-    tab_options(
-      table.width = pct(100), table.font.size = px(14), data_row.padding = px(9),
-      column_labels.font.weight = "bold", column_labels.font.size = px(13),
-      column_labels.border.bottom.color = "#1f5fa8", column_labels.border.bottom.width = px(2),
-      table.border.top.style = "hidden", table.border.bottom.color = "#d9dde3",
-      table_body.hlines.color = "#e6e9ee", table.background.color = "transparent"
-    )
+    tab_style(cell_text(color = "#5b6672"), cells_body(columns = strength)) |>
+    gt_lactater()
 }
 ```
 
@@ -56,9 +47,9 @@ about running a step test and analyzing it, as a checklist.
 ```
 
 Read each point with its evidence in mind. Few come from guidelines: most come from single studies in small groups,
-often of trained men, and some from expert reviews. The badges say which:
-`r badge("guideline", "guideline")` `r badge("review", "review")` `r badge("study", "single studies")`
-`r badge("none", "no study found")`. A dagger (&dagger;) marks a study read from its abstract only.
+often of trained men, and some from expert reviews. The last column of each table says which: a guideline, a
+review, single studies (with how many people), or no study we found. A dagger (&dagger;) marks the one
+study read from its abstract only.
 
 ## What moves the curve
 
@@ -145,9 +136,11 @@ tribble(
   "Keep the diet of the 24 to 48 h before the test the same for every test, and avoid exercise that empties the
   glycogen stores.",
   "Low glycogen lowers lactate at every intensity and moves the curve to the right, which looks like better
-  endurance ([Maassen & Busse, 1989](https://doi.org/10.1007/BF00637384)&dagger;; [Faude et al.,
-  2009](https://doi.org/10.2165/00007256-200939060-00003)).",
-  badge("review", "review"),
+  endurance ([Faude et al., 2009](https://doi.org/10.2165/00007256-200939060-00003)). In 6 trained men, a
+  low-carbohydrate diet with training put the 2 and 4 mmol/L thresholds at higher workloads than a high-carbohydrate
+  diet after 3 days without training, yet after the high-carbohydrate diet they rode longer at 65% of their maximal
+  workload, 49 against 23 min ([Maassen & Busse, 1989](https://doi.org/10.1007/BF00637384)).",
+  "Review; 1 study, n = 6",
   "Training before the test",
   "Plan at least one day of full recovery before each test, and test at the same time of day in a room at the same
   temperature.",
@@ -155,29 +148,31 @@ tribble(
   (2016)](https://doi.org/10.1371/journal.pone.0163389), 14 trained male cyclists
   had 24 h of full recovery before every test, and were tested between 16:00 and 19:00 at 21-24 &deg;C; the fixed
   and baseline thresholds varied by about 3% between tests.",
-  badge("none", "no study found"),
+  "No study found",
   "Caffeine",
   "Keep caffeine habits the same.",
   "In 8 men, 5 mg/kg of caffeine raised lactate at submaximal intensities and lowered the threshold at 2 mmol/L,
-  while the breakpoint, the 1 mmol/L rise and the 4 mmol/L thresholds did not change ([Gaesser & Rich,
-  1985](https://doi.org/10.1055/s-2008-1025841)&dagger;).",
-  badge("study", "1 study, n = 8"),
+  from an oxygen uptake of 2.71 to 2.13 L/min, while the breakpoint, the 1 mmol/L rise and the 4 mmol/L thresholds did
+  not change ([Gaesser & Rich, 1985](https://doi.org/10.1055/s-2008-1025841)).",
+  "1 study, n = 8",
   "Hydration",
   "Start every test equally hydrated.",
-  "In 7 moderately trained women, losing 2.6% of body mass to dehydration moved the lactate threshold from 72% to 66%
-  of V&#775;O<sub>2max</sub> ([Moquin & Mazzeo, 2000](https://doi.org/10.1097/00005768-200002000-00021)&dagger;).",
-  badge("study", "1 study, n = 7"),
+  "In 7 moderately trained women, losing 2.6% of body mass to dehydration moved the Log-log threshold from 72% to 66%
+  of V&#775;O<sub>2max</sub> ([Moquin & Mazzeo, 2000](https://doi.org/10.1097/00005768-200002000-00021)).",
+  "1 study, n = 7",
   "Time of day",
   "Test at the same time of day, ideally when the athlete usually trains.",
-  "In 11 trained rowers, oxygen uptake and heart rate at the D<sub>max</sub> threshold followed a circadian rhythm
-  ([Forsyth & Reilly, 2004](https://doi.org/10.1007/s00421-004-1059-8)&dagger;).",
-  badge("study", "1 study, n = 11"),
+  "In 11 endurance-trained men tested on a rowing ergometer at six times of day, the power at the D<sub>max</sub>
+  threshold did not change, but the oxygen uptake and heart rate at it followed a circadian rhythm; the authors advise
+  testing at the time the athlete usually trains ([Forsyth & Reilly,
+  2004](https://doi.org/10.1007/s00421-004-1059-8)).",
+  "1 study, n = 11",
   "Warm-up and familiarization",
   "Use the same light warm-up every time, and let a new athlete do one familiarization test.",
   "[Pallarés et al. (2016)](https://doi.org/10.1371/journal.pone.0163389) began with a familiarization test, followed
   by 48 h of rest, \"to minimize the bias of
   progressive learning on test reliability\".",
-  badge("none", "no study found")
+  "No study found"
 ) |>
   practice_table()
 ```
@@ -195,34 +190,34 @@ tribble(
   2020](https://doi.org/10.1007/s40279-020-01322-8)). [Jamnick et al.
   (2018)](https://doi.org/10.1371/journal.pone.0199794) compared stages of 1 to 10 min in 17 trained
   men.",
-  badge("review", "reviews"),
+  "Reviews",
   "Number of stages",
   "Plan for six or more. lactater needs at least five for Log-log and six for two lactate turn points.",
   "No guideline sets a number. Six or more is common: [Grant et al. (2002)](https://doi.org/10.1007/s00421-002-0608-2)
   used at least six 4-min stages.",
-  badge("none", "no study found"),
+  "No study found",
   "Start and increment",
   "Start low enough for two or three stages below the first rise in lactate.",
   "The methods for LT1 need those stages, and D<sub>max</sub> depends on where the test starts and ends ([Jamnick et
   al., 2020](https://doi.org/10.1007/s40279-020-01322-8)).",
-  badge("review", "review"),
+  "Review",
   "End of the test",
   "Go to exhaustion when you use methods that rely on the last stage (the D<sub>max</sub> family and LTP2). If the
   athlete stopped during the last stage, enter its time-weighted intensity, or leave it out with `max_intensity`.",
   "These methods change with the final lactate ([Bentley et al.,
   2007](https://doi.org/10.2165/00007256-200737070-00002); [Jamnick et al.,
   2020](https://doi.org/10.1007/s40279-020-01322-8)).",
-  badge("review", "reviews"),
+  "Reviews",
   "Treadmill grade",
   "Whatever the grade, keep it the same; 1% mimics running outdoors.",
-  "A 1% grade matched the energy cost of outdoor running in 9 trained runners ([Jones & Doust,
-  1996](https://doi.org/10.1080/02640419608727717)&dagger;).",
-  badge("study", "1 study, n = 9"),
+  "A 1% grade matched the energy cost of outdoor running at 10.5 to 18 km/h in 9 trained male runners ([Jones & Doust,
+  1996](https://doi.org/10.1080/02640419608727717)).",
+  "1 study, n = 9",
   "Pauses for sampling",
   "Keep pauses short, and the same between tests.",
   "Short pauses to take the sample are common on a treadmill: [Dickhuth et al.
   (1999)](https://doi.org/10.1055/s-2007-971105) used 30 s.",
-  badge("none", "no study found")
+  "No study found"
 ) |>
   practice_table()
 ```
@@ -236,26 +231,28 @@ tribble(
   "Sample in the last 30 s of each stage.",
   "Most studies do ([Goodwin et al., 2007](https://doi.org/10.1177/193229680700100414); [Morton et al.,
   2012](https://doi.org/10.1136/bjsm.2010.076380); [Forsyth & Reilly,
-  2004](https://doi.org/10.1007/s00421-004-1059-8)&dagger;).",
-  badge("review", "review"),
+  2004](https://doi.org/10.1007/s00421-004-1059-8)).",
+  "Review",
   "Site",
   "Use the same site in every test.",
   "Finger values were higher than earlobe and venous values in 312 trained athletes, and the authors preferred the
   earlobe ([Dassonville et al., 1998](https://pubmed.ncbi.nlm.nih.gov/9638031/)&dagger;). Fingertip and earlobe
   differed by 9.2% on average in cycling, with 95%
   of differences between -25% and +59% ([Moran et al., 2012](https://doi.org/10.1519/JSC.0b013e318225f395)). The
-  fingertip read 0.66 mmol/L higher than the earlobe
-  in double poling in 40 students ([Zhong et al., 2025](https://doi.org/10.1007/s00421-024-05585-1)&dagger;). After
-  rowing, fingertip, toe and earlobe did not
-  differ significantly in 9 rowers ([Forsyth & Farrally, 2000](https://doi.org/10.1136/bjsm.34.1.35)&dagger;).",
-  badge("study", "4 studies"),
+  fingertip read 0.66 mmol/L higher than the earlobe on average, and 0.86 mmol/L between 4 and 8 mmol/L, in double
+  poling on a ski ergometer in 40 university students ([Zhong et al.,
+  2025](https://doi.org/10.1007/s00421-024-05585-1)).
+  After two 4-min bouts of ergometer rowing, plasma lactate from the fingertip, toe and earlobe did not differ
+  significantly in 9 athletes, 4 of them club rowers, although the fingertip read highest ([Forsyth & Farrally,
+  2000](https://doi.org/10.1136/bjsm.34.1.35)).",
+  "4 studies",
   "Skin preparation and hygiene",
   "Wear gloves, clean the site with 70% alcohol and let it dry in the air, wipe away the first drop of blood, do not
   squeeze hard, and put the lancet straight into a sharps container.",
   "As the [World Health Organization (2010)](https://www.ncbi.nlm.nih.gov/books/NBK138654/) advises. No study we found
   measured how much sweat on the skin changes a
   sample; drying the site is the usual advice.",
-  badge("guideline", "guideline"),
+  "Guideline",
   "Sample type",
   "Never mix sample types between tests, and report which one you used (`sample` in `lactate_threshold()`).",
   "Plasma lactate was about 50% higher than lactate in red blood cells, and capillary and venous whole blood also
@@ -264,15 +261,16 @@ tribble(
   on the hematocrit ([Goodwin et al., 2007](https://doi.org/10.1177/193229680700100414)). The fixed concentrations of
   OBLA, Bsln+ and IAT were defined on blood,
   so `lactate_checks()` warns when `sample` says otherwise.",
-  badge("review", "review"),
+  "Review",
   "Analyzer",
   "Calibrate it as the manufacturer says, and test each athlete on the same device.",
   "The typical error of three portable analyzers was 0.4 to 1.0 mmol/L depending on the device ([Tanner et al.,
-  2010](https://doi.org/10.1007/s00421-010-1379-9)&dagger;). Six hand-held analyzers all read lower than a laboratory
+  2010](https://doi.org/10.1007/s00421-010-1379-9)), and all three read lower than a laboratory analyzer. Six hand-held
+  analyzers all read lower than a laboratory
   analyzer, most at the highest
   concentrations, which \"would overestimate the ability of the athlete\" ([Bonaventura et al.,
   2015](https://pmc.ncbi.nlm.nih.gov/articles/PMC4306774/)).",
-  badge("study", "2 studies")
+  "2 studies"
 ) |>
   practice_table()
 ```
@@ -286,29 +284,31 @@ tribble(
   "Record both at the end of every stage, in the same window as the blood sample. For RPE, read the standard
   instructions before the test, ask how hard the effort feels (not pain), and ask at the same moment of every
   stage.",
-  "[Lamb et al. (1999)](https://doi.org/10.1136/bjsm.33.5.336)&dagger; asked in the last 15 s of 3-min stages.",
-  badge("study", "1 study"),
+  "In a reliability study of 16 male athletes, RPE and heart rate were taken in the last 15 s of each 3-min stage
+  ([Lamb et al., 1999](https://doi.org/10.1136/bjsm.33.5.336)).",
+  "1 study",
   "Expect them to vary",
   "Use heart rate and RPE at a threshold as a rough guide, not a target.",
-  "The test-retest limits of agreement of RPE were about &plusmn;2 to &plusmn;3 units and widened as intensity rose,
-  in 16 male athletes ([Lamb et al., 1999](https://doi.org/10.1136/bjsm.33.5.336)&dagger;). Heart rate and RPE at the
-  thresholds reproduced poorly between
-  two tests ([Grant et al., 2002](https://doi.org/10.1007/s00421-002-0608-2)&dagger;). In 2,560 adults, RPE was 10.8
-  at the lactate threshold, 13.6 at the
-  individual anaerobic threshold and 14.1 at 4 mmol/L ([Scherr et al.,
-  2013](https://doi.org/10.1007/s00421-012-2421-x)&dagger;).",
-  badge("study", "3 studies"),
+  "The test-retest limits of agreement of RPE widened as intensity rose, from 0.88 &plusmn; 2.02 units at the first
+  stage to -0.13 &plusmn; 2.94 at the fourth, in 16 male athletes ([Lamb et al.,
+  1999](https://doi.org/10.1136/bjsm.33.5.336)). In 20 men and 16 women, heart rate and RPE at the thresholds
+  reproduced poorly between two tests ([Grant et al., 2002](https://doi.org/10.1007/s00421-002-0608-2)). In 2,560
+  adults (median age 28) on treadmills or cycle ergometers, RPE was 10.8 at the last intensity before lactate began to
+  rise, 13.6 at 1.5 mmol/L above it (Dickhuth's individual anaerobic threshold) and 14.1 at 4 mmol/L ([Scherr et al.,
+  2013](https://doi.org/10.1007/s00421-012-2421-x)).",
+  "3 studies",
   "The conditions",
   "Room temperature and humidity, the ergometer and its settings, the athlete's diet and training in the days
   before.",
   "No study is needed for this one: without it, you cannot tell later why two tests differ.",
-  badge("none", "no study needed")
+  "No study needed"
 ) |>
   practice_table()
 ```
 
-Give lactater the columns with `heart_rate_column`, `rpe_column` and `rpe_scale` (`"6-20"` or `"CR10"`). Here is a
-simulated test with heart rate and RPE (the RPE of the simulated tests in `lactate_tests` is simulated too):
+The [recording sheet](../step-test-sheet.pdf) has a place for all of this, and `recording_sheet()` copies it, with a
+CSV template in the columns lactater reads, into your folder. Give lactater the columns with `heart_rate_column`,
+`rpe_column` and `rpe_scale` (`"6-20"` or `"CR10"`). Here is a simulated test with heart rate and RPE (the RPE of the simulated tests in `lactate_tests` is simulated too):
 
 ```{r}
 client <- lactate_tests |>
@@ -338,32 +338,33 @@ tribble(
   "Two methods can put the threshold of the same athlete about 30% apart ([Jamnick et al.,
   2020](https://doi.org/10.1007/s40279-020-01322-8)), and no curve fit is
   generally accepted ([Faude et al., 2009](https://doi.org/10.2165/00007256-200939060-00003)).",
-  badge("review", "reviews"),
+  "Reviews",
   "Look before you trust",
   "Plot the test, read `lactate_checks()`, and check how well the curve follows the stages and how much each
   threshold rests on one stage with `lactate_diagnostics()` (see [Checking the analysis](checking.html)).",
   "A table of numbers hides a lactate dip, a final plateau or a single bad sample.",
-  badge("none", "no study needed"),
+  "No study needed",
   "Report how sure you are",
   "`ci = TRUE` adds confidence intervals.",
   "The precision of a threshold should be known before a change is called real ([Bentley et al.,
   2007](https://doi.org/10.2165/00007256-200737070-00002)).",
-  badge("review", "review"),
+  "Review",
   "Know your noise",
   "Measure the typical error on your athletes with your protocol, and give it to `compare_tests()` as `cv`.",
   "The typical error is the standard deviation of the test-retest differences divided by the square root of 2, best
   given as a coefficient of variation ([Hopkins, 2000](https://doi.org/10.2165/00007256-200030010-00001)). It depends
   on the method and the study: D<sub>max</sub> had
-  a standard error of measurement of 2.5 W against 9 to 25 W for other markers in 11 fit adults tested at least six
-  times ([Morton et al., 2012](https://doi.org/10.1136/bjsm.2010.076380)&dagger;), but a coefficient of variation of
+  a standard error of measurement of 2.5 W (on a quadratic fit) against 9 to 25 W for other markers in 11 fit adults
+  tested at least six times ([Morton et al., 2012](https://doi.org/10.1136/bjsm.2010.076380)), but a coefficient of
+  variation of
   10.3% against about 3% for the fixed and
   baseline methods in 14 trained cyclists ([Pallarés et al., 2016](https://doi.org/10.1371/journal.pone.0163389)).",
-  badge("review", "review"),
+  "Review",
   "Compare like with like",
   "Keep the protocol, the site, the sample type, the analyzer, the methods and the curve the same between tests of
   the same athlete. See [Comparing tests](compare.html).",
   "Each of them moves the curve on its own (see the sketch above).",
-  badge("none", "no study needed")
+  "No study needed"
 ) |>
   practice_table()
 ```
@@ -387,14 +388,9 @@ tribble(
   fmt_markdown(columns = everything()) |>
   cols_label(done = "", part = "", record = "Report") |>
   cols_width(done ~ pct(5), part ~ pct(20), record ~ pct(75)) |>
-  tab_style(cell_text(size = px(20), color = "#1f5fa8"), cells_body(columns = done)) |>
-  tab_style(cell_text(weight = 600, color = "#183a53"), cells_body(columns = part)) |>
-  opt_table_font(font = list(google_font("IBM Plex Sans"), default_fonts())) |>
-  tab_options(
-    table.width = pct(100), table.font.size = px(14), column_labels.font.weight = "bold",
-    column_labels.border.bottom.color = "#1f5fa8", column_labels.border.bottom.width = px(2),
-    table.border.top.style = "hidden", table_body.hlines.color = "#e6e9ee", table.background.color = "transparent"
-  )
+  tab_style(cell_text(size = px(18)), cells_body(columns = done)) |>
+  tab_style(cell_text(weight = 600), cells_body(columns = part)) |>
+  gt_lactater()
 ```
 
 ## References

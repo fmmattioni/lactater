@@ -9,7 +9,7 @@ lactate_report(x, title = "Lactate thresholds")
 \arguments{
 \item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
 
-\item{title}{The table title.}
+\item{title}{The table title, or \code{NULL} for none.}
 }
 \value{
 a \code{gt_tbl} object (print it, or save it with \code{gt::gtsave()}).

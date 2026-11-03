@@ -11,7 +11,7 @@ lactate_threshold(
   heart_rate_column = NULL,
   rpe_column = NULL,
   rpe_scale = c("6-20", "CR10"),
-  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT"),
+  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT", "Stegmann"),
   fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
   include_baseline = FALSE,
   sport = c("cycling", "running", "swimming", "rowing"),
@@ -25,6 +25,8 @@ lactate_threshold(
   baseline_plus = c(0.5, 1, 1.5),
   iat_rise = 1.5,
   ltp_breakpoints = 2,
+  recovery = NULL,
+  stage_duration = NULL,
   max_intensity = NULL,
   sample = c("blood", "plasma", "sweat", "interstitial fluid"),
   ci = FALSE,
@@ -50,8 +52,8 @@ is interpolated between the measured stages, like the heart rate.}
 0 to 10, with ratings above 10 allowed for an absolute maximum).}
 
 \item{method}{The lactate threshold method to calculate. It can be one or many of the following:
-\code{Log-log}, \code{OBLA}, \verb{Bsln+}, \code{Dmax}, \code{LTP}, \code{LTratio}, \code{IAT}. See \code{Details} for more information.
-Default to all of them.}
+\code{Log-log}, \code{OBLA}, \verb{Bsln+}, \code{Dmax}, \code{LTP}, \code{LTratio}, \code{IAT}, \code{Stegmann}. See \code{Details} for more information.
+Default to all of them (\code{Stegmann} only when \code{recovery} is given).}
 
 \item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate
 thresholds.
@@ -97,6 +99,13 @@ Default to all but \code{"LTP1-Poly-ModDmax"} (a line from LTP1 instead of Log-l
 
 \item{ltp_breakpoints}{The number of lactate turn points to fit: \code{2} (default) for a test to exhaustion,
 or \code{1} for a submaximal test that stopped before the second turn point (LTP1 only; LTP2 is \code{NA}).}
+
+\item{recovery}{The lactate samples taken after the end of the test, for \code{Stegmann}: a data frame with the
+columns \code{time} (minutes after the end of exercise) and \code{lactate}. Sample until lactate has fallen back below
+its end-of-exercise value; Stegmann et al. (1981) sampled at 1, 2, 5 and 10 min.}
+
+\item{stage_duration}{The duration of each stage, in minutes. \code{Stegmann} needs it to put the recovery minutes on
+the intensity axis.}
 
 \item{max_intensity}{Stages above this intensity are left out of every method (e.g. an incomplete last
 stage, or a last stage where lactate plateaus). Default to \code{NULL} (keep all stages).}
@@ -254,6 +263,18 @@ The individual anaerobic threshold (IAT) is the intensity at which lactate is 1.
 lactate at LTratio, on the same B-spline curve (Dickhuth et al., 1999; as described by Heuberger et al., 2018).
 Like OBLA and Bsln+, it uses an absolute lactate step, so it assumes blood lactate.
 }
+
+\subsection{Stegmann}{
+
+The individual anaerobic threshold of Stegmann et al. (1981). After the test, blood lactate first rises and then
+falls. From the point in recovery where it is back at its end-of-exercise value, a tangent is drawn to the
+lactate curve of the test; the point of contact is the threshold, and the slope of the tangent the maximal rate of
+lactate elimination. Stegmann et al. plotted lactate against time, so lactater puts the recovery minutes on the
+intensity axis at the rate the test rose: the median increment between stages divided by \code{stage_duration}. The
+time lactate is back at its end-of-exercise value is interpolated linearly between the recovery samples after
+the post-exercise peak; when lactate never falls back to it, or never rises after the test, the threshold is \code{NA}.
+The tangent touches the curve fitted with \code{fit}.
+}
 }
 \examples{
 \dontrun{
@@ -326,4 +347,7 @@ anaerobic metabolism. Med Sci Sports Exerc. 1997;29(8):1040–7.
 
 Dickhuth H-H, Yin L, Niess A, et al. Ventilatory, Lactate-Derived and Catecholamine Thresholds During Incremental
 Treadmill Running: Relationship and Reproducibility. International Journal of Sports Medicine. 1999;20(02):122–7.
+
+Stegmann H, Kindermann W, Schnabel A. Lactate kinetics and individual anaerobic threshold. International Journal
+of Sports Medicine. 1981;2(3):160–5. \doi{10.1055/s-2008-1034604}
 }

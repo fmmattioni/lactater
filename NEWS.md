@@ -49,6 +49,11 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   segments are fitted together.
 * New `IAT`: the individual anaerobic threshold of Dickhuth et al. (1999), the
   intensity 1.5 mmol/L above the lactate at LTratio on the same B-spline curve.
+* New `Stegmann`: the individual anaerobic threshold of Stegmann et al. (1981),
+  the tangent to the lactate curve from the point in recovery where lactate is
+  back at its end-of-exercise value. Give the recovery samples as `recovery`
+  (minutes and lactate) and the stage duration as `stage_duration`; the plot
+  shows the recovery samples, the return to the end value and the tangent.
 * LTratio is the exact minimum of lactate / intensity within the exercise
   stages, on the B-spline it comes from.
 * The exponential fit needs no starting values and always converges: for a fixed
@@ -101,7 +106,7 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   how it works as the subtitle, the fitted curve in blue, the measured stages as
   open dots, and the threshold in green with dotted guides to both axes and a
   label (intensity, then pace, lactate and heart rate) joined to it by a curved
-  arrow. The Dmax plots show the line and the largest gap to it, Bsln+ and IAT
+  arrow. The Dmax plots show their line, Bsln+ and IAT
   the rise above the baseline or LTratio, and Log-log and LTP their fitted
   straight lines, dashed beyond the part they fit. Axis lines, no grid, lactate
   axes in whole numbers, and colors checked for color-vision deficiency.
@@ -121,6 +126,21 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 * New `lactate_report()` formats the results as a gt table for reports and
   papers, grouped by method family, with confidence intervals and the checks
   that need attention as notes.
+* New `test_report()` writes the whole test as one web page for the athlete or
+  the coach, two A4 pages when printed (`pdf = TRUE` prints the PDF with
+  pagedown). The first page answers the question: LT1 and LT2, what they mean,
+  and the zones they make. The second keeps the record: the predicted
+  performance from the chosen thresholds, what to double-check, the protocol and
+  stages, and every method.
+* Build a report step by step with `report_start()`, `report_header()` (the
+  athlete's details, your lab's name and logo), `report_summary()`,
+  `report_zones()`, `report_prediction()`, `report_checks()`, `report_test()`,
+  `report_methods()`, `report_text()` and `report_page_break()`, then
+  `report_save()`; printing a report previews it.
+* New `gt_lactater()` gives your own gt tables the look of lactater's.
+* New `recording_sheet()` copies a printable sheet and a CSV template into your
+  folder, to record every test the same way (the sheet is also on the website
+  as a PDF).
 
 ## Uncertainty, checks and zones
 
@@ -221,7 +241,8 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   "Checking the analysis" (checks, regression diagnostics explained panel by
   panel, confidence intervals), "Training zones", "Training load", "Comparing
   tests" and "The example data".
-* "Get started" opens with an interactive map of the workflow on the website.
+* "Get started" opens with a table of what you may want to do, the function
+  that does it, and the article to read.
 * Every citation in the articles links to its paper, and every reference to its
   DOI. "Best practices" opens with the test in five steps and a sketch of what
   moves the lactate curve, and gives each section as a table with the strength

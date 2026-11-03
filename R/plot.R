@@ -128,6 +128,8 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
   } else if(!is.null(plot_data$breakpoints)) {
     if(log_axes) points <- points[data$intensity > 0, ]
     drawn <- breakpoint_layers(plot_data$breakpoints, method, intensity, log_axes, colours, settings$sport)
+  } else if(!is.null(plot_data$tangent)) {
+    drawn <- stegmann_layers(plot_data, colours)
   } else {
     drawn <- curve_layers(plot_data, intensity, lactate, colours, settings$sport)
   }
@@ -186,15 +188,11 @@ curve_layers <- function(plot_data, intensity, lactate, colours, sport) {
   ## notes sit just beside the threshold, clear of its dotted guide
   beside <- intensity + 0.012 * diff(range(plot_data$curve$intensity))
   if(!is.null(plot_data$line)) {
-    ## Dmax: the line, and the largest gap between it and the curve
-    line_y <- stats::approx(plot_data$line$intensity, plot_data$line$lactate, xout = intensity)$y
+    ## Dmax: the line; the distance to it is perpendicular, and how a perpendicular looks depends on the aspect
+    ## ratio of the plot, so it is not drawn
     layers <- c(layers, list(
       ggplot2::geom_line(
         ggplot2::aes(intensity, lactate), plot_data$line, colour = colours[["faint"]], linewidth = 0.5
-      ),
-      ggplot2::annotate(
-        "segment", x = intensity, xend = intensity, y = lactate, yend = line_y, colour = colours[["accent"]],
-        linewidth = 0.5, arrow = ggplot2::arrow(ends = "both", length = ggplot2::unit(0.05, "inch"), type = "closed")
       )
     ))
     top <- max(top, plot_data$line$lactate)
@@ -288,6 +286,61 @@ breakpoint_layers <- function(fit, method, intensity, log_axes, colours, sport) 
     y = back(predict_breakpoints(fit, at)),
     top = back(y_range[2]),
     x_range = range(back(fit$x))
+  )
+}
+
+#' Layers of the Stegmann method
+#'
+#' The fitted curve, the recovery samples placed after the last stage (labeled with their minutes), the point where
+#' lactate is back at its end-of-exercise value, and the tangent from there to the curve. For internal use only.
+#'
+#' @param plot_data The method's plot data, with the `curve` and the `tangent`.
+#' @param colours The plot colours.
+#' @return a list with the `layers`, the lactate `y` where the threshold sits, the `top` and the `x_range`.
+#' @keywords internal
+stegmann_layers <- function(plot_data, colours) {
+  tangent <- plot_data$tangent
+  curve <- plot_data$curve
+  recovery <- tangent$recovery
+  end <- curve[nrow(curve), ]
+  layers <- list(
+    ggplot2::geom_line(ggplot2::aes(intensity, lactate), curve, colour = colours[["curve"]], linewidth = 0.9),
+    ggplot2::geom_path(
+      ggplot2::aes(intensity, lactate), rbind(end, recovery[c("intensity", "lactate")]),
+      colour = colours[["faint"]], linewidth = 0.45, linetype = "22"
+    ),
+    stage_points(recovery, colours, outline = colours[["muted"]]),
+    ggplot2::annotate(
+      "text", x = recovery$intensity, y = recovery$lactate, label = paste(format(recovery$time), "min"),
+      vjust = -1.1, size = 2.8, colour = colours[["muted"]]
+    )
+  )
+  y <- NA_real_
+  if(!is.null(tangent$from)) {
+    from <- tangent$from
+    y <- stats::approx(curve$intensity, curve$lactate, xout = tangent$intensity)$y
+    layers <- c(layers, list(
+      ggplot2::annotate(
+        "segment", x = tangent$intensity, y = y, xend = from[["intensity"]], yend = from[["lactate"]],
+        colour = colours[["faint"]], linewidth = 0.5
+      ),
+      ggplot2::annotate(
+        "point", x = from[["intensity"]], y = from[["lactate"]], shape = 21, size = 2.6, stroke = 0.9,
+        fill = colours[["paper"]], colour = colours[["accent"]]
+      ),
+      ggplot2::annotate(
+        ## below the point, where the tangent and the recovery samples leave room
+        "text", x = from[["intensity"]], y = from[["lactate"]] - 0.2 * max(curve$lactate, recovery$lactate), size = 2.8,
+        colour = colours[["muted"]], label = sprintf("back to %.1f mmol/L at %.1f min", from[["lactate"]], tangent$back)
+      )
+    ))
+  }
+  list(
+    layers = layers,
+    y = y,
+    top = max(curve$lactate, recovery$lactate),
+    x_range = range(curve$intensity, recovery$intensity),
+    below = TRUE
   )
 }
 
@@ -476,6 +529,10 @@ method_note <- function(method, settings) {
     "LTP2" = "The second turn point of three straight segments fitted to the stages (Hofmann et al., 1997)",
     "LTratio" = "The lowest lactate / intensity ratio on a spline (Dickhuth et al., 1999)",
     "IAT" = sprintf("%s mmol/L above the lactate at LTratio (Dickhuth et al., 1999)", format(settings$iat_rise)),
+    "Stegmann" = paste(
+      "The tangent to the lactate curve from the point in recovery where lactate is back at its end-of-exercise value",
+      "(Stegmann et al., 1981)"
+    ),
     ""
   )
   note

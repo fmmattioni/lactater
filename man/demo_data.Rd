@@ -12,8 +12,9 @@ A data frame with 8 rows and 6 variables:
 \item{intensity}{the intensity performed on each step (in this case in watts).}
 \item{lactate}{the blood lactate concentration.}
 \item{heart_rate}{the heart rate associated with that step.}
-\item{rpe}{the rating of perceived exertion (Borg 6-20). Simulated: about 11 at 2 mmol/L and 14 at 4 mmol/L, near
-the means of 2,560 adults (Scherr et al., 2013), and 19 at the last stage.}
+\item{rpe}{the rating of perceived exertion (Borg 6-20). Simulated: about 11 at 2 mmol/L and 14 at 4 mmol/L, close
+to the means of 2,560 adults at the first rise in lactate (10.8) and at 4 mmol/L (14.1; Scherr et al., 2013),
+and 19 at the last stage.}
 }
 }
 \usage{

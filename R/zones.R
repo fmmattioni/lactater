@@ -212,6 +212,9 @@ autoplot.lactate_zones <- function(object, ...) {
     paste0(value(zones$bounds[-length(zones$bounds)]), "-", value(zones$bounds[-1])),
     paste0("> ", value(zones$bounds[length(zones$bounds)]))
   )
+  ## a narrow band drops the unit from its range, so neighboring labels do not run into each other
+  narrow <- (bands$to - bands$from) / diff(limits) < 0.14
+  bands$range <- ifelse(narrow, bands$range, paste(bands$range, unit))
   top <- max(points$lactate, curve$lactate) * 1.25
   marks <- data.frame(intensity = zones$lt, label = sprintf('"%s"~~%s', c("LT1", "LT2"), method_plotmath(zones$labels)))
 
@@ -228,7 +231,7 @@ autoplot.lactate_zones <- function(object, ...) {
       size = 2.8, colour = colours[["muted"]]
     ) +
     ggplot2::annotate(
-      "text", x = bands$middle, y = top * 0.865, label = paste(bands$range, unit), vjust = 1, size = 2.8,
+      "text", x = bands$middle, y = top * 0.865, label = bands$range, vjust = 1, size = 2.8,
       colour = colours[["muted"]]
     ) +
     ggplot2::geom_segment(

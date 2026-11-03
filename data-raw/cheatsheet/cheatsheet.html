@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>lactater cheatsheet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+  @page { size: A4 landscape; margin: 9mm 10mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; font-size: 11px; line-height: 1.45; color: #11181f; }
+  .page { width: 277mm; height: 192mm; overflow: hidden; display: flex; flex-direction: column; break-after: page; }
+  .page:last-child { break-after: auto; }
+  header { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 5px; border-bottom: 1.5px solid #11181f; }
+  h1 { margin: 0; font-size: 19px; font-weight: 600; }
+  header .meta { color: #5b6672; font-size: 9.5px; }
+  .wordmark { font-family: "IBM Plex Mono", monospace; font-weight: 500; }
+  .columns { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 8mm; padding-top: 4mm; min-height: 0; }
+  .column { min-width: 0; }
+  h2 { margin: 0 0 6px; font-size: 14.5px; font-weight: 600; }
+  h3 { margin: 11px 0 3px; font-size: 11.5px; font-weight: 600; }
+  p { margin: 0 0 4px; }
+  .muted { color: #5b6672; }
+  code, pre { font-family: "IBM Plex Mono", monospace; font-size: 9.8px; }
+  pre { margin: 2px 0 5px; padding: 4px 6px; background: #f3f4f6; border-radius: 3px; white-space: pre-wrap; }
+  .fn { font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 9px; }
+  dl { margin: 4px 0 6px; display: grid; grid-template-columns: max-content 1fr; column-gap: 8px; row-gap: 3px; }
+  dt { font-family: "IBM Plex Mono", monospace; font-size: 9.8px; font-weight: 500; }
+  dd { margin: 0; }
+  table { border-collapse: collapse; width: 100%; margin: 2px 0 5px; }
+  th { text-align: left; font-weight: 600; border-bottom: 1px solid #11181f; padding: 1px 4px 2px 0; }
+  td { border-bottom: 1px solid #e3e6ea; padding: 1.5px 4px 1.5px 0; vertical-align: baseline; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  img { display: block; width: 100%; height: auto; margin: 3px 0 2px; }
+  .caption { font-size: 9.5px; color: #5b6672; margin-bottom: 5px; }
+  footer { padding-top: 4px; border-top: 1px solid #d9dde3; font-size: 8.5px; color: #5b6672; display: flex; justify-content: space-between; }
+</style>
+</head>
+<body>
+
+<section class="page">
+  <header>
+    <h1>From a step test to lactate thresholds</h1>
+    <span class="meta"><span class="wordmark">lactater</span> cheatsheet, page 1 of 2</span>
+  </header>
+  <div class="columns">
+    <div class="column">
+      <h2>Record the test</h2>
+      <p>One row per stage, the lactate taken in the last 30 s. The resting sample is the row with intensity 0.</p>
+      <table>
+        <tr><th class="num">intensity</th><th class="num">lactate</th><th class="num">heart_rate</th><th class="num">rpe</th></tr>
+        <tr><td class="num">0</td><td class="num">0.93</td><td class="num">96</td><td class="num">6</td></tr>
+        <tr><td class="num">50</td><td class="num">0.98</td><td class="num">114</td><td class="num">7</td></tr>
+        <tr><td class="num">75</td><td class="num">1.23</td><td class="num">134</td><td class="num">8</td></tr>
+        <tr><td class="num">&hellip;</td><td class="num">&hellip;</td><td class="num">&hellip;</td><td class="num">&hellip;</td></tr>
+        <tr><td class="num">191</td><td class="num">8.64</td><td class="num">198</td><td class="num">19</td></tr>
+      </table>
+      <dl>
+        <dt>recording_sheet()</dt><dd>A printable sheet and a CSV template with these columns.</dd>
+        <dt>demo_data</dt><dd>The test above; <code>lactate_tests</code> has 15 more, four sports.</dd>
+      </dl>
+      <h3>A last stage not completed</h3>
+      <p>Enter its time-weighted intensity: the last completed stage plus the increment &times; seconds done / seconds of a stage. Or leave it out with <code>max_intensity</code>.</p>
+      <h3>Make tests comparable</h3>
+      <p>Same diet and training in the 24 to 48 h before, same time of day, stages of 3 min or more, two or three stages below the first rise, the same sampling site, sample type and analyzer every time.</p>
+      <p class="muted">Sources and the strength of each point: the <em>Best practices</em> article.</p>
+      <h3>Sports and units</h3>
+      <table>
+        <tr><th>sport</th><th>Intensity</th><th>Also shown</th></tr>
+        <tr><td>cycling</td><td>W</td><td>per kg with a body mass</td></tr>
+        <tr><td>running</td><td>km/h</td><td>pace, min/km</td></tr>
+        <tr><td>swimming</td><td>m/s</td><td>pace, min/100 m</td></tr>
+        <tr><td>rowing</td><td>W</td><td>500 m split</td></tr>
+      </table>
+    </div>
+
+    <div class="column">
+      <h2>Estimate every threshold</h2>
+<pre>results &lt;- lactate_threshold(
+  demo_data, intensity, lactate, heart_rate,
+  rpe_column = rpe, sport = "cycling"
+)</pre>
+      <table>
+        <tr><th>Method</th><th>What it finds</th></tr>
+        <tr><td>Log-log</td><td>Where two lines through log lactate and log intensity cross</td></tr>
+        <tr><td>OBLA 2.0&ndash;4.0</td><td>A fixed lactate, 2 to 4 mmol/L</td></tr>
+        <tr><td>Bsln+ 0.5&ndash;1.5</td><td>0.5 to 1.5 mmol/L above the resting value</td></tr>
+        <tr><td>D<sub>max</sub> family</td><td>The point furthest below a line to the last stage</td></tr>
+        <tr><td>LTP1, LTP2</td><td>The turn points of three straight segments</td></tr>
+        <tr><td>LTratio, IAT</td><td>The lowest lactate / intensity; 1.5 mmol/L above it</td></tr>
+        <tr><td>Stegmann</td><td>A tangent from recovery to the curve</td></tr>
+      </table>
+      <h3>Useful arguments</h3>
+      <dl>
+        <dt>method</dt><dd>Some methods only, e.g. <code>c("Dmax", "LTP")</code></dd>
+        <dt>fit</dt><dd>The curve: polynomial (3rd or 4th degree) or B-spline</dd>
+        <dt>sport</dt><dd>cycling, rowing (W), running (km/h), swimming (m/s)</dd>
+        <dt>ci = TRUE</dt><dd>Bootstrap confidence intervals</dd>
+        <dt>recovery</dt><dd>Recovery samples and <code>stage_duration</code>, for Stegmann</dd>
+        <dt>sample</dt><dd>blood, plasma, sweat or interstitial fluid</dd>
+        <dt>.by</dt><dd>Many tests in one call, e.g. <code>.by = "athlete"</code></dd>
+      </dl>
+      <h3>Fine-tune the methods</h3>
+      <dl>
+        <dt>fixed</dt><dd>OBLA targets, mmol/L; default 2 to 4</dd>
+        <dt>baseline_plus</dt><dd>Bsln+ rises, mmol/L; default 0.5, 1, 1.5</dd>
+        <dt>iat_rise</dt><dd>The IAT rise above LTratio; default 1.5</dd>
+        <dt>dmax_anchor</dt><dd>Where the D<sub>max</sub> lines start and end</dd>
+        <dt>ltp_breakpoints</dt><dd>1 for a test that stopped before LTP2</dd>
+        <dt>max_intensity</dt><dd>Leave out stages above it</dd>
+      </dl>
+    </div>
+
+    <div class="column">
+      <h2>Look, then check</h2>
+<pre>autoplot(results)                     # every method
+autoplot(results, method = "ModDmax") # one method</pre>
+      <img src="method.png" alt="The ModDmax plot of demo_data">
+      <p class="caption">One method: the curve, its line, and the threshold at 140 W.</p>
+      <dl>
+        <dt>lactate_checks()</dt><dd>A checklist of what is easy to miss: missing rest, a lactate dip, a final plateau</dd>
+        <dt>lactate_diagnostics()</dt><dd>Residuals, influential stages, how far each threshold moves without one stage</dd>
+        <dt>lactate_fit_quality()</dt><dd>Which curve predicts the stages best</dd>
+      </dl>
+      <img src="grid.png" alt="Leave one stage out grid">
+      <p class="caption">Leave one stage out: dark cells are the stages a threshold rests on.</p>
+    </div>
+  </div>
+  <footer><span>fmmattioni.github.io/lactater</span><span>lactater 1.0.0, MIT licence</span></footer>
+</section>
+
+<section class="page">
+  <header>
+    <h1>Using the thresholds</h1>
+    <span class="meta"><span class="wordmark">lactater</span> cheatsheet, page 2 of 2</span>
+  </header>
+  <div class="columns">
+    <div class="column">
+      <h2>Zones and training</h2>
+<pre>zones &lt;- lactate_zones(results, lt1 = "LTP1",
+                       lt2 = "ModDmax", model = 5)</pre>
+      <img src="zones.png" alt="Five training zones of demo_data">
+      <p class="caption">LT1 and LT2 split the intensities into moderate, heavy and severe; five zones split the outer two.</p>
+      <dl>
+        <dt>model</dt><dd>3 zones (the domains) or 5</dd>
+        <dt>split</dt><dd>Where zones 1|2 and 4|5 sit: <code>"equal"</code>, <code>"seiler"</code>, or your own</dd>
+        <dt>training_load()</dt><dd>Time in each zone from training files, by power or heart rate</dd>
+      </dl>
+<pre>training_load(sessions, zones, column = "power",
+              measure = "intensity", interval = 1)</pre>
+      <h3>Choosing LT1 and LT2</h3>
+      <table>
+        <tr><th></th><th>Methods with some support</th></tr>
+        <tr><td>LT1</td><td>Log-log, Bsln+ 0.5: moderate to heavy domain</td></tr>
+        <tr><td>LT2</td><td>Bsln+ 1.5 (3-min stages), Log-Poly-ModD<sub>max</sub> (4-min stages): close to the maximal lactate steady state</td></tr>
+      </table>
+      <p class="muted">Jamnick et al. 2018 and 2020; few methods have evidence for the heavy to severe boundary. Report the pair you chose.</p>
+      <h3>Heart rate and RPE</h3>
+      <p>Every zone gets heart rate and RPE ranges when they were recorded. Heart rate lags behind intensity in short intervals, so heart-rate zones suit steady efforts.</p>
+    </div>
+
+    <div class="column">
+      <h2>Predict and compare</h2>
+<pre>predict_performance(results)
+own &lt;- calibrate_performance(lab, "ltp2", "time",
+  method = "LTP2", sport = "running", distance = 10000)
+predict_performance(results, equation = own)</pre>
+      <p>Race times (running) and 45-min time-trial power (cycling), each with its 95% range, from published equations or your own athletes.</p>
+      <img src="compare.png" alt="Two lactate curves compared">
+      <dl>
+        <dt>compare_tests()</dt><dd>Is a change larger than the noise of the method?</dd>
+        <dt>curve_shift()</dt><dd>How far the whole curve moved</dd>
+        <dt>curve_shape()</dt><dd>Did it shift, or change shape?</dd>
+        <dt>lactate_trend()</dt><dd>Where a series of tests is heading</dd>
+        <dt>relative_thresholds()</dt><dd>Per kg, % of peak intensity and heart rate</dd>
+      </dl>
+      <h3>What the predictions rest on</h3>
+      <table>
+        <tr><th>Sport</th><th>From</th><th>Source</th></tr>
+        <tr><td>Running</td><td>IAT: 5 km to marathon; OBLA 4.0: marathon</td><td>R&ouml;cker 1998; Sj&ouml;din 1981</td></tr>
+        <tr><td>Cycling</td><td>Six thresholds: 45-min time trial</td><td>Heuberger 2018, refitted</td></tr>
+        <tr><td>Rowing, swimming</td><td>Your own equation</td><td><code>calibrate_performance()</code></td></tr>
+      </table>
+    </div>
+
+    <div class="column">
+      <h2>Report and style</h2>
+<pre>report_start(results, "LTP1", "ModDmax") |>
+  report_header(name = "Ana", lab = "Our lab",
+                logo = "logo.png") |>
+  report_summary() |>
+  report_zones() |>
+  report_save("ana.html", pdf = TRUE)</pre>
+      <dl>
+        <dt>test_report()</dt><dd>The default two-page report in one call</dd>
+        <dt>report_*()</dt><dd>Header, summary, zones, prediction, checks, test, methods, your own text</dd>
+        <dt>lactate_report()</dt><dd>Every threshold as a gt table for a paper</dd>
+        <dt>gt_lactater()</dt><dd>The same look for your own gt tables</dd>
+      </dl>
+      <img src="report.png" alt="The first page of a test report" style="width: 34%; border: 1px solid #d9dde3;">
+      <p class="caption">The first page of a report: the two thresholds, what they mean, the zones.</p>
+      <h3>Plots</h3>
+      <dl>
+        <dt>theme_lactater()</dt><dd>The look of lactater's plots, for your own</dd>
+        <dt>lactater.style</dt><dd><code>options(lactater.style = "night")</code>, or <code>"journal"</code> for print</dd>
+        <dt>lactater.font</dt><dd><code>options(lactater.font = "IBM Plex Sans")</code></dd>
+      </dl>
+      <h3>Beyond the step test</h3>
+      <dl>
+        <dt>vlamax()</dt><dd>The maximal lactate accumulation rate (V&#775;La<sub>max</sub>) from a sprint</dd>
+      </dl>
+      <h3>Learn more</h3>
+      <p>Every method follows its original paper; the articles explain each one, its evidence, and how to read the checks.</p>
+    </div>
+  </div>
+  <footer><span>fmmattioni.github.io/lactater</span><span>lactater 1.0.0, MIT licence</span></footer>
+</section>
+
+</body>
+</html>

@@ -1,5 +1,5 @@
 ## method categories in output order
-method_categories <- c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT")
+method_categories <- c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT", "Stegmann")
 
 #' Compute thresholds
 #'
@@ -23,7 +23,8 @@ compute_thresholds <- function(data, settings, method) {
       "Dmax" = method_dmax,
       "LTP" = method_ltp,
       "LTratio" = method_ltratio,
-      "IAT" = method_iat
+      "IAT" = method_iat,
+      "Stegmann" = method_stegmann
     )
     result <- method_function(data, curve, settings)
     result$rows$method_category <- category

@@ -5,7 +5,7 @@
 #' Needs the gt package.
 #'
 #' @param x The result of [lactate_threshold()].
-#' @param title The table title.
+#' @param title The table title, or `NULL` for none.
 #'
 #' @return a `gt_tbl` object (print it, or save it with `gt::gtsave()`).
 #' @export
@@ -23,7 +23,8 @@ lactate_report <- function(x, title = "Lactate thresholds") {
 
   table <- data.frame(
     category = as.character(x$method_category),
-    method = as.character(x$method),
+    ## with the subscript of the Dmax family
+    method = gsub("Dmax", "D<sub>max</sub>", as.character(x$method), fixed = TRUE),
     intensity = ifelse(is.na(x$intensity), "not found", value(x$intensity))
   )
   if("intensity_low" %in% names(x)) {
@@ -41,32 +42,36 @@ lactate_report <- function(x, title = "Lactate thresholds") {
   flagged <- checks[checks$status != "ok", ]
   stages <- sum(info$data$intensity > 0)
 
-  report <- gt::gt(table, groupname_col = "category") |>
-    gt::tab_header(
+  ## one row group per method family, built by hand so the labels can carry the subscript of Dmax
+  families <- unique(table$category)
+  report <- gt::gt(table[setdiff(names(table), "category")])
+  for(family in families) {
+    report <- gt::tab_row_group(
+      report, label = gt::html(gsub("Dmax", "D<sub>max</sub>", family, fixed = TRUE)),
+      rows = which(table$category == family), id = family
+    )
+  }
+  report <- gt::row_group_order(report, families)
+  if(!is.null(title)) {
+    report <- gt::tab_header(
+      report,
       title = title,
       subtitle = sprintf(
         "%s \u00b7 %s fit \u00b7 %d stages%s",
         tools::toTitleCase(sport), info$settings$fit, stages, if(any(info$data$intensity == 0)) " + rest" else ""
       )
-    ) |>
+    )
+  }
+  report <- report |>
     gt::sub_missing(missing_text = "") |>
+    gt::fmt_markdown(columns = "method") |>
     gt::cols_label(
       method = "Method",
       intensity = sprintf("Intensity (%s)", unit),
       lactate = gt::html("Lactate (mmol&middot;L<sup>&minus;1</sup>)")
     ) |>
     gt::cols_align(align = "right", columns = -"method") |>
-    gt::tab_options(
-      table.font.names = c("IBM Plex Sans", "Helvetica Neue", "Arial", "sans-serif"),
-      heading.title.font.weight = "bold",
-      heading.align = "left",
-      column_labels.font.weight = "bold",
-      row_group.font.weight = "bold",
-      row_group.background.color = "#f4f3ef",
-      table.border.top.color = lactater_colours("light")[["curve"]],
-      table.border.top.width = gt::px(3),
-      data_row.padding = gt::px(4)
-    )
+    gt_lactater()
   if(!is.null(table$interval)) {
     report <- gt::cols_label(report, interval = sprintf("%g%% CI", 100 * info$settings$ci_level))
   }
@@ -78,4 +83,38 @@ lactate_report <- function(x, title = "Lactate thresholds") {
     report <- gt::tab_source_note(report, sprintf("%s %s: %s", symbol, flagged$check[i], flagged$details[i]))
   }
   gt::tab_source_note(report, "Made with lactater")
+}
+
+#' The look of lactater's tables
+#'
+#' Gives a gt table the look of the tables in lactater's reports and articles, so your own tables can match them:
+#' IBM Plex Sans, the full width of the page, bold column labels over one dark rule, light rules between rows, bold
+#' row groups, and no fills or colors. Needs the gt package.
+#'
+#' @param table A gt table.
+#' @param size The font size, in pixels.
+#'
+#' @return the gt table.
+#' @export
+#'
+#' @examplesIf requireNamespace("gt", quietly = TRUE)
+#' gt::gt(head(demo_data)) |>
+#'   gt_lactater()
+gt_lactater <- function(table, size = 14) {
+  rlang::check_installed("gt", reason = "to style the table.")
+  ink <- lactater_colours("light")[["ink"]]
+  table |>
+    gt::opt_table_font(font = list(gt::google_font("IBM Plex Sans"), gt::default_fonts())) |>
+    gt::tab_options(
+      table.width = gt::pct(100), table.font.size = gt::px(size), table.font.color = ink,
+      table.background.color = "transparent", table.border.top.style = "hidden",
+      table.border.bottom.color = "#d9dde3", heading.align = "left", heading.title.font.weight = "bold",
+      heading.border.bottom.style = "hidden", column_labels.font.weight = "bold",
+      column_labels.border.top.style = "hidden", column_labels.border.bottom.color = ink,
+      column_labels.border.bottom.width = gt::px(1.5), column_labels.vlines.style = "hidden",
+      row_group.font.weight = "bold", row_group.background.color = "transparent",
+      row_group.border.top.color = "#d9dde3", row_group.border.bottom.color = "#d9dde3",
+      table_body.hlines.color = "#e8eaee", table_body.border.bottom.color = "#d9dde3", data_row.padding = gt::px(6),
+      source_notes.font.size = gt::px(size - 2), footnotes.font.size = gt::px(size - 2)
+    )
 }

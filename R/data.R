@@ -10,8 +10,9 @@
 #'   \item{intensity}{the intensity performed on each step (in this case in watts).}
 #'   \item{lactate}{the blood lactate concentration.}
 #'   \item{heart_rate}{the heart rate associated with that step.}
-#'   \item{rpe}{the rating of perceived exertion (Borg 6-20). Simulated: about 11 at 2 mmol/L and 14 at 4 mmol/L, near
-#'   the means of 2,560 adults (Scherr et al., 2013), and 19 at the last stage.}
+#'   \item{rpe}{the rating of perceived exertion (Borg 6-20). Simulated: about 11 at 2 mmol/L and 14 at 4 mmol/L, close
+#'   to the means of 2,560 adults at the first rise in lactate (10.8) and at 4 mmol/L (14.1; Scherr et al., 2013),
+#'   and 19 at the last stage.}
 #' }
 "demo_data"
 
@@ -31,8 +32,8 @@
 #' stopped early (25 W steps; untrained men peaked near 250 W in Messonnier et al., 2013). Their lactate
 #' rises exponentially through about 2.5 mmol/L near the first threshold, with analyser scatter of 3% from
 #' 2 mmol/L and 5% below (Bonaventura et al., 2015). Their simulated RPE rises with lactate, from about 11 at
-#' 2 mmol/L to 14 at 4 mmol/L (near the cohort means at the lactate threshold and at 4 mmol/L of Scherr et al.,
-#' 2013) and 19 to 20 at the last stage. See `data-raw/lactate_tests.R`.
+#' 2 mmol/L to 14 at 4 mmol/L (close to the cohort means at the first rise in lactate and at 4 mmol/L of Scherr et
+#' al., 2013) and 19 to 20 at the last stage. See `data-raw/lactate_tests.R`.
 #'
 #' @format A tibble with one row per stage and 13 columns:
 #' \describe{
