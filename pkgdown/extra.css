@@ -8,15 +8,35 @@ pre, code, pre code {
   border-image: linear-gradient(90deg, #ef5a7a, #a46ad8, #33c3f0) 1;
 }
 
-/* section headings on the home page, set apart like a report */
-.template-home h2 {
+/* the package name in running text (wrapped by extra.js), in the logo's colors, darker for contrast on white */
+.lactater-name {
+  font-weight: 600;
+  background-image: linear-gradient(90deg, #d6336c, #7b4fc9, #1f7fc2);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+[data-bs-theme="dark"] .lactater-name {
+  background-image: linear-gradient(90deg, #ef5a7a, #a46ad8, #33c3f0);
+}
+
+/* section headings on the home page and in the articles, set apart like a report */
+.template-home h2,
+.template-article h2 {
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-size: 1.05rem;
   font-weight: 700;
   padding-top: 1.4rem;
-  margin-top: 2.4rem;
+  margin-top: 2.6rem;
   border-top: 1px solid var(--bs-border-color);
+}
+.template-article h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-top: 1.8rem;
+  padding-left: 0.6rem;
+  border-left: 3px solid #1f5fa8;
 }
 
 /* figures on a light card, so they read well in dark mode too */
@@ -29,4 +49,61 @@ pre, code, pre code {
 .template-reference-index h2 {
   border-bottom: 2px solid var(--bs-primary);
   padding-bottom: 0.3rem;
+}
+
+/* how strong the evidence behind a point is */
+.evidence {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.6rem;
+  white-space: nowrap;
+}
+.evidence.guideline { background: #0f9d74; color: #fff; }
+.evidence.review { background: #1f5fa8; color: #fff; }
+.evidence.study { background: #dce8f5; color: #183a53; }
+.evidence.none { background: #eceae4; color: #4b5563; }
+
+/* the step-test infographic of the best-practices article */
+.test-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  gap: 0.75rem;
+  margin: 1.5rem 0 2rem;
+  counter-reset: step;
+}
+.test-step {
+  border: 1px solid var(--bs-border-color);
+  border-top: 4px solid #1f5fa8;
+  border-radius: 0.5rem;
+  padding: 0.8rem 0.9rem 0.6rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  counter-increment: step;
+}
+.test-step:nth-child(even) { border-top-color: #0f9d74; }
+.test-step h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0 0 0.4rem;
+}
+.test-step h4::before {
+  content: counter(step);
+  display: inline-block;
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  background: #183a53;
+  color: #fff;
+  font-size: 0.8rem;
+  line-height: 1.4rem;
+  text-align: center;
+}
+.test-step ul {
+  padding-left: 1.1rem;
+  margin: 0;
 }

@@ -4,7 +4,7 @@
 \alias{breakpoint_layers}
 \title{Layers of a breakpoint method}
 \usage{
-breakpoint_layers(fit, method, intensity, log_axes, colours)
+breakpoint_layers(fit, method, intensity, log_axes, colours, sport)
 }
 \arguments{
 \item{fit}{A fit from \code{fit_breakpoints()} or \code{fit_two_lines()}.}
@@ -14,6 +14,8 @@ breakpoint_layers(fit, method, intensity, log_axes, colours)
 \item{log_axes}{Whether the fit is in log-log space.}
 
 \item{colours}{The plot colours.}
+
+\item{sport}{The sport, for the unit of the other turn point.}
 }
 \value{
 a list with the \code{layers}, the lactate \code{y} where the threshold sits, and the \code{top}.

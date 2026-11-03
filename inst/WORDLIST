@@ -13,6 +13,7 @@ Bonaventura
 Botella
 Bsln
 Busse
+CBO
 CJ
 CMD
 Cadavid
@@ -42,7 +43,6 @@ Ergometer
 Eston
 Exerc
 FASEB
-FC
 FJ
 Farrally
 Fattor
@@ -124,6 +124,7 @@ McLellan
 Mclellan
 Meixner
 Messonnier
+ModD
 ModDmax
 Monsalvete
 Moquin
@@ -132,6 +133,8 @@ Morán
 Motulsky
 Mucke
 Muinck
+Mücke
+Müller
 Newell
 Niess
 Nitzsche
@@ -144,12 +147,15 @@ Olympiatoppen
 Olympiatoppen's
 Ostman
 PLOS
+PMC
+PMCID
 PMID
 Pallares
 Pallarés
 Pelarigo
 Pettitt
 Physiol
+Plotmath
 Pneumologie
 Pokan
 Pressler
@@ -184,7 +190,6 @@ Seibert
 Seiler
 Seiler's
 Sheth
-Sj
 Sjodin
 Sjödin
 Sperlich
@@ -217,6 +222,8 @@ Vertosick
 Vickers
 Vilas
 Von
+V̇La
+V̇O
 WG
 WL
 Wagenpfeil
@@ -238,10 +245,8 @@ al
 alactic
 analyser
 analysers
-bc
 bjsm
 catecholamine
-cke
 colours
 de
 doi
@@ -260,7 +265,6 @@ ggplot
 ggtext
 glycolytic
 golem
-hematocrit
 hemolyzed
 ijspp
 intra
@@ -268,7 +272,6 @@ jappl
 jphysiol
 jsc
 lactater's
-ller
 lm
 lubridate
 magrittr

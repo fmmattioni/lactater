@@ -5,13 +5,15 @@
 \alias{demo_data}
 \title{Demo data}
 \format{
-A data frame with 8 rows and 5 variables:
+A data frame with 8 rows and 6 variables:
 \describe{
 \item{step}{the number of the step, starting at zero for the baseline.}
 \item{length}{the length of each step.}
 \item{intensity}{the intensity performed on each step (in this case in watts).}
 \item{lactate}{the blood lactate concentration.}
 \item{heart_rate}{the heart rate associated with that step.}
+\item{rpe}{the rating of perceived exertion (Borg 6-20). Simulated: about 11 at 2 mmol/L and 14 at 4 mmol/L, near
+the means of 2,560 adults (Scherr et al., 2013), and 19 at the last stage.}
 }
 }
 \usage{
@@ -19,6 +21,6 @@ demo_data
 }
 \description{
 A dataset containing the lactate and heart rate data collected from a step-incremental
-test as an example
+test as an example, with a simulated rating of perceived exertion
 }
 \keyword{datasets}

@@ -65,8 +65,10 @@ was fitted on, and more athletes make a narrower, more stable range.
 set.seed(1)
 lab <- data.frame(ltp2 = round(rnorm(12, 15, 1.5), 1))
 lab$time_10km <- round(10000 / ((0.5 + 1.02 * lab$ltp2 + rnorm(12, 0, 0.4)) / 3.6))
-own <- calibrate_performance(lab, "ltp2", "time_10km", method = "LTP2", sport = "running", distance = 10000,
-                             protocol = "3-min stages, +1 km/h, 1\% grade, earlobe")
+own <- calibrate_performance(
+  lab, "ltp2", "time_10km", method = "LTP2", sport = "running", distance = 10000,
+  protocol = "3-min stages, +1 km/h, 1\% grade, earlobe"
+)
 own
 autoplot(own)
 }

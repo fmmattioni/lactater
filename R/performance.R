@@ -249,8 +249,10 @@ predict_performance <- function(x, method = NULL, equation = NULL) {
 #' set.seed(1)
 #' lab <- data.frame(ltp2 = round(rnorm(12, 15, 1.5), 1))
 #' lab$time_10km <- round(10000 / ((0.5 + 1.02 * lab$ltp2 + rnorm(12, 0, 0.4)) / 3.6))
-#' own <- calibrate_performance(lab, "ltp2", "time_10km", method = "LTP2", sport = "running", distance = 10000,
-#'                              protocol = "3-min stages, +1 km/h, 1% grade, earlobe")
+#' own <- calibrate_performance(
+#'   lab, "ltp2", "time_10km", method = "LTP2", sport = "running", distance = 10000,
+#'   protocol = "3-min stages, +1 km/h, 1% grade, earlobe"
+#' )
 #' own
 #' autoplot(own)
 calibrate_performance <- function(data, threshold, performance, method, sport = "running", distance = NULL,
@@ -359,6 +361,7 @@ autoplot.lactate_performance <- function(object, ...) {
                         colour = colours[["paper"]]) +
     ggplot2::geom_text(ggplot2::aes(x = label_at, label = label), hjust = -0.2, size = 3.2, colour = colours[["ink"]]) +
     ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.2))) +
+    ggplot2::scale_y_discrete(labels = method_label) +
     ggplot2::labs(
       title = if(length(unique(rows$event)) == 1) paste("Predicted", rows$event[1]) else "Predicted race times",
       subtitle = "Blue: the predicted race intensity with its 95% range; green: the threshold it comes from",

@@ -10,8 +10,8 @@ plex <- requireNamespace("systemfonts", quietly = TRUE) &&
 if (plex) options(lactater.font = "IBM Plex Sans")
 ```
 
-Two thresholds split the intensities of an athlete into three *domains*, each with its own physiology (Jamnick et
-al., 2020; Hofmann & Tschakert, 2017):
+Two thresholds split the intensities of an athlete into three *domains*, each with its own physiology ([Jamnick et
+al., 2020](https://doi.org/10.1007/s40279-020-01322-8); [Hofmann & Tschakert, 2017](https://doi.org/10.3389/fphys.2017.00337)):
 
 * **Moderate**, below the first threshold (LT1): lactate stays near resting values.
 * **Heavy**, from LT1 to the second threshold (LT2): lactate is higher but can still reach a steady state.
@@ -25,18 +25,30 @@ colors the zones by domain: green for moderate, yellow for heavy, red for severe
 You decide which thresholds mark LT1 and LT2, and the choice matters. A review of the methods found that LT1 has
 some evidence for separating the moderate and heavy domains, with Log-log and Bsln+ 0.5 among the most defensible,
 and that few methods have evidence for separating the heavy and severe domains: Bsln+ 1.5 estimated the maximal
-lactate steady state in two studies with 3-min stages, and Log-Poly-ModDmax in one study with 4-min stages (Jamnick
-et al., 2020; Jamnick et al., 2018).
+lactate steady state in two studies with 3-min stages, and Log-Poly-ModD<sub>max</sub> in one study with 4-min stages ([Jamnick
+et al., 2020](https://doi.org/10.1007/s40279-020-01322-8); [Jamnick et al., 2018](https://doi.org/10.1371/journal.pone.0199794)).
 
-```{r}
-results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
-pairs <- list(c("LTP1", "LTP2"), c("Log-log", "Log-Poly-ModDmax"), c("Bsln + 0.5", "Bsln + 1.5"),
-              c("OBLA 2.0", "OBLA 4.0"))
-heavy <- lapply(pairs, function(p) {
-  zones <- lactate_zones(results, lt1 = p[1], lt2 = p[2])
-  data.frame(lt1 = p[1], lt2 = p[2], heavy_from = zones$intensity_from[2], heavy_to = zones$intensity_to[2])
-})
-do.call(rbind, heavy)
+```{r, message = FALSE}
+library(lactater)
+library(dplyr)
+
+results <- demo_data |>
+  lactate_threshold(intensity, lactate, heart_rate, plot = FALSE)
+
+## the heavy domain (zone 2) for four pairs of LT1 and LT2
+tribble(
+  ~lt1, ~lt2,
+  "LTP1", "LTP2",
+  "Log-log", "Log-Poly-ModDmax",
+  "Bsln + 0.5", "Bsln + 1.5",
+  "OBLA 2.0", "OBLA 4.0"
+) |>
+  mutate(heavy = purrr::map2(lt1, lt2, \(a, b) {
+    lactate_zones(results, lt1 = a, lt2 = b) |>
+      slice(2) |>
+      select(heavy_from = intensity_from, heavy_to = intensity_to)
+  })) |>
+  tidyr::unnest(heavy)
 ```
 
 On the same test, the heavy domain starts anywhere from 83 to 111 W and ends anywhere from 118 to 160 W, depending
@@ -45,7 +57,7 @@ on the pair. Report the pair you used, and keep it between tests of the same ath
 ## Three zones
 
 Zone 1 is the moderate domain, zone 2 the heavy domain, and zone 3 the severe domain, as in the three-zone model of
-Hofmann & Tschakert (2017):
+[Hofmann & Tschakert (2017)](https://doi.org/10.3389/fphys.2017.00337):
 
 ```{r}
 zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax")
@@ -59,9 +71,9 @@ boundary lies below the first stage.
 
 ## Five zones
 
-The five-zone scale used in endurance sports (Seiler, 2010) maps onto the domains: zones 1 and 2 lie below LT1, zone
+The five-zone scale used in endurance sports ([Seiler, 2010](https://doi.org/10.1123/ijspp.5.3.276)) maps onto the domains: zones 1 and 2 lie below LT1, zone
 3 between LT1 and LT2, and zones 4 and 5 above LT2, as the training of 11 Olympic and world champions was described
-(Tønnessen et al., 2014). `model = 5` builds these zones from your two thresholds:
+([Tønnessen et al., 2014](https://doi.org/10.1371/journal.pone.0101796)). `model = 5` builds these zones from your two thresholds:
 
 ```{r}
 five <- lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax", model = 5)
@@ -71,7 +83,7 @@ autoplot(five)
 
 No published five-zone scale is built on individual thresholds alone. Their lactate and heart-rate limits are group
 averages: Seiler's scale, for example, puts zone 3 at 2.5 to 4 mmol/L, while lactater's zone 3 is this athlete's own
-heavy domain. Other five-level scales put LT1 at a different cut altogether (Jamnick et al., 2020, Table 1), so check
+heavy domain. Other five-level scales put LT1 at a different cut altogether ([Jamnick et al., 2020](https://doi.org/10.1007/s40279-020-01322-8), Table 1), so check
 which scale a coach means. The cut inside each domain is a convention, set with `split`:
 
 * `"equal"` (default): zone 1|2 at half of LT1, and zone 4|5 halfway between LT2 and the highest intensity of the test.
@@ -81,11 +93,12 @@ which scale a coach means. The cut inside each domain is a convention, set with 
 
 ```{r}
 splits <- list(equal = "equal", seiler = "seiler", own = c(70, 175))
-cuts <- sapply(splits, function(split) {
-  zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax", model = 5, split = split)
-  c(zone_1_2 = zones$intensity_to[1], zone_4_5 = zones$intensity_to[4])
-})
-cuts
+splits |>
+  purrr::imap(\(split, name) {
+    lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax", model = 5, split = split) |>
+      summarise(split = name, zone_1_2 = intensity_to[1], zone_4_5 = intensity_to[4])
+  }) |>
+  purrr::list_rbind()
 ```
 
 Only the cuts inside the moderate and severe domains move; the domains themselves stay where LT1 and LT2 put them.
@@ -96,44 +109,46 @@ Zones are often prescribed by heart rate or RPE. With both recorded, every zone 
 RPE is simulated (see `?lactate_tests`):
 
 ```{r}
-client <- subset(lactate_tests, test == "untrained")
-client_results <- lactate_threshold(client, intensity, lactate, heart_rate, rpe_column = "rpe", plot = FALSE)
-client_zones <- lactate_zones(client_results, lt1 = "Log-log", lt2 = "LTP2")
-client_zones[c("zone", "intensity_to", "heart_rate_from", "heart_rate_to", "rpe_from", "rpe_to")]
+client_results <- lactate_tests |>
+  filter(test == "untrained") |>
+  lactate_threshold(intensity, lactate, heart_rate, rpe_column = rpe, plot = FALSE)
+
+lactate_zones(client_results, lt1 = "Log-log", lt2 = "LTP2") |>
+  select(zone, intensity_to, heart_rate_from, heart_rate_to, rpe_from, rpe_to)
 ```
 
 Two cautions. Heart rate lags behind intensity in short intervals, so heart-rate zones suit steady efforts better
-than intervals (Seiler, 2010). And RPE at a threshold varies between people and between tests: in 2,560 adults, RPE
+than intervals ([Seiler, 2010](https://doi.org/10.1123/ijspp.5.3.276)). And RPE at a threshold varies between people and between tests: in 2,560 adults, RPE
 was 10.8 at the lactate threshold and 13.6 at the individual anaerobic threshold, each with a standard deviation of
-1.8 (Scherr et al., 2013). Use it as a cross-check of the zones, not as their definition.
+1.8 ([Scherr et al., 2013](https://doi.org/10.1007/s00421-012-2421-x)). Use it as a cross-check of the zones, not as their definition.
 
 ## Why not seven zones?
 
 lactater leaves seven-zone models out for now. We found no seven-zone model anchored on individual lactate
 thresholds, and the top zones of the scales with more than five zones are defined by how long an effort can last
 (about 4 min, 1 min and 15 s to exhaustion for the top three zones of the eight-zone Olympiatoppen scale;
-Olympiatoppen, 2024), which a step test does not measure.
+[Olympiatoppen, 2024](https://olt-skala.nif.no/olt_2024_en.pdf)), which a step test does not measure.
 
 ## References
 
 Hofmann P, Tschakert G. Intensity- and duration-based options to regulate endurance training. Front Physiol.
-2017;8:337. doi:10.3389/fphys.2017.00337
+2017;8:337. [doi:10.3389/fphys.2017.00337](https://doi.org/10.3389/fphys.2017.00337)
 
 Jamnick NA, Botella J, Pyne DB, Bishop DJ. Manipulating graded exercise test variables affects the validity of the
-lactate threshold and VO2peak. PLOS ONE. 2018;13(7):e0199794. doi:10.1371/journal.pone.0199794
+lactate threshold and V̇O<sub>2peak</sub>. PLOS ONE. 2018;13(7):e0199794. [doi:10.1371/journal.pone.0199794](https://doi.org/10.1371/journal.pone.0199794)
 
 Jamnick NA, Pettitt RW, Granata C, Pyne DB, Bishop DJ. An examination and critique of current methods to determine
-exercise intensity. Sports Med. 2020;50(10):1729-56. doi:10.1007/s40279-020-01322-8
+exercise intensity. Sports Med. 2020;50(10):1729-56. [doi:10.1007/s40279-020-01322-8](https://doi.org/10.1007/s40279-020-01322-8)
 
-Olympiatoppen. Olympiatoppen's intensity scale, version 2. 2024. https://olt-skala.nif.no/olt_2024_en.pdf
+Olympiatoppen. Olympiatoppen's intensity scale, version 2. 2024. [https://olt-skala.nif.no/olt_2024_en.pdf](https://olt-skala.nif.no/olt_2024_en.pdf)
 
 Scherr J, Wolfarth B, Christle JW, Pressler A, Wagenpfeil S, Halle M. Associations between Borg's rating of
 perceived exertion and physiological measures of exercise intensity. Eur J Appl Physiol. 2013;113(1):147-55.
-doi:10.1007/s00421-012-2421-x
+[doi:10.1007/s00421-012-2421-x](https://doi.org/10.1007/s00421-012-2421-x)
 
 Seiler S. What is best practice for training intensity and duration distribution in endurance athletes? Int J Sports
-Physiol Perform. 2010;5(3):276-91. doi:10.1123/ijspp.5.3.276
+Physiol Perform. 2010;5(3):276-91. [doi:10.1123/ijspp.5.3.276](https://doi.org/10.1123/ijspp.5.3.276)
 
 Tønnessen E, Sylta Ø, Haugen TA, Hem E, Svendsen IS, Seiler S. The road to gold: training and peaking
 characteristics in the year prior to a gold medal endurance performance. PLOS ONE. 2014;9(7):e101796.
-doi:10.1371/journal.pone.0101796
+[doi:10.1371/journal.pone.0101796](https://doi.org/10.1371/journal.pone.0101796)

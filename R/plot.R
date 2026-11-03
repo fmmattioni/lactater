@@ -34,6 +34,10 @@ lactater_colours <- function(style = getOption("lactater.style", "light")) {
 #' * `options(lactater.font = "IBM Plex Sans")` sets the font of the text and the annotations. The font
 #'   must be installed (see `systemfonts::require_font()`).
 #'
+#' The subtitle and the caption are text boxes from ggtext, so they wrap by themselves to the width of the plot.
+#' Restyle them with `ggtext::element_textbox_simple()` rather than `ggplot2::element_text()`, which cannot replace
+#' them.
+#'
 #' Plots are `ggplot2` objects, so anything else can be changed by adding layers, scales or a `theme()`.
 #'
 #' @param base_size Base font size, in points.
@@ -69,11 +73,12 @@ theme_lactater <- function(
       axis.text = ggplot2::element_text(colour = colours[["muted"]], size = ggplot2::rel(0.85)),
       axis.title = ggplot2::element_text(colour = colours[["muted"]], size = ggplot2::rel(0.85)),
       plot.title = ggplot2::element_text(face = "bold", size = ggplot2::rel(1.3), margin = ggplot2::margin(b = 4)),
-      plot.subtitle = ggplot2::element_text(
+      ## text boxes wrap by themselves to the width of the plot
+      plot.subtitle = ggtext::element_textbox_simple(
         colour = colours[["muted"]], size = ggplot2::rel(0.9), lineheight = 1.1, margin = ggplot2::margin(b = 12)
       ),
-      plot.caption = ggplot2::element_text(
-        colour = colours[["muted"]], size = ggplot2::rel(0.7), hjust = 0, margin = ggplot2::margin(t = 10)
+      plot.caption = ggtext::element_textbox_simple(
+        colour = colours[["muted"]], size = ggplot2::rel(0.7), margin = ggplot2::margin(t = 10)
       ),
       plot.title.position = "plot",
       plot.caption.position = "plot",
@@ -122,9 +127,9 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
     )
   } else if(!is.null(plot_data$breakpoints)) {
     if(log_axes) points <- points[data$intensity > 0, ]
-    drawn <- breakpoint_layers(plot_data$breakpoints, method, intensity, log_axes, colours)
+    drawn <- breakpoint_layers(plot_data$breakpoints, method, intensity, log_axes, colours, settings$sport)
   } else {
-    drawn <- curve_layers(plot_data, intensity, lactate, colours)
+    drawn <- curve_layers(plot_data, intensity, lactate, colours, settings$sport)
   }
 
   x_range <- range(points$intensity, drawn$x_range)
@@ -143,7 +148,7 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
     stage_layers(points, data, colours, label_rest = !ratio && !log_axes) +
     marker_layers(intensity, drawn$y, label, x_range, y_range, log_axes, colours, below = isTRUE(drawn$below)) +
     ggplot2::labs(
-      title = method,
+      title = method_label(method, bold = TRUE),
       subtitle = method_note(method, settings),
       caption = paste("Fit:", plot_data$fitting),
       x = intensity_label(settings$sport),
@@ -172,9 +177,10 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
 #'
 #' @inheritParams plot_threshold
 #' @param colours The plot colours.
+#' @param sport The sport, for the unit of the LTratio label.
 #' @return a list with the `layers`, the lactate `y` where the threshold sits, and the `top` of the drawing.
 #' @keywords internal
-curve_layers <- function(plot_data, intensity, lactate, colours) {
+curve_layers <- function(plot_data, intensity, lactate, colours, sport) {
   layers <- list()
   top <- max(plot_data$curve$lactate)
   ## notes sit just beside the threshold, clear of its dotted guide
@@ -217,7 +223,7 @@ curve_layers <- function(plot_data, intensity, lactate, colours) {
     ))
     if(from[["label"]] == "LTratio") {
       at <- as.numeric(from[["intensity"]])
-      layers <- c(layers, other_point(at, base, sprintf("LTratio  %s", format(round(at))), colours))
+      layers <- c(layers, other_point(at, base, paste("LTratio", intensity_text(at, sport)), colours))
     }
   }
   list(
@@ -243,9 +249,10 @@ curve_layers <- function(plot_data, intensity, lactate, colours) {
 #' @inheritParams plot_threshold
 #' @param log_axes Whether the fit is in log-log space.
 #' @param colours The plot colours.
+#' @param sport The sport, for the unit of the other turn point.
 #' @return a list with the `layers`, the lactate `y` where the threshold sits, and the `top`.
 #' @keywords internal
-breakpoint_layers <- function(fit, method, intensity, log_axes, colours) {
+breakpoint_layers <- function(fit, method, intensity, log_axes, colours, sport) {
   back <- if(log_axes) exp else identity
   x <- seq(min(fit$x), max(fit$x), length.out = 300)
   lines <- breakpoint_lines(fit)
@@ -273,7 +280,7 @@ breakpoint_layers <- function(fit, method, intensity, log_axes, colours) {
     other <- if(method == "LTP1") 2 else 1
     layers <- c(layers, other_point(
       fit$psi[other], predict_breakpoints(fit, fit$psi[other]),
-      sprintf("LTP%d  %s", other, format(round(fit$psi[other]))), colours
+      paste0("LTP", other, " ", intensity_text(fit$psi[other], sport)), colours
     ))
   }
   list(
@@ -392,7 +399,6 @@ marker_layers <- function(x, y, label, x_range, y_range, log_axes, colours, belo
   }
   ## the arrow leaves the label from its side nearest the threshold
   arrow_from <- if(below) label_y + 0.11 * height else label_y - 0.09 * height
-  arrow_to <- to(y) + if(below) -0.035 * height else 0.035 * height
   guide_from <- if(log_axes) c(x_range[1], y_range[1]) else c(-Inf, 0)
   list(
     ggplot2::annotate(
@@ -403,11 +409,8 @@ marker_layers <- function(x, y, label, x_range, y_range, log_axes, colours, belo
       "segment", x = guide_from[1], xend = x, y = y, yend = y, colour = colours[["accent"]], linewidth = 0.45,
       linetype = "13"
     ),
-    ggplot2::annotate(
-      "curve", x = from(arrow_x), y = from(arrow_from),
-      xend = from(to(x) - side * 0.012 * width), yend = from(arrow_to),
-      curvature = if(left || below) -0.3 else 0.3, linewidth = 0.4, colour = colours[["muted"]],
-      arrow = ggplot2::arrow(length = ggplot2::unit(0.065, "inch"), type = "closed")
+    pointer_layer(
+      c(from(arrow_x), from(arrow_from)), c(x, y), bend = if(left || below) 0.15 else -0.15, colours[["muted"]]
     ),
     ggplot2::annotate(
       "point", x = x, y = y, shape = 21, size = 4.2, stroke = 1.2,
@@ -475,7 +478,88 @@ method_note <- function(method, settings) {
     "IAT" = sprintf("%s mmol/L above the lactate at LTratio (Dickhuth et al., 1999)", format(settings$iat_rise)),
     ""
   )
-  paste(strwrap(note, width = 72), collapse = "\n")
+  note
+}
+
+#' Method names with their subscripts
+#'
+#' Plotmath, so that `"ModDmax"` is drawn as ModD with a subscript max, and `"VO2max"` with a dot over the V.
+#' Plotmath keeps the labels plain `element_text()`, which users can restyle. `method_plotmath()` gives the text to
+#' parse (for `label_parsed` and `parse = TRUE`), `method_label()` the parsed expressions.
+#'
+#' @param x Method names.
+#' @param bold Whether to draw them in bold, for titles.
+#' @return a character vector, or an expression vector.
+#' @keywords internal
+method_plotmath <- function(x) {
+  x <- as.character(x)
+  out <- sprintf('"%s"', x)
+  dmax <- grepl("Dmax", x, fixed = TRUE)
+  out[dmax] <- sprintf('"%sD"[max]*"%s"', sub("Dmax.*", "", x[dmax]), sub(".*Dmax", "", x[dmax]))
+  out[x == "VO2max"] <- "dot(V)*O[2*max]"
+  out
+}
+
+#' @rdname method_plotmath
+method_label <- function(x, bold = FALSE) {
+  text <- method_plotmath(x)
+  parse(text = if(bold) sprintf("bold(%s)", text) else text)
+}
+
+#' An intensity with its unit
+#'
+#' @param x An intensity.
+#' @param sport The sport.
+#' @keywords internal
+intensity_text <- function(x, sport) {
+  paste(format_intensity(x, sport), intensity_unit(sport))
+}
+
+#' A curved arrow that ends on the edge of a dot
+#'
+#' The arrow is laid out in inches when the plot is drawn, so it stops at the edge of the dot and points at its
+#' center whatever the size of the plot. For internal use only.
+#'
+#' @param from,to The label end and the dot center, in data units (ggplot2 applies the scale transformation).
+#' @param bend How far the middle of the arrow bows out, as a share of its length; the sign sets the side.
+#' @param colour The arrow color.
+#' @param gap Where the arrow stops, in mm from the dot center.
+#' @keywords internal
+pointer_layer <- function(from, to, bend, colour, gap = 2.6) {
+  ## annotation_custom draws in the box between the two points, where 0 and 1 are its edges
+  grob <- grid::gTree(
+    from = as.numeric(from > to), to = as.numeric(to > from), bend = bend, colour = colour, gap = gap,
+    cl = "lactater_pointer"
+  )
+  ggplot2::annotation_custom(
+    grob, xmin = min(from[1], to[1]), xmax = max(from[1], to[1]), ymin = min(from[2], to[2]),
+    ymax = max(from[2], to[2])
+  )
+}
+
+#' @exportS3Method grid::makeContent
+makeContent.lactater_pointer <- function(x) {
+  inches <- function(at) {
+    c(grid::convertX(grid::unit(at[1], "npc"), "in", TRUE), grid::convertY(grid::unit(at[2], "npc"), "in", TRUE))
+  }
+  start <- inches(x$from)
+  center <- inches(x$to)
+  chord <- center - start
+  span <- sqrt(sum(chord^2))
+  ## a quadratic Bezier whose control point is off the middle of the chord; it ends where the line from the control
+  ## point to the center meets the edge, so it arrives pointing at the center
+  control <- start + chord / 2 + x$bend * c(-chord[2], chord[1])
+  towards <- (center - control) / sqrt(sum((center - control)^2))
+  end <- center - x$gap / 25.4 * towards
+  t <- seq(0, 1, length.out = 40)
+  path <- outer((1 - t)^2, start) + outer(2 * (1 - t) * t, control) + outer(t^2, end)
+  grid::setChildren(x, grid::gList(if(span > x$gap / 25.4) {
+    grid::linesGrob(
+      path[, 1], path[, 2], default.units = "in",
+      gp = grid::gpar(col = x$colour, fill = x$colour, lwd = 0.4 * ggplot2::.pt),
+      arrow = grid::arrow(length = grid::unit(0.065, "inch"), type = "closed")
+    )
+  }))
 }
 
 #' Lactate axis breaks

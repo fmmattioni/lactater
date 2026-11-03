@@ -37,10 +37,10 @@ if (plex) options(lactater.font = "IBM Plex Sans")
 </div>
 
 **lactater** estimates lactate thresholds from a step incremental test, in one call and with the methods sport
-scientists use: Log-log, OBLA, Bsln+, the Dmax family, the lactate turning points, LTratio and the individual
-anaerobic threshold. It shows how much the methods agree, how sure each threshold is, what to double-check in your
-data, and turns the thresholds you choose into training zones. It is written for teaching too: every function and
-article says what the evidence behind it is.
+scientists use: Log-log, OBLA, Bsln+, the D<sub>max</sub> family, the lactate turning points, LTratio and the
+individual anaerobic threshold. It shows how much the methods agree, how sure each threshold is, what to double-check
+in your data, and turns the thresholds you choose into training zones. It is written for teaching too: every function
+and article says what the evidence behind it is.
 
 ## Installation
 
@@ -54,16 +54,21 @@ pak::pak("fmmattioni/lactater")
 
 ## Estimate every threshold
 
-One row per stage: intensity, lactate and, if you have it, heart rate. The resting sample is the row with intensity 0.
+One row per stage: intensity, lactate and, if you have them, heart rate and RPE. The resting sample is the row with
+intensity 0.
 
 ```{r}
 library(lactater)
+library(dplyr)
+
+demo_data
 
 results <- lactate_threshold(
   demo_data,
   intensity_column = intensity,
   lactate_column = lactate,
   heart_rate_column = heart_rate,
+  rpe_column = rpe,
   sport = "cycling",
   plot = FALSE
 )
@@ -91,23 +96,25 @@ With 7 to 10 samples, a threshold to 0.1 W is false precision. `ci = TRUE` adds 
 
 ```{r}
 set.seed(1)
-with_ci <- lactate_threshold(
-  demo_data, intensity, lactate, heart_rate,
-  method = c("OBLA", "Dmax", "LTP"), plot = FALSE, ci = TRUE
-)
-with_ci[c("method", "intensity", "intensity_low", "intensity_high")]
+with_ci <- demo_data |>
+  lactate_threshold(intensity, lactate, heart_rate, method = c("OBLA", "Dmax", "LTP"), plot = FALSE, ci = TRUE)
+
+with_ci |>
+  select(method, intensity, intensity_low, intensity_high)
 ```
 
 ## Check before you trust
 
-`lactate_checks()` flags what is easy to miss in a table of numbers, and `lactate_diagnostics()` checks the fitted
-curve and how much each threshold rests on single stages, with a line under each panel on what to look for:
+`lactate_checks()` flags what is easy to miss in a table of numbers:
 
 ```{r}
 lactate_checks(results)
 ```
 
-```{r diagnostics, fig.width = 9, fig.height = 10}
+`lactate_diagnostics()` checks the fitted curve, and how much each threshold rests on single stages, with a line
+under each panel on what to look for:
+
+```{r diagnostics, fig.width = 9, fig.height = 11}
 autoplot(lactate_diagnostics(results))
 ```
 
@@ -116,19 +123,36 @@ autoplot(lactate_diagnostics(results))
 You choose which thresholds mark LT1 and LT2, and three or five zones:
 
 ```{r zones, fig.width = 7.5, fig.height = 4.5}
-zones <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax")
-zones
-autoplot(zones)
+three <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax")
+three
+autoplot(three)
+```
+
+```{r zones5, fig.width = 7.5, fig.height = 4.5}
+five <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax", model = 5)
+five
+autoplot(five)
 ```
 
 ## Compare tests and count training
 
 ```{r compare, fig.width = 7.5, fig.height = 4.5}
-series <- subset(lactate_tests, athlete == "cyclist_series")
-before <- lactate_threshold(subset(series, day == 0), intensity, lactate, heart_rate, plot = FALSE)
-after <- lactate_threshold(subset(series, day == 58), intensity, lactate, heart_rate, plot = FALSE)
+series <- lactate_tests |>
+  filter(athlete == "cyclist_series")
+
+before <- series |>
+  filter(day == 0) |>
+  lactate_threshold(intensity, lactate, heart_rate, plot = FALSE)
+
+after <- series |>
+  filter(day == 58) |>
+  lactate_threshold(intensity, lactate, heart_rate, plot = FALSE)
+
 comparison <- compare_tests(before, after)
-comparison[c("method", "before", "after", "change", "verdict")]
+
+comparison |>
+  select(method, before, after, change, verdict)
+
 autoplot(comparison)
 ```
 
@@ -147,7 +171,7 @@ tests is heading, and `training_load()` how the training was spread across the z
 * `options(lactater.style = "night")` gives every plot a dark style, and `"journal"` a quieter one for print.
 * `lactate_report()` formats the results as a table for reports and papers; `.by` analyses a whole squad in one call.
 * `lactate_fit_quality()` helps you choose the curve, by how well each one predicts a stage it was not fitted to.
-* `vlamax()` estimates the maximal lactate accumulation rate from a sprint test.
+* `vlamax()` estimates the maximal lactate accumulation rate (V&#775;La<sub>max</sub>) from a sprint test.
 * `run_data_input()` is an RStudio gadget that writes the test protocol for you.
 
 ## The science
@@ -156,5 +180,5 @@ Every method follows its original definition, and the
 [methods article](https://fmmattioni.github.io/lactater/articles/methods.html) says how each is computed and what the
 evidence says about it. [Best practices for a step
 test](https://fmmattioni.github.io/lactater/articles/best-practices.html) is a checklist, with sources, for running a
-test and analyzing it. lactater 1.0 fixed several calculations; see
+test and analyzing it. **lactater** 1.0 fixed several calculations; see
 [what changed](https://fmmattioni.github.io/lactater/articles/whats-new.html).

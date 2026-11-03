@@ -24,11 +24,12 @@ downloads](https://cranlogs.r-pkg.org/badges/grand-total/lactater?color=blue)](h
 
 **lactater** estimates lactate thresholds from a step incremental test,
 in one call and with the methods sport scientists use: Log-log, OBLA,
-Bsln+, the Dmax family, the lactate turning points, LTratio and the
-individual anaerobic threshold. It shows how much the methods agree, how
-sure each threshold is, what to double-check in your data, and turns the
-thresholds you choose into training zones. It is written for teaching
-too: every function and article says what the evidence behind it is.
+Bsln+, the D<sub>max</sub> family, the lactate turning points, LTratio
+and the individual anaerobic threshold. It shows how much the methods
+agree, how sure each threshold is, what to double-check in your data,
+and turns the thresholds you choose into training zones. It is written
+for teaching too: every function and article says what the evidence
+behind it is.
 
 ## Installation
 
@@ -42,43 +43,58 @@ pak::pak("fmmattioni/lactater")
 
 ## Estimate every threshold
 
-One row per stage: intensity, lactate and, if you have it, heart rate.
-The resting sample is the row with intensity 0.
+One row per stage: intensity, lactate and, if you have them, heart rate
+and RPE. The resting sample is the row with intensity 0.
 
 ``` r
 library(lactater)
+library(dplyr)
+
+demo_data
+#> # A tibble: 8 × 6
+#>    step length intensity lactate heart_rate   rpe
+#>   <int>  <int>     <int>   <dbl>      <int> <int>
+#> 1     0      0         0    0.93         96     6
+#> 2     1      3        50    0.98        114     7
+#> 3     2      3        75    1.23        134     8
+#> 4     3      3       100    1.88        154    11
+#> 5     4      3       125    2.8         170    12
+#> 6     5      3       150    4.21        182    14
+#> 7     6      3       175    6.66        193    17
+#> 8     7      2       191    8.64        198    19
 
 results <- lactate_threshold(
   demo_data,
   intensity_column = intensity,
   lactate_column = lactate,
   heart_rate_column = heart_rate,
+  rpe_column = rpe,
   sport = "cycling",
   plot = FALSE
 )
 
 results
 #> # Lactate thresholds: cycling, 3rd degree polynomial, 7 stages + rest
-#>    method_category method           fitting         intensity lactate heart_rate
-#>    <fct>           <fct>            <chr>               <dbl>   <dbl>      <dbl>
-#>  1 Log-log         Log-log          3rd degree pol~       101    1.8         154
-#>  2 OBLA            OBLA 2.0         3rd degree pol~       106    2           158
-#>  3 OBLA            OBLA 2.5         3rd degree pol~       119    2.5         166
-#>  4 OBLA            OBLA 3.0         3rd degree pol~       130    3           172
-#>  5 OBLA            OBLA 3.5         3rd degree pol~       139    3.5         177
-#>  6 OBLA            OBLA 4.0         3rd degree pol~       146    4           180
-#>  7 Bsln+           Bsln + 0.5       3rd degree pol~        83    1.43        140
-#>  8 Bsln+           Bsln + 1.0       3rd degree pol~       103    1.93        156
-#>  9 Bsln+           Bsln + 1.5       3rd degree pol~       118    2.43        165
-#> 10 Dmax            Dmax             3rd degree pol~       132    3.1         173
-#> 11 Dmax            ModDmax          3rd degree pol~       140    3.6         177
-#> 12 Dmax            Exp-Dmax         Exponential (d~       135    3.3         175
-#> 13 Dmax            Log-Poly-ModDmax 3rd degree pol~       149    4.2         182
-#> 14 Dmax            Log-Exp-ModDmax  Exponential (d~       152    4.4         183
-#> 15 LTP             LTP1             3rd degree pol~       111    2           161
-#> 16 LTP             LTP2             3rd degree pol~       160    4.7         186
-#> 17 LTratio         LTratio          B-Spline (defa~        77    1.3         136
-#> 18 IAT             IAT              B-Spline (defa~       125    2.8         170
+#>    method_category method           fitting   intensity lactate heart_rate   rpe
+#>    <fct>           <fct>            <chr>         <dbl>   <dbl>      <dbl> <dbl>
+#>  1 Log-log         Log-log          3rd degr…       101    1.8         154  11  
+#>  2 OBLA            OBLA 2.0         3rd degr…       106    2           158  11.2
+#>  3 OBLA            OBLA 2.5         3rd degr…       119    2.5         166  11.8
+#>  4 OBLA            OBLA 3.0         3rd degr…       130    3           172  12.4
+#>  5 OBLA            OBLA 3.5         3rd degr…       139    3.5         177  13.1
+#>  6 OBLA            OBLA 4.0         3rd degr…       146    4           180  13.7
+#>  7 Bsln+           Bsln + 0.5       3rd degr…        83    1.43        140   8.9
+#>  8 Bsln+           Bsln + 1.0       3rd degr…       103    1.93        156  11.1
+#>  9 Bsln+           Bsln + 1.5       3rd degr…       118    2.43        165  11.7
+#> 10 Dmax            Dmax             3rd degr…       132    3.1         173  12.5
+#> 11 Dmax            ModDmax          3rd degr…       140    3.6         177  13.2
+#> 12 Dmax            Exp-Dmax         Exponent…       135    3.3         175  12.8
+#> 13 Dmax            Log-Poly-ModDmax 3rd degr…       149    4.2         182  13.9
+#> 14 Dmax            Log-Exp-ModDmax  Exponent…       152    4.4         183  14.2
+#> 15 LTP             LTP1             3rd degr…       111    2           161  11.4
+#> 16 LTP             LTP2             3rd degr…       160    4.7         186  15.1
+#> 17 LTratio         LTratio          B-Spline…        77    1.3         136   8.3
+#> 18 IAT             IAT              B-Spline…       125    2.8         170  12
 ```
 
 ## See how the methods agree
@@ -107,11 +123,11 @@ With 7 to 10 samples, a threshold to 0.1 W is false precision.
 
 ``` r
 set.seed(1)
-with_ci <- lactate_threshold(
-  demo_data, intensity, lactate, heart_rate,
-  method = c("OBLA", "Dmax", "LTP"), plot = FALSE, ci = TRUE
-)
-with_ci[c("method", "intensity", "intensity_low", "intensity_high")]
+with_ci <- demo_data |>
+  lactate_threshold(intensity, lactate, heart_rate, method = c("OBLA", "Dmax", "LTP"), plot = FALSE, ci = TRUE)
+
+with_ci |>
+  select(method, intensity, intensity_low, intensity_high)
 #> # Lactate thresholds: cycling, 3rd degree polynomial, 7 stages + rest
 #>    method           intensity intensity_low intensity_high
 #>    <fct>                <dbl>         <dbl>          <dbl>
@@ -131,25 +147,24 @@ with_ci[c("method", "intensity", "intensity_low", "intensity_high")]
 
 ## Check before you trust
 
-`lactate_checks()` flags what is easy to miss in a table of numbers, and
-`lactate_diagnostics()` checks the fitted curve and how much each
-threshold rests on single stages, with a line under each panel on what
-to look for:
+`lactate_checks()` flags what is easy to miss in a table of numbers:
 
 ``` r
 lactate_checks(results)
-#> # A tibble: 8 x 3
-#>   check             status details                                      
-#>   <chr>             <chr>  <chr>                                        
-#> 1 Stages            ok     7 stages.                                    
-#> 2 Resting sample    ok     Present.                                     
-#> 3 Thresholds found  ok     All thresholds were found.                   
-#> 4 Edge of the range ok     No threshold sits at the first or last stage.
-#> 5 Early lactate dip ok     No early dip.                                
-#> 6 Final stage       ok     Lactate rose in the last stage.              
-#> 7 Peak lactate      ok     8.6 mmol/L.                                  
-#> 8 Sample type       ok     blood lactate.
+#> 8 checks: 8 passed, 0 notes, 0 warnings
+#> ✔ Stages             7 stages.
+#> ✔ Resting sample     Present.
+#> ✔ Thresholds found   All thresholds were found.
+#> ✔ Edge of the range  No threshold sits at the first or last stage.
+#> ✔ Early lactate dip  No early dip.
+#> ✔ Final stage        Lactate rose in the last stage.
+#> ✔ Peak lactate       8.6 mmol/L.
+#> ✔ Sample type        blood lactate.
 ```
+
+`lactate_diagnostics()` checks the fitted curve, and how much each
+threshold rests on single stages, with a line under each panel on what
+to look for:
 
 ``` r
 autoplot(lactate_diagnostics(results))
@@ -162,29 +177,58 @@ autoplot(lactate_diagnostics(results))
 You choose which thresholds mark LT1 and LT2, and three or five zones:
 
 ``` r
-zones <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax")
-zones
-#> # A tibble: 3 x 9
+three <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax")
+three
+#> # A tibble: 3 × 11
 #>   zone   domain  description intensity_from intensity_to lactate_from lactate_to
 #>   <chr>  <chr>   <chr>                <dbl>        <dbl>        <dbl>      <dbl>
-#> 1 Zone 1 modera~ below LT1               NA          111         NA          2.2
+#> 1 Zone 1 modera… below LT1               NA          111         NA          2.2
 #> 2 Zone 2 heavy   LT1 to LT2             111          140          2.2        3.6
 #> 3 Zone 3 severe  above LT2              140           NA          3.6       NA  
-#> # i 2 more variables: heart_rate_from <dbl>, heart_rate_to <dbl>
-autoplot(zones)
+#> # ℹ 4 more variables: heart_rate_from <dbl>, heart_rate_to <dbl>,
+#> #   rpe_from <dbl>, rpe_to <dbl>
+autoplot(three)
 ```
 
 <img src="man/figures/readme/README-zones-1.png" alt="" width="100%" style="display: block; margin: auto;" />
 
+``` r
+five <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax", model = 5)
+five
+#> # A tibble: 5 × 11
+#>   zone   domain  description intensity_from intensity_to lactate_from lactate_to
+#>   <chr>  <chr>   <chr>                <dbl>        <dbl>        <dbl>      <dbl>
+#> 1 Zone 1 modera… recovery                NA           56         NA          1  
+#> 2 Zone 2 modera… endurance               56          111          1          2.2
+#> 3 Zone 3 heavy   tempo                  111          140          2.2        3.6
+#> 4 Zone 4 severe  threshold              140          166          3.6        5.6
+#> 5 Zone 5 severe  VO2max                 166           NA          5.6       NA  
+#> # ℹ 4 more variables: heart_rate_from <dbl>, heart_rate_to <dbl>,
+#> #   rpe_from <dbl>, rpe_to <dbl>
+autoplot(five)
+```
+
+<img src="man/figures/readme/README-zones5-1.png" alt="" width="100%" style="display: block; margin: auto;" />
+
 ## Compare tests and count training
 
 ``` r
-series <- subset(lactate_tests, athlete == "cyclist_series")
-before <- lactate_threshold(subset(series, day == 0), intensity, lactate, heart_rate, plot = FALSE)
-after <- lactate_threshold(subset(series, day == 58), intensity, lactate, heart_rate, plot = FALSE)
+series <- lactate_tests |>
+  filter(athlete == "cyclist_series")
+
+before <- series |>
+  filter(day == 0) |>
+  lactate_threshold(intensity, lactate, heart_rate, plot = FALSE)
+
+after <- series |>
+  filter(day == 58) |>
+  lactate_threshold(intensity, lactate, heart_rate, plot = FALSE)
+
 comparison <- compare_tests(before, after)
-comparison[c("method", "before", "after", "change", "verdict")]
-#> # A tibble: 18 x 5
+
+comparison |>
+  select(method, before, after, change, verdict)
+#> # A tibble: 18 × 5
 #>    method           before after change verdict 
 #>    <fct>             <dbl> <dbl>  <dbl> <chr>   
 #>  1 Log-log             239   236     -3 <NA>    
@@ -205,6 +249,7 @@ comparison[c("method", "before", "after", "change", "verdict")]
 #> 16 LTP2                301   341     40 <NA>    
 #> 17 LTratio             192   180    -12 <NA>    
 #> 18 IAT                 294   304     10 unclear
+
 autoplot(comparison)
 ```
 
@@ -233,8 +278,8 @@ the method, `curve_shift()` how far the whole curve moved,
   papers; `.by` analyses a whole squad in one call.
 - `lactate_fit_quality()` helps you choose the curve, by how well each
   one predicts a stage it was not fitted to.
-- `vlamax()` estimates the maximal lactate accumulation rate from a
-  sprint test.
+- `vlamax()` estimates the maximal lactate accumulation rate
+  (V̇La<sub>max</sub>) from a sprint test.
 - `run_data_input()` is an RStudio gadget that writes the test protocol
   for you.
 
@@ -246,5 +291,5 @@ says how each is computed and what the evidence says about it. [Best
 practices for a step
 test](https://fmmattioni.github.io/lactater/articles/best-practices.html)
 is a checklist, with sources, for running a test and analyzing it.
-lactater 1.0 fixed several calculations; see [what
+**lactater** 1.0 fixed several calculations; see [what
 changed](https://fmmattioni.github.io/lactater/articles/whats-new.html).

@@ -23,4 +23,8 @@ test_that("the jackknife summarises leaving each stage out", {
   expect_equal(c(row$lowest, row$highest), range(obla))
   expect_output(print(diagnostics), "Best-predicting curve")
   expect_s3_class(autoplot(diagnostics), "patchwork")
+  ## the grid writes a move only where it is at least 3% of the threshold
+  grid <- leave_one_out_panel(diagnostics, lactater_colours(), "cycling")$data
+  share <- abs(grid$change) / attr(results, "lactater")$intensity[grid$method]
+  expect_equal(grid$label != "", is.na(share) | share >= 0.03, ignore_attr = TRUE)
 })

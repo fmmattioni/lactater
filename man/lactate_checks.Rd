@@ -11,7 +11,7 @@ lactate_checks(x)
 }
 \value{
 a tibble with one row per check: \code{check}, \code{status} (\code{"ok"}, \code{"note"}, or \code{"warning"}), and
-\code{details}.
+\code{details}. It prints as a checklist, with a tick for each check that passed.
 }
 \description{
 Runs a set of checks on the test and the results of \code{\link[=lactate_threshold]{lactate_threshold()}}, so problems that are easy

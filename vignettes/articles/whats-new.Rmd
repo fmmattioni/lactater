@@ -17,8 +17,11 @@ computed as their authors defined them, some thresholds differ from version 0.3.
 
 ## How the numbers compare with 0.3.0
 
-```{r}
-old <- data.frame(
+```{r, message = FALSE}
+library(lactater)
+library(dplyr)
+
+old <- tibble(
   method = c("Log-log", "OBLA 2.0", "OBLA 2.5", "OBLA 3.0", "OBLA 3.5", "OBLA 4.0",
              "Bsln + 0.5", "Bsln + 1.0", "Bsln + 1.5", "Dmax", "ModDmax", "Exp-Dmax",
              "Log-Poly-ModDmax", "Log-Exp-ModDmax", "LTP1", "LTP2", "LTratio"),
@@ -28,21 +31,21 @@ old <- data.frame(
 new <- lactate_threshold(demo_data, intensity, lactate, include_baseline = TRUE, plot = FALSE)
 ## the unrounded intensities, to compare at 0.1 W
 unrounded <- attr(new, "lactater")$intensity
-changes <- merge(old, data.frame(method = names(unrounded), version_1.0 = round(unname(unrounded), 1)), sort = FALSE)
-changes$difference <- changes$version_1.0 - changes$version_0.3.0
-changes
+old |>
+  inner_join(tibble(method = names(unrounded), version_1.0 = round(unname(unrounded), 1)), by = "method") |>
+  mutate(difference = version_1.0 - version_0.3.0)
 ```
 
 ## Why they differ
 
 * **OBLA and Bsln+ (about +1 to +2 W).** The intensity at a target lactate is solved on the fitted curve itself
   (issue #8, thanks to Simon Dierickx).
-* **Dmax family.** Each variant takes the point where the fitted curve lies furthest below its line, so a curve that
-  levels off at the end (a last-stage plateau, or sweat lactate) gets a sensible Dmax at any lactate scale. The
-  line runs from its start to the last stage, and its ends sit where each paper put them: on the curve for Dmax and
-  Exp-Dmax, at the measured values for ModDmax and at the last stage of the Log-log variants (`dmax_anchor` changes
+* **D<sub>max</sub> family.** Each variant takes the point where the fitted curve lies furthest below its line, so a curve that
+  levels off at the end (a last-stage plateau, or sweat lactate) gets a sensible D<sub>max</sub> at any lactate scale. The
+  line runs from its start to the last stage, and its ends sit where each paper put them: on the curve for D<sub>max</sub> and
+  Exp-D<sub>max</sub>, at the measured values for ModD<sub>max</sub> and at the last stage of the Log-log variants (`dmax_anchor` changes
   this). The Log-log start is computed without the resting sample, as documented.
-* **Log-log.** Two separate straight lines that share the stage between them, as in Beaver et al. (1985), split at
+* **Log-log.** Two separate straight lines that share the stage between them, as in [Beaver et al. (1985)](https://doi.org/10.1152/jappl.1985.59.6.1936), split at
   the stage with the lowest residual sum of squares; the threshold is where they cross.
 * **LTP.** The turn points are the exact least-squares optimum on the measured stages, found by exhaustive search,
   so they never depend on starting values.

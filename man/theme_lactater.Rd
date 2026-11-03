@@ -33,6 +33,10 @@ curve with one amber accent). \code{"light"}, a blue curve with a green threshol
 must be installed (see \code{systemfonts::require_font()}).
 }
 
+The subtitle and the caption are text boxes from ggtext, so they wrap by themselves to the width of the plot.
+Restyle them with \code{ggtext::element_textbox_simple()} rather than \code{ggplot2::element_text()}, which cannot replace
+them.
+
 Plots are \code{ggplot2} objects, so anything else can be changed by adding layers, scales or a \code{theme()}.
 }
 \examples{

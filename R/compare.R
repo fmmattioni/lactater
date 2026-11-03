@@ -239,7 +239,7 @@ relative_thresholds <- function(x, body_mass = NULL) {
 #' Fits a straight line through each threshold over three or more tests of the same athlete, to show the trend
 #' with its uncertainty instead of reading noise from one test to the next (Hopkins, 2017).
 #'
-#' @param ... The results of [lactate_threshold()], in any order.
+#' @param ... The results of [lactate_threshold()], in any order. A list of results can be spliced in with `!!!`.
 #' @param day The day of each test (e.g. days since the first test), in the same order as `...`.
 #'
 #' @return a `lactate_trend` tibble with one row per method found in every test: `method`, `tests`, the
@@ -259,12 +259,12 @@ relative_thresholds <- function(x, body_mass = NULL) {
 #' tests <- lapply(days, function(d) {
 #'   lactate_threshold(subset(series, day == d), intensity, lactate, plot = FALSE)
 #' })
-#' trend <- do.call(lactate_trend, c(tests, list(day = days)))
+#' trend <- lactate_trend(!!!tests, day = days)
 #' trend
 #' autoplot(trend)
 #' autoplot(trend, view = "curves")
 lactate_trend <- function(..., day) {
-  tests <- list(...)
+  tests <- rlang::list2(...)
   infos <- lapply(tests, lactater_info)
   if(length(tests) < 3) stop("A trend needs at least three tests.", call. = FALSE)
   if(!is.numeric(day) || length(day) != length(tests) || anyNA(day) || anyDuplicated(day))
@@ -422,13 +422,15 @@ autoplot.lactate_trend <- function(object, method = NULL, view = c("thresholds",
     ggplot2::scale_fill_manual(values = c(`FALSE` = colours[["faint"]], `TRUE` = colours[["curve"]]), guide = "none") +
     ## few day labels, so they stay apart in narrow panels
     ggplot2::scale_x_continuous(n.breaks = 3) +
-    ggplot2::facet_wrap(ggplot2::vars(method), nrow = 1, scales = "free_y") +
+    ggplot2::facet_wrap(
+      ggplot2::vars(method), nrow = 1, scales = "free_y",
+      labeller = ggplot2::as_labeller(function(x) sprintf("bold(%s)", method_plotmath(x)), ggplot2::label_parsed)
+    ) +
     ggplot2::labs(
       title = "Did the thresholds change?",
       subtitle = paste(
         "Each test as a dot; gray band: the noise of the method around the first test, where 90% of changes fall",
-        "when nothing changed. Dark dots lie outside it",
-        sep = "\n"
+        "when nothing changed. Dark dots lie outside it"
       ),
       x = "Day", y = intensity_label(trend$sport)
     ) +

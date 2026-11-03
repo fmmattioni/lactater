@@ -66,6 +66,9 @@ test_that("lactate_checks flags problems", {
   no_rest <- lactate_checks(lactate_threshold(fixtures$no_rest, "intensity", "lactate", method = "OBLA", plot = FALSE))
   expect_equal(no_rest$status[no_rest$check == "Resting sample"], "note")
   expect_match(pillar::tbl_sum(sweat)[["Checks"]], "warning")
+  ## printed as a checklist with the counts on top
+  expect_output(print(sweat_checks), "8 checks: [0-9] passed, [0-9] notes?, [1-9] warnings?")
+  expect_output(print(sweat_checks[1, ]), "^1 check: 1 passed")
 })
 
 test_that("lactate_fit_quality compares the curves on the same points", {

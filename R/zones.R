@@ -213,26 +213,30 @@ autoplot.lactate_zones <- function(object, ...) {
     paste0("> ", value(zones$bounds[length(zones$bounds)]))
   )
   top <- max(points$lactate, curve$lactate) * 1.25
-  marks <- data.frame(intensity = zones$lt, label = sprintf("%s  %s", c("LT1", "LT2"), zones$labels))
+  marks <- data.frame(intensity = zones$lt, label = sprintf('"%s"~~%s', c("LT1", "LT2"), method_plotmath(zones$labels)))
 
   ggplot2::ggplot() +
     ggplot2::annotate(
       "rect", xmin = bands$from, xmax = bands$to, ymin = 0, ymax = top, fill = bands$fill, alpha = 0.2
     ) +
     ggplot2::annotate(
-      "text", x = bands$middle, y = top, label = toupper(bands$zone), vjust = 1.8, size = 3.2, fontface = "bold",
+      "text", x = bands$middle, y = top * 0.965, label = toupper(bands$zone), vjust = 1, size = 3.2, fontface = "bold",
       colour = colours[["ink"]]
     ) +
     ggplot2::annotate(
-      "text", x = bands$middle, y = top, label = paste0(bands$description, "\n", bands$range, " ", unit),
-      vjust = 2.1, lineheight = 1.05, size = 2.8, colour = colours[["muted"]]
+      "text", x = bands$middle, y = top * 0.915, label = method_plotmath(bands$description), parse = TRUE, vjust = 1,
+      size = 2.8, colour = colours[["muted"]]
+    ) +
+    ggplot2::annotate(
+      "text", x = bands$middle, y = top * 0.865, label = paste(bands$range, unit), vjust = 1, size = 2.8,
+      colour = colours[["muted"]]
     ) +
     ggplot2::geom_segment(
       ggplot2::aes(x = intensity, xend = intensity, y = 0, yend = top * 0.8), marks,
       colour = colours[["ink"]], linewidth = 0.4, linetype = "22"
     ) +
     ggplot2::geom_text(
-      ggplot2::aes(x = intensity, y = 0, label = label), marks,
+      ggplot2::aes(x = intensity, y = 0, label = label), marks, parse = TRUE,
       angle = 90, hjust = -0.1, vjust = -0.6, size = 2.9, colour = colours[["muted"]]
     ) +
     ggplot2::geom_line(ggplot2::aes(intensity, lactate), curve, colour = colours[["curve"]], linewidth = 0.9) +

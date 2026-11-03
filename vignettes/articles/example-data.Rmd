@@ -12,12 +12,25 @@ if (plex) options(lactater.font = "IBM Plex Sans")
 
 `lactate_tests` holds 15 incremental step tests, one row per stage, so you can try every part of lactater on data
 that looks like what you will collect. Twelve are real tests from two open datasets (Trinity College Dublin, and
-Heuberger et al., 2018; both CC BY 4.0); three are simulated where no open data exists. This article walks through
+[Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846); both CC BY 4.0); three are simulated where no open data exists. This article walks through
 them: what each sport looks like, and the cases that need care.
 
-```{r}
-tests <- unique(lactate_tests[c("test", "sport", "source", "description")])
-knitr::kable(tests)
+```{r, message = FALSE}
+library(lactater)
+library(dplyr)
+library(gt)
+
+lactate_tests |>
+  distinct(sport, test, description, source) |>
+  gt(groupname_col = "sport") |>
+  cols_label(test = "Test", description = "Description", source = "Source") |>
+  tab_style(cell_text(font = "IBM Plex Mono", size = px(13)), cells_body(columns = test)) |>
+  opt_table_font(font = list(google_font("IBM Plex Sans"), default_fonts())) |>
+  tab_options(
+    table.width = pct(100), table.font.size = px(14), column_labels.font.weight = "bold",
+    row_group.font.weight = "bold", row_group.text_transform = "capitalize", row_group.background.color = "#eef3f9",
+    table.border.top.style = "hidden", table.background.color = "transparent"
+  )
 ```
 
 A small helper analyses one test, with heart rate and RPE when they were recorded (the RPE of the three simulated
@@ -25,11 +38,14 @@ tests is simulated too):
 
 ```{r}
 analyse <- function(name, ...) {
-  one <- subset(lactate_tests, test == name)
+  one <- lactate_tests |>
+    filter(test == name)
   hr <- if (!anyNA(one$heart_rate)) "heart_rate"
   rating <- if (!anyNA(one$rpe)) "rpe"
-  lactate_threshold(one, intensity, lactate, heart_rate_column = hr, rpe_column = rating, sport = one$sport[1],
-                    plot = FALSE, ...)
+  one |>
+    lactate_threshold(
+      intensity, lactate, heart_rate_column = hr, rpe_column = rating, sport = first(one$sport), plot = FALSE, ...
+    )
 }
 ```
 
@@ -39,15 +55,20 @@ Every method answers a slightly different question, so on the same test they lan
 for each test, the lowest and highest threshold as a percentage of the highest intensity of the test:
 
 ```{r}
-spread <- do.call(rbind, lapply(unique(lactate_tests$test), function(name) {
-  one <- subset(lactate_tests, test == name)
-  results <- analyse(name, ltp_breakpoints = if (name == "submaximal") 1 else 2)
-  percent <- 100 * attr(results, "lactater")$intensity / max(one$intensity)
-  data.frame(
-    test = name, sport = one$sport[1], thresholds = sum(!is.na(percent)),
-    lowest = round(min(percent, na.rm = TRUE)), highest = round(max(percent, na.rm = TRUE))
+spread <- lactate_tests |>
+  distinct(test, sport) |>
+  mutate(thresholds = purrr::map(test, \(name) {
+    analyse(name, ltp_breakpoints = if (name == "submaximal") 1 else 2) |>
+      relative_thresholds() |>
+      select(method, percent_peak)
+  })) |>
+  tidyr::unnest(thresholds) |>
+  summarise(
+    thresholds = sum(!is.na(percent_peak)),
+    lowest = round(min(percent_peak, na.rm = TRUE)),
+    highest = round(max(percent_peak, na.rm = TRUE)),
+    .by = c(test, sport)
   )
-}))
 spread
 ```
 
@@ -69,13 +90,20 @@ Per kg of body mass, and as a percentage of the highest power, the two riders ca
 
 ```{r}
 female <- analyse("cycling_female")
-mass <- function(name) subset(lactate_tests, test == name)$body_mass[1]
-relative <- function(results, name) {
-  out <- relative_thresholds(results, mass(name))
-  columns <- c("method", "intensity", "intensity_per_kg", "percent_peak")
-  cbind(rider = name, out[out$method %in% c("LTP1", "LTP2"), columns])
+body_mass <- function(name) {
+  lactate_tests |>
+    filter(test == name) |>
+    pull(body_mass) |>
+    first()
 }
-rbind(relative(elite, "cycling_elite"), relative(female, "cycling_female"))
+
+bind_rows(
+  cycling_elite = relative_thresholds(elite, body_mass("cycling_elite")),
+  cycling_female = relative_thresholds(female, body_mass("cycling_female")),
+  .id = "rider"
+) |>
+  filter(method %in% c("LTP1", "LTP2")) |>
+  select(rider, method, intensity, intensity_per_kg, percent_peak)
 ```
 
 ## Running: speed and pace
@@ -84,7 +112,9 @@ Treadmill speed in km/h at 0% grade. lactater adds the pace (s/km) and shows it 
 
 ```{r}
 running <- analyse("running")
-running[running$method %in% c("Log-log", "OBLA 4.0", "LTP2"), c("method", "intensity", "pace", "lactate", "heart_rate")]
+running |>
+  filter(method %in% c("Log-log", "OBLA 4.0", "LTP2")) |>
+  select(method, intensity, pace, lactate, heart_rate)
 autoplot(running, "LTP2")
 ```
 
@@ -95,7 +125,9 @@ from `watts = 2.80 / pace^3` with pace in s/m.
 
 ```{r}
 rowing <- analyse("rowing")
-rowing[rowing$method %in% c("Log-log", "ModDmax", "IAT"), c("method", "intensity", "pace", "lactate")]
+rowing |>
+  filter(method %in% c("Log-log", "ModDmax", "IAT")) |>
+  select(method, intensity, pace, lactate)
 ```
 
 ## Swimming: speed in m/s (simulated)
@@ -104,7 +136,9 @@ A 7 x 200 m step test, +0.05 m/s per step. Speeds are shown to 0.01 m/s, and the
 
 ```{r}
 swimming <- analyse("swimming")
-swimming[swimming$method %in% c("Log-log", "ModDmax", "IAT"), c("method", "intensity", "pace", "heart_rate", "rpe")]
+swimming |>
+  filter(method %in% c("Log-log", "ModDmax", "IAT")) |>
+  select(method, intensity, pace, heart_rate, rpe)
 autoplot(swimming, "ModDmax")
 ```
 
@@ -113,7 +147,7 @@ autoplot(swimming, "ModDmax")
 ### An early lactate dip
 
 Lactate can fall after the first stage, when the warm-up was hard or short. `lactate_checks()` flags it, because
-it shapes Dmax and the baseline of Bsln+.
+it shapes D<sub>max</sub> and the baseline of Bsln+.
 
 ```{r}
 dip <- analyse("cycling_early_dip")
@@ -123,12 +157,13 @@ autoplot(dip, "Dmax")
 
 ### No resting sample, 5-min steps
 
-The Heuberger et al. (2018) test starts at 175 W with no resting sample. Bsln+ then uses the first stage as its
+The [Heuberger et al. (2018)](https://doi.org/10.1371/journal.pone.0206846) test starts at 175 W with no resting sample. Bsln+ then uses the first stage as its
 baseline, and `lactate_checks()` says so.
 
 ```{r}
 no_rest <- analyse("cycling_5min_no_rest")
-subset(lactate_checks(no_rest), check == "Resting sample")
+lactate_checks(no_rest) |>
+  filter(check == "Resting sample")
 ```
 
 ### A submaximal test
@@ -137,9 +172,13 @@ The simulated client stopped at about 3 mmol/L, before the second turn point. Fi
 one; `ltp_breakpoints = 1` fits only LTP1, and `lactate_checks()` suggests it when peak lactate stays low.
 
 ```{r}
-subset(lactate_checks(analyse("submaximal")), check %in% c("Thresholds found", "Peak lactate"))
+lactate_checks(analyse("submaximal")) |>
+  filter(check %in% c("Thresholds found", "Peak lactate"))
+
 submaximal <- analyse("submaximal", ltp_breakpoints = 1)
-submaximal[submaximal$method %in% c("LTP1", "LTP2", "OBLA 4.0"), c("method", "intensity", "lactate")]
+submaximal |>
+  filter(method %in% c("LTP1", "LTP2", "OBLA 4.0")) |>
+  select(method, intensity, lactate)
 ```
 
 ## One athlete over five years
@@ -148,15 +187,16 @@ The six `cycling_series` tests come from one rider. See [Comparing tests](compar
 for how to tell a real change from noise.
 
 ```{r}
-series <- subset(lactate_tests, athlete == "cyclist_series")
-by_day <- lactate_threshold(series, intensity, lactate, method = "LTP", plot = FALSE, .by = "day")
-by_day[c("day", "method", "intensity", "lactate")]
+lactate_tests |>
+  filter(athlete == "cyclist_series") |>
+  lactate_threshold(intensity, lactate, method = "LTP", plot = FALSE, .by = "day") |>
+  select(day, method, intensity, lactate)
 ```
 
 ## References
 
 Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive
 value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
-doi:10.1371/journal.pone.0206846
+[doi:10.1371/journal.pone.0206846](https://doi.org/10.1371/journal.pone.0206846)
 
-Trinity College Dublin graded exercise test data. Zenodo. doi:10.5281/zenodo.10841412
+Trinity College Dublin graded exercise test data. Zenodo. [doi:10.5281/zenodo.10841412](https://doi.org/10.5281/zenodo.10841412)

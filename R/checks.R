@@ -9,7 +9,7 @@
 #' @param x The result of [lactate_threshold()].
 #'
 #' @return a tibble with one row per check: `check`, `status` (`"ok"`, `"note"`, or `"warning"`), and
-#' `details`.
+#' `details`. It prints as a checklist, with a tick for each check that passed.
 #'
 #' @references
 #' Hofmann P, Pokan R, von Duvillard SP, Seibert FJ, Zweiker R, Schmid P. Heart rate performance curve during
@@ -115,7 +115,27 @@ lactate_checks <- function(x) {
       fine = sprintf("%s lactate.", info$settings$sample)
     )
   )
-  tibble::as_tibble(out)
+  out <- tibble::as_tibble(out)
+  class(out) <- c("lactate_checks", class(out))
+  out
+}
+
+#' @export
+print.lactate_checks <- function(x, ...) {
+  if(!all(c("check", "status", "details") %in% names(x))) return(NextMethod())
+  symbols <- if(l10n_info()[["UTF-8"]]) {
+    c(ok = "\u2714", note = "\u2139", warning = "\u26a0")
+  } else {
+    c(ok = "v", note = "i", warning = "!")
+  }
+  counts <- table(factor(x$status, names(symbols)))
+  cat(sprintf(
+    "%d check%s: %d passed, %d note%s, %d warning%s\n", nrow(x), if(nrow(x) == 1) "" else "s", counts[["ok"]],
+    counts[["note"]], if(counts[["note"]] == 1) "" else "s", counts[["warning"]],
+    if(counts[["warning"]] == 1) "" else "s"
+  ))
+  cat(sprintf("%s %s  %s\n", symbols[x$status], formatC(x$check, width = -max(nchar(x$check))), x$details), sep = "")
+  invisible(x)
 }
 
 #' Goodness of fit of the lactate curves

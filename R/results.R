@@ -102,8 +102,8 @@ plot.lactate_thresholds <- function(x, method = NULL, ...) {
 #'
 #' Every threshold of the test on one intensity axis: the fitted curve on top, and below it one row per method,
 #' grouped by family, with the threshold as a dot and its confidence interval as a line (when computed). A table on
-#' the right prints the lactate, heart rate, RPE and percentage of the highest intensity at each threshold, with the
-#' lactate shaded by its value and, with intervals, their width shaded by how wide they are.
+#' the right prints the lactate, heart rate, RPE, percentage of the peak intensity and of the highest heart rate at
+#' each threshold, with the lactate shaded by its value and, with intervals, their width shaded by how wide they are.
 #'
 #' @param object The result of [lactate_threshold()].
 #' @param info Its `lactater` attribute.
@@ -128,12 +128,13 @@ plot_overview <- function(object, info) {
   rows <- rows[!is.na(rows$intensity), ]
   rows$row <- rev(seq_len(nrow(rows)))
   rows$peak <- 100 * rows$intensity / max(info$data$intensity)
+  if(!is.null(rows$heart_rate)) rows$hr_max <- 100 * rows$heart_rate / max(info$data$heart_rate, na.rm = TRUE)
   family_end <- which(rows$family[-1] != rows$family[-nrow(rows)])
   separators <- rows$row[family_end] - 0.5
   curve <- curve_points(info$curve)
   limits <- range(points$intensity, curve$intensity, rows$intensity, rows$low, rows$high, na.rm = TRUE)
   x_scale <- ggplot2::scale_x_continuous(limits = limits, expand = ggplot2::expansion(mult = 0.03))
-  y_rows <- ggplot2::scale_y_continuous(breaks = rows$row, labels = rows$method, expand = c(0, 0.6))
+  y_rows <- ggplot2::scale_y_continuous(breaks = rows$row, labels = method_label(rows$method), expand = c(0, 0.6))
   bands <- ggplot2::annotate(
     "rect", xmin = -Inf, xmax = Inf, ymin = rows$row[rows$row %% 2 == 0] - 0.5,
     ymax = rows$row[rows$row %% 2 == 0] + 0.5, fill = colours[["faint"]], alpha = 0.18
@@ -149,11 +150,7 @@ plot_overview <- function(object, info) {
       breaks = lactate_breaks(max(points$lactate, curve$lactate) * 1.08), expand = c(0, 0)
     ) +
     ggplot2::labs(x = NULL, y = "Lactate (mmol/L)") +
-    theme_lactater() +
-    ggplot2::theme(
-      axis.text.x = ggplot2::element_blank(), axis.ticks.x = ggplot2::element_blank(),
-      axis.line.x = ggplot2::element_blank()
-    )
+    theme_lactater()
 
   dots <- ggplot2::ggplot(rows) + bands + lines
   if(!is.null(rows$low)) {
@@ -204,12 +201,15 @@ plot_overview <- function(object, info) {
 #' @param intervals Whether the thresholds have confidence intervals.
 #' @keywords internal
 overview_table <- function(rows, colours, sport, intervals) {
+  ## headers as plotmath, two lines each, for the subscript of HRmax
   columns <- list(
-    list("lactate", "Lactate\nmmol/L", "%.1f", shade = TRUE),
-    if(!is.null(rows$heart_rate)) list("heart_rate", "Heart rate\nbpm", "%.0f", shade = FALSE),
+    list("lactate", quote(atop("Lactate", "mmol/L")), "%.1f", shade = TRUE),
+    if(!is.null(rows$heart_rate)) list("heart_rate", quote(atop("Heart rate", "bpm")), "%.0f", shade = FALSE),
     if(!is.null(rows$rpe)) list("rpe", "RPE", "%.1f", shade = FALSE),
-    list("peak", "% of\npeak", "%.0f", shade = FALSE),
-    if(intervals) list("width", paste0("CI width\n", intensity_unit(sport)), "%.0f", shade = TRUE)
+    list("peak", bquote(atop("% peak", .(if(sport %in% c("cycling", "rowing")) "PO" else "speed"))), "%.0f",
+         shade = FALSE),
+    if(!is.null(rows$hr_max)) list("hr_max", quote(atop("%", HR[max])), "%.0f", shade = FALSE),
+    if(intervals) list("width", bquote(atop("CI width", .(intensity_unit(sport)))), "%.0f", shade = TRUE)
   )
   columns <- Filter(Negate(is.null), columns)
   if(intervals) rows$width <- rows$high - rows$low
@@ -237,7 +237,7 @@ overview_table <- function(rows, colours, sport, intervals) {
     ggplot2::scale_alpha_identity() +
     ## half a column on each side, or the outer columns without shading sit on the panel edge and are clipped
     ggplot2::scale_x_continuous(
-      breaks = seq_along(columns), labels = vapply(columns, `[[`, "", 2), position = "top",
+      breaks = seq_along(columns), labels = as.expression(lapply(columns, `[[`, 2)), position = "top",
       limits = c(0.5, length(columns) + 0.5), expand = c(0, 0)
     ) +
     ggplot2::scale_y_continuous(expand = c(0, 0.6)) +

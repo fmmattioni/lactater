@@ -20,20 +20,23 @@ The short version:
 * A step test predicts race speed to about +/- 10% in running (95% range) and time-trial power to about +/- 25 W in
   cycling, and only for tests run like those of the study the equation comes from.
 * Every equation belongs to one threshold method: an equation fitted on IAT gives wrong numbers for LTP2.
-* A recent race predicts the next one better than any step test (Vickers & Vertosick, 2016).
+* A recent race predicts the next one better than any step test ([Vickers & Vertosick, 2016](https://doi.org/10.1186/s13102-016-0052-y)).
 
 ## Running: 5 km to the marathon
 
 The largest study of race prediction from a step test followed 427 competitive runners (88 women) who raced within 2
-months of a treadmill test: 3-min stages, +2 km/h, a 2% grade, earlobe blood (Roecker et al., 1998). The speed at
+months of a treadmill test: 3-min stages, +2 km/h, a 2% grade, earlobe blood ([Roecker et al., 1998](https://doi.org/10.1097/00005768-199810000-00014)). The speed at
 the individual anaerobic threshold (IAT: the lowest lactate/speed ratio + 1.5 mmol/L, lactater's `IAT`) correlated
 with mean race speed with r = 0.88 to 0.93, and each distance got its own straight line. A smaller study of 18 male
-marathon runners related marathon speed to the speed at 4 mmol/L (Sjödin & Jacobs, 1981).
+marathon runners related marathon speed to the speed at 4 mmol/L ([Sjödin & Jacobs, 1981](https://doi.org/10.1055/s-2008-1034579)).
 
 Here is a simulated runner tested with that protocol:
 
-```{r}
-runner <- data.frame(
+```{r, message = FALSE}
+library(lactater)
+library(dplyr)
+
+runner <- tibble(
   intensity = c(0, 8, 10, 12, 14, 16, 18),
   lactate = c(1.0, 1.1, 1.2, 1.6, 2.6, 4.6, 8.0)
 )
@@ -60,10 +63,13 @@ minutes here. That will not always be so; when they differ, the difference is pa
 The runner in `lactate_tests` was tested on a treadmill at 0% grade, with +1 km/h steps after 16 km/h:
 
 ```{r}
-tcd <- subset(lactate_tests, test == "running")
-tcd_results <- lactate_threshold(tcd, intensity, lactate, heart_rate, sport = "running", plot = FALSE)
+tcd_results <- lactate_tests |>
+  filter(test == "running") |>
+  lactate_threshold(intensity, lactate, heart_rate, sport = "running", plot = FALSE)
+
 tcd_prediction <- predict_performance(tcd_results, method = "IAT")
-tcd_prediction[c("event", "threshold", "intensity", "time")]
+tcd_prediction |>
+  select(event, threshold, intensity, time)
 ```
 
 A marathon in about 2:05 is close to the world record, for a runner described as trained. lactater warns twice: the steps
@@ -72,8 +78,8 @@ differ from the source protocol, and the IAT (20.4 km/h) lies above the runners 
 
 * **The protocol moves the threshold.** Running on the flat costs less than at a 2% grade, so the same lactate
   appears at a higher speed. Smaller steps also move it: 1 instead of 2 km/h raised the speed at an individual
-  anaerobic threshold by 6% (Coen et al., 2001), and 6- instead of 3-min stages lowered the speed at 4 mmol/L from
-  14.4 to 12.9 km/h (Kuipers et al., 2003).
+  anaerobic threshold by 6% ([Coen et al., 2001](https://doi.org/10.1055/s-2001-11332)), and 6- instead of 3-min stages lowered the speed at 4 mmol/L from
+  14.4 to 12.9 km/h ([Kuipers et al., 2003](https://doi.org/10.1055/s-2003-42020)).
 * **Outside the sample, a straight line is a guess.** At an IAT this high, the half-marathon equation even predicts
   a faster pace than the 10 km one.
 
@@ -82,13 +88,15 @@ compare them with the protocol in the header yourself.
 
 ## Cycling: the 45-min time trial
 
-For cycling, lactater fits its own equations on the open data of Heuberger et al. (2018): 48 well-trained men,
+For cycling, lactater fits its own equations on the open data of [Heuberger et al. (2018)](https://doi.org/10.1371/journal.pone.0206846): 48 well-trained men,
 5-min stages of +25 W from 175 W, venous blood, and a 45-min time trial a week after the test
 (`data-raw/performance_cycling.R`). Because the thresholds come from lactater itself, any of six methods can be used:
 
 ```{r}
-cyclist <- subset(lactate_tests, test == "cycling_5min_no_rest")
-cyclist_results <- lactate_threshold(cyclist, intensity, lactate, plot = FALSE)
+cyclist_results <- lactate_tests |>
+  filter(test == "cycling_5min_no_rest") |>
+  lactate_threshold(intensity, lactate, plot = FALSE)
+
 cyclist_prediction <- predict_performance(cyclist_results)
 cyclist_prediction
 autoplot(cyclist_prediction)
@@ -101,10 +109,10 @@ leave-one-out prediction errors (each rider predicted by the equation fitted wit
 |---|---|---|---|---|
 | LTP2 | 39 | 0.88 | 12.3 W | 92 +/- 5% |
 | IAT | 39 | 0.87 | 12.5 W | 95 +/- 6% |
-| ModDmax | 35 | 0.87 | 12.8 W | 94 +/- 4% |
+| ModD<sub>max</sub> | 35 | 0.87 | 12.8 W | 94 +/- 4% |
 | OBLA 4.0 | 33 | 0.84 | 12.9 W | 90 +/- 6% |
-| Log-Poly-ModDmax | 38 | 0.86 | 13.8 W | 94 +/- 6% |
-| Dmax | 39 | 0.79 | 16.2 W | 104 +/- 7% |
+| Log-Poly-ModD<sub>max</sub> | 38 | 0.86 | 13.8 W | 94 +/- 6% |
+| D<sub>max</sub> | 39 | 0.79 | 16.2 W | 104 +/- 7% |
 | Peak power of the step test | 39 | 0.92 | 10.4 W | 82 +/- 3% |
 
 The last row is the lesson: the highest power of the step test predicted the time trial at least as well as any
@@ -119,9 +127,9 @@ Any threshold, sport and protocol works. Here, 25 simulated runners of a lab tha
 
 ```{r}
 set.seed(2026)
-lab <- data.frame(athlete = 1:25, ltp2 = round(rnorm(25, 15, 1.6), 1))
-lab$time_10km <- round(10000 / ((0.6 + 1.01 * lab$ltp2 + rnorm(25, 0, 0.45)) / 3.6))
-head(lab)
+lab <- tibble(athlete = 1:25, ltp2 = round(rnorm(25, 15, 1.6), 1)) |>
+  mutate(time_10km = round(10000 / ((0.6 + 1.01 * ltp2 + rnorm(25, 0, 0.45)) / 3.6)))
+lab
 
 own <- calibrate_performance(
   lab, threshold = "ltp2", performance = "time_10km", method = "LTP2",
@@ -150,24 +158,24 @@ the athlete, which is why it is shown here as a table to learn from, not as a pr
 
 | Sport and race | Race intensity relative to the threshold | Population | Source |
 |---|---|---|---|
-| Running, 5 km | 117-120% of IAT | 427 competitive runners | Roecker et al., 1998 (equations at IAT 14-17 km/h) |
+| Running, 5 km | 117-120% of IAT | 427 competitive runners | [Roecker et al., 1998](https://doi.org/10.1097/00005768-199810000-00014) (equations at IAT 14-17 km/h) |
 | Running, 10 km | 109-110% of IAT | | |
 | Running, half marathon | 104-107% of IAT | | |
 | Running, marathon | 94-97% of IAT | | |
-| Running, marathon | 87 +/- 6% of the speed at 4 mmol/L (78-98%) | 18 men, 2:22 to 4:12 | Sjödin & Jacobs, 1981 |
-| Running, marathon | about the speed at 2.5-3 mmol/L in a field test | 24 elite marathon runners | Föhrenbach et al., 1987 |
-| Cycling, 45-min time trial | 92% of LTP2, 90% of OBLA 4.0, 104% of Dmax | 48 well-trained men | Heuberger et al., 2018 (refitted) |
-| Rowing, 2000 m | speed at 4 mmol/L = 89% of race speed | 13 club rowers | Cosgrove et al., 1999 |
-| Swimming, 400 m | 109% of the speed at 4 mmol/L | 15 competitive swimmers | Ribeiro et al., 1990 |
-| Swimming, 800-1500 m | 3.4% above the maximal lactate steady state | swimmers | Hering & Stepan, 2021 |
+| Running, marathon | 87 +/- 6% of the speed at 4 mmol/L (78-98%) | 18 men, 2:22 to 4:12 | [Sjödin & Jacobs, 1981](https://doi.org/10.1055/s-2008-1034579) |
+| Running, marathon | about the speed at 2.5-3 mmol/L in a field test | 24 elite marathon runners | [Föhrenbach et al., 1987](https://doi.org/10.1055/s-2008-1025633) |
+| Cycling, 45-min time trial | 92% of LTP2, 90% of OBLA 4.0, 104% of D<sub>max</sub> | 48 well-trained men | [Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846) (refitted) |
+| Rowing, 2000 m | speed at 4 mmol/L = 89% of race speed | 13 club rowers | [Cosgrove et al., 1999](https://doi.org/10.1080/026404199365407) |
+| Swimming, 400 m | 109% of the speed at 4 mmol/L | 15 competitive swimmers | [Ribeiro et al., 1990](https://doi.org/10.1136/bjsm.24.3.196) |
+| Swimming, 800-1500 m | 3.4% above the maximal lactate steady state | swimmers | [Hering & Stepan, 2021](https://doi.org/10.3389/fphys.2021.668123) |
 
 In rowing, the power at 4 mmol/L is the threshold most often related to 2000 m performance, but maximal oxygen
-uptake or peak power often predicted better (Cosgrove et al., 1999; Kilbey et al., 2025). For rowing and swimming,
+uptake or peak power often predicted better ([Cosgrove et al., 1999](https://doi.org/10.1080/026404199365407); [Kilbey et al., 2025](https://doi.org/10.1186/s40798-024-00796-4)). For rowing and swimming,
 lactater has no published equation to offer; calibrate your own.
 
 ## A recent race is better
 
-Riegel (1981) described world-record times with `T2 = T1 x (D2 / D1)^b`, with a fatigue factor `b` of 1.077 for men
+[Riegel (1981)](https://www.jstor.org/stable/27850427) described world-record times with `T2 = T1 x (D2 / D1)^b`, with a fatigue factor `b` of 1.077 for men
 and 1.083 for women, and 1.05 to 1.06 for men aged 40 to 70. From a 40-min 10 km:
 
 ```{r}
@@ -176,46 +184,47 @@ round(riegel(40, from = 10, to = c(5, 21.0975, 42.195), b = 1.077), 1)
 ```
 
 The formula was well calibrated up to the half marathon in 2,303 recreational runners, but predicted a marathon at
-least 10 minutes too fast for half of them (Vickers & Vertosick, 2016). A step test is still worth doing: it tells
+least 10 minutes too fast for half of them ([Vickers & Vertosick, 2016](https://doi.org/10.1186/s13102-016-0052-y)). A step test is still worth doing: it tells
 you why an athlete is fast, how to train, and how to pace when no recent race exists.
 
 ## References
 
 Coen B, Urhausen A, Kindermann W. Individual anaerobic threshold: methodological aspects of its assessment in
-running. Int J Sports Med. 2001;22(1):8-16. doi:10.1055/s-2001-11332
+running. Int J Sports Med. 2001;22(1):8-16. [doi:10.1055/s-2001-11332](https://doi.org/10.1055/s-2001-11332)
 
 Cosgrove MJ, Wilson J, Watt D, Grant SF. The relationship between selected physiological variables of rowers and
 rowing performance as determined by a 2000 m ergometer test. J Sports Sci. 1999;17(11):845-52.
-doi:10.1080/026404199365407
+[doi:10.1080/026404199365407](https://doi.org/10.1080/026404199365407)
 
 Föhrenbach R, Mader A, Hollmann W. Determination of endurance capacity and prediction of exercise intensities for
-training and competition in marathon runners. Int J Sports Med. 1987;8(1):11-8. doi:10.1055/s-2008-1025633
+training and competition in marathon runners. Int J Sports Med. 1987;8(1):11-8. [doi:10.1055/s-2008-1025633](https://doi.org/10.1055/s-2008-1025633)
 
 Hering GO, Stepan J. The maximal lactate steady state workload determines individual swimming performance. Front
-Physiol. 2021;12:668123. doi:10.3389/fphys.2021.668123
+Physiol. 2021;12:668123. [doi:10.3389/fphys.2021.668123](https://doi.org/10.3389/fphys.2021.668123)
 
 Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive
 value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
-doi:10.1371/journal.pone.0206846
+[doi:10.1371/journal.pone.0206846](https://doi.org/10.1371/journal.pone.0206846)
 
 Kilbey T, Vecchi E, Salbany P, Handa A, Stride E, Sheth M. Associations between lactate thresholds and 2000 m rowing
 ergometer performance: implications for prediction. A systematic review. Sports Med Open. 2025;11:21.
-doi:10.1186/s40798-024-00796-4
+[doi:10.1186/s40798-024-00796-4](https://doi.org/10.1186/s40798-024-00796-4)
 
 Kuipers H, Rietjens G, Verstappen F, Schoenmakers H, Hofman G. Effects of stage duration in incremental running
-tests on physiological variables. Int J Sports Med. 2003;24(7):486-91. doi:10.1055/s-2003-42020
+tests on physiological variables. Int J Sports Med. 2003;24(7):486-91. [doi:10.1055/s-2003-42020](https://doi.org/10.1055/s-2003-42020)
 
 Ribeiro JP, Cadavid E, Baena J, Monsalvete E, Barna A, De Rose EH. Metabolic predictors of middle-distance swimming
-performance. Br J Sports Med. 1990;24(3):196-200. doi:10.1136/bjsm.24.3.196
+performance. Br J Sports Med. 1990;24(3):196-200. [doi:10.1136/bjsm.24.3.196](https://doi.org/10.1136/bjsm.24.3.196)
 
 Riegel PS. Athletic records and human endurance. American Scientist. 1981;69(3):285-90.
+[https://www.jstor.org/stable/27850427](https://www.jstor.org/stable/27850427)
 
 Roecker K, Schotte O, Niess AM, Horstmann T, Dickhuth HH. Predicting competition performance in long-distance
 running by means of a treadmill test. Med Sci Sports Exerc. 1998;30(10):1552-7.
-doi:10.1097/00005768-199810000-00014
+[doi:10.1097/00005768-199810000-00014](https://doi.org/10.1097/00005768-199810000-00014)
 
 Sjödin B, Jacobs I. Onset of blood lactate accumulation and marathon running performance. Int J Sports Med.
-1981;2(1):23-6. doi:10.1055/s-2008-1034579
+1981;2(1):23-6. [doi:10.1055/s-2008-1034579](https://doi.org/10.1055/s-2008-1034579)
 
 Vickers AJ, Vertosick EA. An empirical study of race times in recreational endurance runners. BMC Sports Sci Med
-Rehabil. 2016;8:26. doi:10.1186/s13102-016-0052-y
+Rehabil. 2016;8:26. [doi:10.1186/s13102-016-0052-y](https://doi.org/10.1186/s13102-016-0052-y)

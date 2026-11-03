@@ -9,11 +9,13 @@ S3method(autoplot,lactate_shape)
 S3method(autoplot,lactate_thresholds)
 S3method(autoplot,lactate_trend)
 S3method(autoplot,lactate_zones)
+S3method(grid::makeContent,lactater_pointer)
 S3method(pillar::tbl_sum,lactate_calibration)
 S3method(pillar::tbl_sum,lactate_load)
 S3method(pillar::tbl_sum,lactate_performance)
 S3method(pillar::tbl_sum,lactate_thresholds)
 S3method(plot,lactate_thresholds)
+S3method(print,lactate_checks)
 S3method(print,lactate_diagnostics)
 S3method(print,lactate_shape)
 export(autoplot)
@@ -36,7 +38,10 @@ export(run_data_input)
 export(theme_lactater)
 export(training_load)
 export(vlamax)
-importFrom(ggplot2,autoplot)
+importFrom(ggplot2,
+  "%+replace%",
+  autoplot
+)
 importFrom(stats,
   approx,
   uniroot

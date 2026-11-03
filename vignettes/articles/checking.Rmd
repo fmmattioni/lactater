@@ -22,8 +22,11 @@ off a curve fitted to them. Before trusting a number, ask three questions:
 `lactate_checks()` lists what is easy to miss in a table of numbers. The printed results say how many checks need
 attention.
 
-```{r}
-plateau <- data.frame(
+```{r, message = FALSE}
+library(lactater)
+library(dplyr)
+
+plateau <- tibble(
   intensity = c(0, 100, 150, 200, 250, 300, 350, 400),
   lactate = c(1.0, 1.1, 1.3, 2.0, 3.4, 5.2, 6.4, 6.4)
 )
@@ -44,12 +47,14 @@ lactate_threshold(plateau, intensity, lactate, method = "Dmax", plot = FALSE, ma
 to 10 points need, and prints a summary. Here is a trained female cyclist from `lactate_tests`:
 
 ```{r}
-female <- lactate_threshold(subset(lactate_tests, test == "cycling_female"), intensity, lactate, plot = FALSE)
+female <- lactate_tests |>
+  filter(test == "cycling_female") |>
+  lactate_threshold(intensity, lactate, plot = FALSE)
 diagnostics <- lactate_diagnostics(female)
 diagnostics
 ```
 
-```{r, fig.height = 10, fig.width = 9}
+```{r, fig.height = 11, fig.width = 9}
 autoplot(diagnostics)
 ```
 
@@ -57,12 +62,12 @@ Each panel answers one question, and its subtitle says what to look for.
 
 **Fit to the stages.** The curve with the measured stages, and a dashed line from each stage to the curve (the
 residual). Look for runs of stages on the same side of the curve, not for single stages a little off it: with an
-analyzer error of 2 to 4% (Bonaventura et al., 2015), a residual of 0.1 to 0.2 mmol/L is expected.
+analyzer error of 2 to 4% ([Bonaventura et al., 2015](https://pmc.ncbi.nlm.nih.gov/articles/PMC4306774/)), a residual of 0.1 to 0.2 mmol/L is expected.
 
 **Residuals vs fitted.** The residuals against the fitted lactate. They should scatter around zero with no pattern.
 An arch (positive at both ends and negative in the middle, or the reverse) means the shape of the curve is wrong for
 this test: an exponential, for example, cannot follow stages that stay flat or dip at the start. A fan that widens
-to the right is expected, because analyzer error grows with lactate (Bonaventura et al., 2015).
+to the right is expected, because analyzer error grows with lactate ([Bonaventura et al., 2015](https://pmc.ncbi.nlm.nih.gov/articles/PMC4306774/)).
 
 **Normality of residuals.** The standardized residuals (each residual divided by its standard error) against the
 values a normal distribution would give. They should follow the line. With 6 to 10 points, no test can tell much:
@@ -71,36 +76,45 @@ even when the errors were heavy-tailed or skewed (code below). A check that "pas
 "fine". Look for one point far from the others instead.
 
 **Influential stages.** How much each stage pulls the curve, as Cook's distance: how far all the fitted values would
-move if that stage were left out (Cook, 1977). Two things are special with so few stages:
+move if that stage were left out ([Cook, 1977](https://doi.org/10.2307/1268249)). Two things are special with so few stages:
 
 * The first and last stages always have a high *leverage* (the potential to pull the curve), by design: leverage
   depends only on where the stages are along the intensity axis, and the ends have no neighbors on one side. For a
   cubic on 10 stages, the end stages here have a leverage of 0.82 and the inner ones 0.24 to 0.33. Because the
   curve bends towards a high-leverage stage, its residual looks small exactly when it matters most, which is why
   Cook's distance combines the residual with the leverage.
-* The usual cut-offs fail. The rule "leverage above 2p/n" (p, the number of curve terms; Hoaglin & Welsch, 1978)
+* The usual cut-offs fail. The rule "leverage above 2p/n" (p, the number of curve terms; [Hoaglin & Welsch, 1978](https://doi.org/10.1080/00031305.1978.10479237))
   gives 2 x 4 / 8 = 1 for a cubic on 8 stages, a value leverage can never exceed, so it flags nothing. lactater
   flags a stage when its Cook's distance is above the median of the F(p, n - p) distribution, which adapts to n and
-  p (Cook, 1977).
+  p ([Cook, 1977](https://doi.org/10.2307/1268249)).
 
-**Leave one stage out.** Every threshold computed again without each stage in turn (a jackknife; Efron, 1982). A
-tight cluster of dots means the threshold does not rest on any single stage; a wide spread means it does. The five
-largest changes are labeled with the stage left out. Dropping the first or last stage changes where the Dmax line
-starts or ends, so large changes there are expected for the Dmax family. The jackknife standard error,
+**Leave one stage out.** Every threshold computed again without each stage in turn (a jackknife; [Efron, 1982](https://doi.org/10.1137/1.9781611970319)). A
+grid has one row per method and one column per stage left out, shaded by how far the threshold moves, with the move
+written where it is 3% of the threshold or more, about the day-to-day variation of a threshold ([Heuberger et al.,
+2018](https://doi.org/10.1371/journal.pone.0206846)). A pale row means the threshold does not rest on any single
+stage; a dark cell names the stage it rests on; a dark column is a stage that many thresholds rest on, which is worth
+a second look at its sample. Dropping the first or last stage changes where the D<sub>max</sub> line starts or ends,
+so dark cells there are expected for the D<sub>max</sub> family. The jackknife standard error,
 `sqrt((n - 1) / n * sum((theta_i - mean(theta_i))^2))`, summarizes the spread for each method:
 
 ```{r}
-diagnostics$jackknife[order(-diagnostics$jackknife$jackknife_se), ][1:5, ]
+diagnostics$jackknife |>
+  arrange(desc(jackknife_se)) |>
+  slice_head(n = 5)
 ```
 
-**Which curve predicts best.** Each stage predicted by the curve fitted without it; more on this below.
+**Which curve predicts best.** Each stage predicted by the curve fitted without it. The printed summary gives the
+prediction error of the best curve: the root-mean-square difference, in mmol/L, between each measured stage and its
+prediction from the curve fitted without it. More on this below.
 
 ### When one stage drives the curve
 
 In this trained cyclist, lactate falls after the first stage, probably after a hard warm-up:
 
 ```{r}
-dip <- lactate_threshold(subset(lactate_tests, test == "cycling_early_dip"), intensity, lactate, plot = FALSE)
+dip <- lactate_tests |>
+  filter(test == "cycling_early_dip") |>
+  lactate_threshold(intensity, lactate, plot = FALSE)
 dip_diagnostics <- lactate_diagnostics(dip)
 dip_diagnostics
 ```
@@ -109,7 +123,8 @@ The first stage has a Cook's distance of 4.9, five times the cut-off: it pulls t
 Log-log moves by 34 W, while OBLA 2.0, read off the curve higher up, barely moves:
 
 ```{r}
-subset(dip_diagnostics$leave_one_out, method %in% c("Log-log", "OBLA 2.0") & stage == 120)
+dip_diagnostics$leave_one_out |>
+  filter(method %in% c("Log-log", "OBLA 2.0"), stage == 120)
 ```
 
 That does not make the stage wrong: the dip is real physiology, and deleting a measurement to get a nicer curve is
@@ -119,7 +134,8 @@ stages, each of the three straight segments of LTP holds only a few stages, and 
 LTP1 by 69 W:
 
 ```{r}
-subset(dip_diagnostics$leave_one_out, method == "LTP1")
+dip_diagnostics$leave_one_out |>
+  filter(method == "LTP1")
 ```
 
 ## Which curve?
@@ -132,8 +148,12 @@ punishes a curve that bends to follow single points.
 The elite rider in `lactate_tests` shows the difference:
 
 ```{r}
-elite <- lactate_threshold(subset(lactate_tests, test == "cycling_elite"), intensity, lactate, plot = FALSE)
-lactate_fit_quality(elite)[c("fit", "parameters", "rmse", "prediction_error")]
+elite <- lactate_tests |>
+  filter(test == "cycling_elite") |>
+  lactate_threshold(intensity, lactate, plot = FALSE)
+
+lactate_fit_quality(elite) |>
+  select(fit, parameters, rmse, prediction_error)
 ```
 
 The B-spline follows the stages most closely (the lowest RMSE), but predicts a left-out stage worse than the 3rd
@@ -141,26 +161,32 @@ degree polynomial: it follows the noise as well as the curve. The runner is the 
 follow the flat first stages, and the spline and 4th degree polynomial predict better.
 
 ```{r}
-runner <- lactate_threshold(subset(lactate_tests, test == "running"), intensity, lactate, sport = "running",
-                            plot = FALSE)
-lactate_fit_quality(runner)[c("fit", "parameters", "rmse", "prediction_error")]
+runner <- lactate_tests |>
+  filter(test == "running") |>
+  lactate_threshold(intensity, lactate, sport = "running", plot = FALSE)
+
+lactate_fit_quality(runner) |>
+  select(fit, parameters, rmse, prediction_error)
 ```
 
 Choose the curve before you look at the thresholds, use the prediction error as a guide rather than a rule, and keep
-the same curve between tests of the same athlete. Some methods fix their curve anyway: Exp-Dmax and Log-Exp-ModDmax
+the same curve between tests of the same athlete. Some methods fix their curve anyway: Exp-D<sub>max</sub> and Log-Exp-ModD<sub>max</sub>
 use the exponential, LTratio and IAT the B-spline, and Log-log and LTP the measured stages.
 
 ## How sure is a threshold?
 
 The jackknife shows how much a threshold rests on single stages. `ci = TRUE` asks a different question: how much
 does it move with the scatter of this test? Every replicate keeps the fitted curve, adds residuals resampled with
-replacement (leverage-adjusted and centered; Davison & Hinkley, 1997), and runs every method again. The interval is
+replacement (leverage-adjusted and centered; [Davison & Hinkley, 1997](https://doi.org/10.1017/CBO9780511802843)), and runs every method again. The interval is
 the middle 95% of the replicate thresholds. The overview plot draws it as a line on each row.
 
 ```{r, fig.height = 8}
 set.seed(1)
-with_ci <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE, ci = TRUE, n_boot = 300)
-with_ci[c("method", "intensity", "intensity_low", "intensity_high")]
+with_ci <- demo_data |>
+  lactate_threshold(intensity, lactate, heart_rate, plot = FALSE, ci = TRUE, n_boot = 300)
+
+with_ci |>
+  select(method, intensity, intensity_low, intensity_high)
 autoplot(with_ci)
 ```
 
@@ -184,8 +210,10 @@ rejected <- function(n, errors, runs = 4000) {
     stats::shapiro.test(stats::rstandard(stats::lm(y ~ poly(x, 3))))$p.value < 0.05
   }))
 }
-errors <- list(normal = rnorm, heavy_tailed = function(n) rt(n, 3), skewed = function(n) rexp(n) - 1)
-sapply(errors, function(e) sapply(c(6, 8, 10), rejected, errors = e))
+error_types <- list(normal = rnorm, heavy_tailed = function(n) rt(n, 3), skewed = function(n) rexp(n) - 1)
+tidyr::expand_grid(errors = names(error_types), stages = c(6, 8, 10)) |>
+  mutate(rejected = purrr::map2_dbl(errors, stages, \(e, n) rejected(n, error_types[[e]]))) |>
+  tidyr::pivot_wider(names_from = errors, values_from = rejected)
 ```
 
 </details>
@@ -193,15 +221,21 @@ sapply(errors, function(e) sapply(c(6, 8, 10), rejected, errors = e))
 ## References
 
 Bonaventura JM, Sharpe K, Knight E, Fuller KL, Tanner RK, Gore CJ. Reliability and accuracy of six hand-held blood
-lactate analysers. J Sports Sci Med. 2015;14:203-14.
+lactate analysers. J Sports Sci Med. 2015;14:203-14. [PMCID:PMC4306774](https://pmc.ncbi.nlm.nih.gov/articles/PMC4306774/)
 
 Cook RD. Detection of influential observation in linear regression. Technometrics. 1977;19(1):15-8.
-doi:10.2307/1268249
+[doi:10.2307/1268249](https://doi.org/10.2307/1268249)
 
 Davison AC, Hinkley DV. Bootstrap Methods and Their Application. Cambridge University Press; 1997.
+[doi:10.1017/CBO9780511802843](https://doi.org/10.1017/CBO9780511802843)
 
 Efron B. The Jackknife, the Bootstrap and Other Resampling Plans. Philadelphia: SIAM; 1982.
-doi:10.1137/1.9781611970319
+[doi:10.1137/1.9781611970319](https://doi.org/10.1137/1.9781611970319)
+[doi:10.1137/1.9781611970319](https://doi.org/10.1137/1.9781611970319)
+
+Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive
+value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
+[doi:10.1371/journal.pone.0206846](https://doi.org/10.1371/journal.pone.0206846)
 
 Hoaglin DC, Welsch RE. The hat matrix in regression and ANOVA. Am Stat. 1978;32(1):17-22.
-doi:10.1080/00031305.1978.10479237
+[doi:10.1080/00031305.1978.10479237](https://doi.org/10.1080/00031305.1978.10479237)

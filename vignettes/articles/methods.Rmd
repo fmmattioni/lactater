@@ -12,71 +12,71 @@ if (plex) options(lactater.font = "IBM Plex Sans")
 
 lactater estimates the lactate threshold concepts that are most used in sport science. This article says how each
 one is defined, how lactater computes it, what the evidence says about it, and how to collect data that does the
-methods justice. Every statement points to its source; where only an abstract was available, it says so.
+methods justice. Every statement points to its source, and every source links to the paper.
 
 ## Two thresholds, many methods
 
 Most authors describe the lactate response to a step test with two thresholds and three phases: a first rise of
 lactate above resting values (LT1) and a second, abrupt increase (LT2), which split the intensities into three
-zones with distinct metabolic, hormonal and cardio-respiratory responses (Hofmann & Tschakert, 2017). The methods in
+zones with distinct metabolic, hormonal and cardio-respiratory responses ([Hofmann & Tschakert, 2017](https://doi.org/10.3389/fphys.2017.00337)). The methods in
 lactater fall into the three families of a review that counted 25 lactate threshold concepts: fixed lactate
 concentrations, a first rise above baseline, and concepts aimed at the maximal lactate steady state (MLSS) or a
-distinct change in the curve (Faude et al., 2009).
+distinct change in the curve ([Faude et al., 2009](https://doi.org/10.2165/00007256-200939060-00003)).
 
 | Method | Definition | Curve | Reference |
 |---|---|---|---|
-| Log-log | Crossing of two straight lines through log(lactate) vs log(intensity) | none (measured stages) | Beaver et al., 1985 |
-| OBLA 2.0-4.0 | Intensity at a fixed lactate of 2.0 to 4.0 mmol/L | user's choice | Heck et al., 1985; Kindermann et al., 1979; Skinner & McLellan, 1980 |
-| Bsln+ 0.5-1.5 | Intensity at 0.5 to 1.5 mmol/L above baseline | user's choice | Berg et al., 1990; Zoladz et al., 1995 |
-| Dmax | Point on the curve furthest from the line between the first and last stage | 3rd degree polynomial | Cheng et al., 1992 |
-| ModDmax | As Dmax, from the stage before the first rise of at least 0.4 mmol/L to the last stage | 3rd degree polynomial | Bishop et al., 1998 |
-| Exp-Dmax | As Dmax, on an exponential plus constant curve | exponential | Hughson et al., 1987 |
-| Log-Poly-ModDmax, Log-Exp-ModDmax | As Dmax, from the Log-log threshold | polynomial or exponential | Jamnick et al., 2018 |
-| LTP1, LTP2 | Breakpoints of three straight lines through lactate vs intensity | none (measured stages) | Hofmann et al., 1997; Pokan et al., 1997 |
-| LTratio | Lowest lactate / intensity ratio | B-spline | Dickhuth et al., 1999 |
-| IAT | 1.5 mmol/L above the lactate at LTratio | B-spline | Dickhuth et al., 1999; Röcker et al., 1997 |
+| Log-log | Crossing of two straight lines through log(lactate) vs log(intensity) | none (measured stages) | [Beaver et al., 1985](https://doi.org/10.1152/jappl.1985.59.6.1936) |
+| OBLA 2.0-4.0 | Intensity at a fixed lactate of 2.0 to 4.0 mmol/L | user's choice | [Heck et al., 1985](https://doi.org/10.1055/s-2008-1025824); [Kindermann et al., 1979](https://doi.org/10.1007/BF00421101); [Skinner & McLellan, 1980](https://doi.org/10.1080/02701367.1980.10609285) |
+| Bsln+ 0.5-1.5 | Intensity at 0.5 to 1.5 mmol/L above baseline | user's choice | [Berg et al., 1990](https://pubmed.ncbi.nlm.nih.gov/2408033/); [Zoladz et al., 1995](https://doi.org/10.1113/jphysiol.1995.sp020959) |
+| D<sub>max</sub> | Point on the curve furthest from the line between the first and last stage | 3rd degree polynomial | [Cheng et al., 1992](https://doi.org/10.1055/s-2007-1021309) |
+| ModD<sub>max</sub> | As D<sub>max</sub>, from the stage before the first rise of at least 0.4 mmol/L to the last stage | 3rd degree polynomial | [Bishop et al., 1998](https://doi.org/10.1097/00005768-199808000-00014) |
+| Exp-D<sub>max</sub> | As D<sub>max</sub>, on an exponential plus constant curve | exponential | [Hughson et al., 1987](https://doi.org/10.1152/jappl.1987.62.5.1975) |
+| Log-Poly-ModD<sub>max</sub>, Log-Exp-ModD<sub>max</sub> | As D<sub>max</sub>, from the Log-log threshold | polynomial or exponential | [Jamnick et al., 2018](https://doi.org/10.1371/journal.pone.0199794) |
+| LTP1, LTP2 | Breakpoints of three straight lines through lactate vs intensity | none (measured stages) | [Hofmann et al., 1997](https://doi.org/10.1097/00005768-199706000-00005); [Pokan et al., 1997](https://doi.org/10.1097/00005768-199708000-00009) |
+| LTratio | Lowest lactate / intensity ratio | B-spline | [Dickhuth et al., 1999](https://doi.org/10.1055/s-2007-971105) |
+| IAT | 1.5 mmol/L above the lactate at LTratio | B-spline | [Dickhuth et al., 1999](https://doi.org/10.1055/s-2007-971105); Röcker et al., 1997 |
 
 ## How lactater computes them
 
 **Fitted curves.** The 3rd and 4th degree polynomials are fitted by least squares. "B-spline" is a natural cubic
 regression spline with 4 degrees of freedom. The exponential plus constant, `a + b * exp(c * x)`, is fitted by
-searching `c` only, and only positive values as in Hughson et al. (1987): for a fixed `c` the model is linear in `a`
+searching `c` only, and only positive values as in [Hughson et al. (1987)](https://doi.org/10.1152/jappl.1987.62.5.1975): for a fixed `c` the model is linear in `a`
 and `b`. This needs no starting values and cannot fail to converge. `lactate_fit_quality()` compares the curves on your data.
 
 **Fixed concentrations (OBLA, Bsln+, IAT).** The intensity is found by solving the fitted curve for the target
 lactate. When the curve crosses the target more than once (an early lactate dip), the highest crossing is used.
 Bsln+ takes the resting sample as the baseline, or the first stage when there is no resting sample.
 
-**The Dmax family.** Every variant takes the point where the fitted curve lies furthest *below* a straight line that
+**The D<sub>max</sub> family.** Every variant takes the point where the fitted curve lies furthest *below* a straight line that
 ends at the last stage. Where the line's ends sit differs between papers, and lactater follows each one by default
 (`dmax_anchor = "original"`):
 
-* Dmax and Exp-Dmax: on the curve, "the two end points of the curve" (Cheng et al., 1992; Jamnick et al., 2018).
-* ModDmax: at the measured values, "the LT and the final lactate point" (Bishop et al., 1998).
-* Log-Poly-ModDmax and Log-Exp-ModDmax: from the Log-log threshold on the curve to "the final lactate point"
-  (Jamnick et al., 2018).
+* D<sub>max</sub> and Exp-D<sub>max</sub>: on the curve, "the two end points of the curve" ([Cheng et al., 1992](https://doi.org/10.1055/s-2007-1021309); [Jamnick et al., 2018](https://doi.org/10.1371/journal.pone.0199794)).
+* ModD<sub>max</sub>: at the measured values, "the LT and the final lactate point" ([Bishop et al., 1998](https://doi.org/10.1097/00005768-199808000-00014)).
+* Log-Poly-ModD<sub>max</sub> and Log-Exp-ModD<sub>max</sub>: from the Log-log threshold on the curve to "the final lactate point"
+  ([Jamnick et al., 2018](https://doi.org/10.1371/journal.pone.0199794)).
 
-Other authors drew Dmax from the measured points too: "the two end data points" (Bishop et al., 1998), "the first
-and last lactate measurements" (Bentley et al., 2007) or "the first and last measured points" (Heuberger et al.,
-2018). `dmax_anchor = "fitted"` puts every end on the curve and `"observed"` every end at the measured values. On a
-smooth curve the choice moves Dmax by less than 1 W; when lactate levels off in the last stage it can move a
+Other authors drew D<sub>max</sub> from the measured points too: "the two end data points" ([Bishop et al., 1998](https://doi.org/10.1097/00005768-199808000-00014)), "the first
+and last lactate measurements" ([Bentley et al., 2007](https://doi.org/10.2165/00007256-200737070-00002)) or "the first and last measured points" ([Heuberger et al.,
+2018](https://doi.org/10.1371/journal.pone.0206846)). `dmax_anchor = "fitted"` puts every end on the curve and `"observed"` every end at the measured values. On a
+smooth curve the choice moves D<sub>max</sub> by less than 1 W; when lactate levels off in the last stage it can move a
 threshold by tens of watts.
 
-The ModDmax first rise is "at least 0.4 mmol/L" between two stages (Heuberger et al., 2018); Bishop et al. (1998)
-and Jamnick et al. (2018) wrote "> 0.4", which differs only when two stages differ by exactly 0.4 mmol/L. Bishop et
+The ModD<sub>max</sub> first rise is "at least 0.4 mmol/L" between two stages ([Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846)); [Bishop et al. (1998)](https://doi.org/10.1097/00005768-199808000-00014)
+and [Jamnick et al. (2018)](https://doi.org/10.1371/journal.pone.0199794) wrote "> 0.4", which differs only when two stages differ by exactly 0.4 mmol/L. Bishop et
 al. measured plasma lactate from the fingertip. Change the rise with `moddmax_rise`, for example for sweat lactate.
-The resting sample is never used, and the Log-log start of the Log-*-ModDmax variants is computed without it.
+The resting sample is never used, and the Log-log start of the Log-*-ModD<sub>max</sub> variants is computed without it.
 
-**Log-log.** Beaver et al. (1985) split the log-log data into two segments that share the stage between them, fitted
-a straight line to each, and took the threshold where the two lines cross. They chose the split by eye; Jamnick et
-al. (2018) took "the intersection point of the two lines with the lowest residuals sum of squares". lactater tries
+**Log-log.** [Beaver et al. (1985)](https://doi.org/10.1152/jappl.1985.59.6.1936) split the log-log data into two segments that share the stage between them, fitted
+a straight line to each, and took the threshold where the two lines cross. They chose the split by eye; [Jamnick et
+al. (2018)](https://doi.org/10.1371/journal.pone.0199794) took "the intersection point of the two lines with the lowest residuals sum of squares". lactater tries
 every stage as the split, with at least three stages per line (a line through two points has no residuals, which
 would favor the shortest segments), so Log-log needs at least five stages. When the two lines cross outside the
 measured stages, the result is `NA`.
 
-**LTP.** Hofmann et al. (1997) and Pokan et al. (1997) found each turn point as the crossing of two regression lines
-"with minimal standard deviation", inside a window: LTP1 from the first lactate value up to 4 mmol/L (Hofmann) or
-75% of the maximal power (Pokan), and LTP2 from LTP1 to the maximal power. Their tests had 1-min and 90-s stages,
+**LTP.** [Hofmann et al. (1997)](https://doi.org/10.1097/00005768-199706000-00005) and [Pokan et al. (1997)](https://doi.org/10.1097/00005768-199708000-00009) found each turn point as the crossing of two regression lines
+"with minimal standard deviation", inside a window: LTP1 from the first lactate value up to 4 mmol/L ([Hofmann et
+al., 1997](https://doi.org/10.1097/00005768-199706000-00005)) or 75% of the maximal power ([Pokan et al., 1997](https://doi.org/10.1097/00005768-199708000-00009)), and LTP2 from LTP1 to the maximal power. Their tests had 1-min and 90-s stages,
 so the windows held many samples. With the 6-8 stages of a typical step test the windows hold too few stages, so
 lactater fits three connected straight segments to all stages at once, trying every pair of breakpoints with at
 least two stages per segment. The result is the global optimum and never depends on starting values.
@@ -89,19 +89,19 @@ least two stages per segment. The result is the global optimum and never depends
 The strongest evidence on validity comes from studies that compare a threshold with the MLSS measured directly.
 
 * In 17 trained male cyclists who did five step tests (1, 3, 4, 7 and 10 min stages) and constant-power bouts to
-  find their MLSS, Log-Poly-ModDmax from the 4-min stage test gave the best estimate of the MLSS (mean difference
-  1.1 W, ICC 0.96). Dmax differed from the MLSS by 19 to 49 W, and OBLA 4.0 overestimated it in every test
-  (Jamnick et al., 2018; single study, venous blood).
+  find their MLSS, Log-Poly-ModD<sub>max</sub> from the 4-min stage test gave the best estimate of the MLSS (mean difference
+  1.1 W, ICC 0.96). D<sub>max</sub> differed from the MLSS by 19 to 49 W, and OBLA 4.0 overestimated it in every test
+  ([Jamnick et al., 2018](https://doi.org/10.1371/journal.pone.0199794); single study, venous blood).
 * In 48 male cyclists (24 on placebo, 109 tests), the intra-subject variation of the thresholds over five tests was
-  3.4% for Dmax, 3.6% for IAT, 3.8% for the 4 mmol/L threshold, and 4.3% for modified Dmax. Modified Dmax predicted a
-  time trial best (r = 0.94), with the 4 mmol/L threshold as a simpler alternative (Heuberger et al., 2018; single
+  3.4% for D<sub>max</sub>, 3.6% for IAT, 3.8% for the 4 mmol/L threshold, and 4.3% for modified D<sub>max</sub>. Modified D<sub>max</sub> predicted a
+  time trial best (r = 0.94), with the 4 mmol/L threshold as a simpler alternative ([Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846); single
   study, venous blood, Lactate Pro 2).
 * A review concluded that LT1 has some evidence for separating the moderate and heavy exercise domains, but that
   most methods (other than critical power and critical speed) have little evidence for separating the heavy and
-  severe domains. The same review lists test-retest variation for Dmax (3.8-10.3%), OBLA 4.0 (3.1-8.2%) and
+  severe domains. The same review lists test-retest variation for D<sub>max</sub> (3.8-10.3%), OBLA 4.0 (3.1-8.2%) and
   Bsln+ 0.5, 1.0 and 1.5 (1.2-3.7%, 3.4-12.6% and 3.1-3.4%), notes that the intensity of one athlete can differ by
   about 30% between methods, and that Bsln+ 1.5 estimated the MLSS in two studies with 3-min stages but not with
-  other stage lengths (Jamnick et al., 2020; review).
+  other stage lengths ([Jamnick et al., 2020](https://doi.org/10.1007/s40279-020-01322-8); review).
 
 Most of this evidence comes from trained, male, cycling populations; check how well it matches the athletes you test.
 
@@ -114,73 +114,73 @@ as a checklist for running a test and analyzing it.
 ## Methods lactater does not include
 
 * **Stegmann's IAT** draws a tangent to the lactate curve over time from the point in recovery where lactate falls
-  back to its end-of-exercise value (Stegmann et al., 1981). It needs timed recovery samples, and some of its
-  assumptions about lactate kinetics "have been challenged" (Faude et al., 2009).
-* **Keul's and Simon's IAT** are the points where the curve's tangent reaches 51 and 45 degrees (Faude et al.,
-  2009). An angle depends on how the axes are scaled, which only the original papers define, and they were not
+  back to its end-of-exercise value ([Stegmann et al., 1981](https://doi.org/10.1055/s-2008-1034604)). It needs timed recovery samples, and some of its
+  assumptions about lactate kinetics "have been challenged" ([Faude et al., 2009](https://doi.org/10.2165/00007256-200939060-00003)).
+* **Keul's and Simon's IAT** are the points where the curve's tangent reaches 51 and 45 degrees ([Faude et al.,
+  2009](https://doi.org/10.2165/00007256-200939060-00003)). An angle depends on how the axes are scaled, which only the original papers define, and they were not
   available to check.
 
 ## References
 
 Beaver WL, Wasserman K, Whipp BJ. Improved detection of lactate threshold during exercise using a log-log
-transformation. J Appl Physiol. 1985;59(6):1936-40. doi:10.1152/jappl.1985.59.6.1936
+transformation. J Appl Physiol. 1985;59(6):1936-40. [doi:10.1152/jappl.1985.59.6.1936](https://doi.org/10.1152/jappl.1985.59.6.1936)
 
 Bentley DJ, Newell J, Bishop D. Incremental exercise test design and analysis: implications for performance
-diagnostics in endurance athletes. Sports Med. 2007;37(7):575-86. doi:10.2165/00007256-200737070-00002
+diagnostics in endurance athletes. Sports Med. 2007;37(7):575-86. [doi:10.2165/00007256-200737070-00002](https://doi.org/10.2165/00007256-200737070-00002)
 
 Berg A, Jakob E, Lehmann M, Dickhuth HH, Huber G, Keul J. Current aspects of modern ergometry. Pneumologie.
-1990;44(1):2-13.
+1990;44(1):2-13. [PMID:2408033](https://pubmed.ncbi.nlm.nih.gov/2408033/)
 
 Bishop D, Jenkins DG, Mackinnon LT. The relationship between plasma lactate parameters, Wpeak and 1-h cycling
-performance in women. Med Sci Sports Exerc. 1998;30(8):1270-5. doi:10.1097/00005768-199808000-00014
+performance in women. Med Sci Sports Exerc. 1998;30(8):1270-5. [doi:10.1097/00005768-199808000-00014](https://doi.org/10.1097/00005768-199808000-00014)
 
 Cheng B, Kuipers H, Snyder A, Keizer H, Jeukendrup A, Hesselink M. A new approach for the determination of
-ventilatory and lactate thresholds. Int J Sports Med. 1992;13(7):518-22. doi:10.1055/s-2007-1021309
+ventilatory and lactate thresholds. Int J Sports Med. 1992;13(7):518-22. [doi:10.1055/s-2007-1021309](https://doi.org/10.1055/s-2007-1021309)
 
 Dickhuth HH, Yin L, Niess A, et al. Ventilatory, lactate-derived and catecholamine thresholds during incremental
-treadmill running: relationship and reproducibility. Int J Sports Med. 1999;20(2):122-7. doi:10.1055/s-2007-971105
+treadmill running: relationship and reproducibility. Int J Sports Med. 1999;20(2):122-7. [doi:10.1055/s-2007-971105](https://doi.org/10.1055/s-2007-971105)
 
 Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid are they? Sports Med. 2009;39(6):469-90.
-doi:10.2165/00007256-200939060-00003
+[doi:10.2165/00007256-200939060-00003](https://doi.org/10.2165/00007256-200939060-00003)
 
 Heck H, Mader A, Hess G, Mucke S, Muller R, Hollmann W. Justification of the 4-mmol/l lactate threshold. Int J Sports
-Med. 1985;6(3):117-30. doi:10.1055/s-2008-1025824
+Med. 1985;6(3):117-30. [doi:10.1055/s-2008-1025824](https://doi.org/10.1055/s-2008-1025824)
 
 Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive
 value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
-doi:10.1371/journal.pone.0206846
+[doi:10.1371/journal.pone.0206846](https://doi.org/10.1371/journal.pone.0206846)
 
 Hofmann P, Pokan R, von Duvillard SP, Seibert FJ, Zweiker R, Schmid P. Heart rate performance curve during
 incremental cycle ergometer exercise in healthy young male subjects. Med Sci Sports Exerc. 1997;29(6):762-8.
-doi:10.1097/00005768-199706000-00005
+[doi:10.1097/00005768-199706000-00005](https://doi.org/10.1097/00005768-199706000-00005)
 
 Hofmann P, Tschakert G. Intensity- and duration-based options to regulate endurance training. Front Physiol.
-2017;8:337. doi:10.3389/fphys.2017.00337
+2017;8:337. [doi:10.3389/fphys.2017.00337](https://doi.org/10.3389/fphys.2017.00337)
 
 Hughson RL, Weisiger KH, Swanson GD. Blood lactate concentration increases as a continuous function in progressive
-exercise. J Appl Physiol. 1987;62(5):1975-81. doi:10.1152/jappl.1987.62.5.1975
+exercise. J Appl Physiol. 1987;62(5):1975-81. [doi:10.1152/jappl.1987.62.5.1975](https://doi.org/10.1152/jappl.1987.62.5.1975)
 
 Jamnick NA, Botella J, Pyne DB, Bishop DJ. Manipulating graded exercise test variables affects the validity of the
-lactate threshold and VO2peak. PLOS ONE. 2018;13(7):e0199794. doi:10.1371/journal.pone.0199794
+lactate threshold and V̇O<sub>2peak</sub>. PLOS ONE. 2018;13(7):e0199794. [doi:10.1371/journal.pone.0199794](https://doi.org/10.1371/journal.pone.0199794)
 
 Jamnick NA, Pettitt RW, Granata C, Pyne DB, Bishop DJ. An examination and critique of current methods to determine
-exercise intensity. Sports Med. 2020;50(10):1729-56. doi:10.1007/s40279-020-01322-8
+exercise intensity. Sports Med. 2020;50(10):1729-56. [doi:10.1007/s40279-020-01322-8](https://doi.org/10.1007/s40279-020-01322-8)
 
 Kindermann W, Simon G, Keul J. The significance of the aerobic-anaerobic transition for the determination of work
-load intensities during endurance training. Eur J Appl Physiol Occup Physiol. 1979;42(1):25-34. doi:10.1007/BF00421101
+load intensities during endurance training. Eur J Appl Physiol Occup Physiol. 1979;42(1):25-34. [doi:10.1007/BF00421101](https://doi.org/10.1007/BF00421101)
 
 Pokan R, Hofmann P, von Duvillard SP, et al. Left ventricular function in response to the transition from aerobic to
-anaerobic metabolism. Med Sci Sports Exerc. 1997;29(8):1040-7. doi:10.1097/00005768-199708000-00009
+anaerobic metabolism. Med Sci Sports Exerc. 1997;29(8):1040-7. [doi:10.1097/00005768-199708000-00009](https://doi.org/10.1097/00005768-199708000-00009)
 
 Röcker K, Schotte O, Niess AM, Heitkamp HC, Dickhuth HH. Laufbandtestdaten und Wettkampfprognosen für den
 Langstreckenlauf (Treadmill testing and the prediction of race results in distance running). Dtsch Z Sportmed.
 1997;48(9):315-23.
 
 Skinner JS, McLellan TH. The transition from aerobic to anaerobic metabolism. Res Q Exerc Sport. 1980;51(1):234-48.
-doi:10.1080/02701367.1980.10609285
+[doi:10.1080/02701367.1980.10609285](https://doi.org/10.1080/02701367.1980.10609285)
 
 Stegmann H, Kindermann W, Schnabel A. Lactate kinetics and individual anaerobic threshold. Int J Sports Med.
-1981;2:160-5. doi:10.1055/s-2008-1034604
+1981;2:160-5. [doi:10.1055/s-2008-1034604](https://doi.org/10.1055/s-2008-1034604)
 
 Zoladz JA, Rademaker AC, Sargeant AJ. Non-linear relationship between O2 uptake and power output at high intensities
-of exercise in humans. J Physiol. 1995;488(1):211-7. doi:10.1113/jphysiol.1995.sp020959
+of exercise in humans. J Physiol. 1995;488(1):211-7. [doi:10.1113/jphysiol.1995.sp020959](https://doi.org/10.1113/jphysiol.1995.sp020959)

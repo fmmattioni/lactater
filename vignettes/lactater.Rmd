@@ -18,8 +18,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, message = FALSE}
 library(lactater)
+library(dplyr)
 ```
 
 lactater turns the stages of a step test into lactate thresholds, checks them, and puts them to use: training zones,
@@ -83,14 +84,15 @@ results <- lactate_threshold(
   intensity_column = intensity,
   lactate_column = lactate,
   heart_rate_column = heart_rate,
+  rpe_column = rpe,
   sport = "cycling",
   plot = FALSE
 )
 results
 ```
 
-Every method runs by default. Pick some with `method`, e.g. `method = c("Dmax", "LTP")`. Add `rpe_column` (and
-`rpe_scale = "CR10"` for the 0-10 scale) to get the RPE at each threshold.
+Every method runs by default. Pick some with `method`, e.g. `method = c("Dmax", "LTP")`. `rpe_column` gives the RPE
+at each threshold (add `rpe_scale = "CR10"` for the 0-10 scale; the RPE of `demo_data` is simulated).
 
 ## Look at them
 
@@ -118,7 +120,7 @@ diagnostics <- lactate_diagnostics(results)
 diagnostics
 ```
 
-```{r, fig.height = 10, fig.width = 9}
+```{r, fig.height = 11, fig.width = 9}
 autoplot(diagnostics)
 ```
 
@@ -129,11 +131,14 @@ intervals (this takes a few seconds; use more replicates than this for real work
 
 ```{r}
 set.seed(2024)
-with_ci <- lactate_threshold(
-  demo_data, intensity, lactate, heart_rate,
-  method = c("OBLA", "Dmax", "LTP"), plot = FALSE, ci = TRUE, n_boot = 200
-)
-with_ci[c("method", "intensity", "intensity_low", "intensity_high")]
+with_ci <- demo_data |>
+  lactate_threshold(
+    intensity, lactate, heart_rate,
+    method = c("OBLA", "Dmax", "LTP"), plot = FALSE, ci = TRUE, n_boot = 200
+  )
+
+with_ci |>
+  select(method, intensity, intensity_low, intensity_high)
 ```
 
 ## Training zones
@@ -158,8 +163,9 @@ Use `.by` with the columns that identify each test. `lactate_tests` holds 15 tes
 here, the six tests of one cyclist:
 
 ```{r}
-series <- subset(lactate_tests, athlete == "cyclist_series")
-lactate_threshold(series, intensity, lactate, method = "Dmax", dmax_methods = "ModDmax", plot = FALSE, .by = "day")
+lactate_tests |>
+  filter(athlete == "cyclist_series") |>
+  lactate_threshold(intensity, lactate, method = "Dmax", dmax_methods = "ModDmax", plot = FALSE, .by = "day")
 ```
 
 ## Learn more
@@ -179,5 +185,5 @@ lactate_threshold(series, intensity, lactate, method = "Dmax", dmax_methods = "M
 * [Predicting performance](https://fmmattioni.github.io/lactater/articles/performance.html): race times from a step
   test, how sure they are, and your own equation.
 * [The example data](https://fmmattioni.github.io/lactater/articles/example-data.html): 15 tests across sports.
-* [VLamax](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html): the maximal lactate accumulation
+* [V̇La<sub>max</sub>](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html): the maximal lactate accumulation
   rate from a sprint test.

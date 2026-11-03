@@ -55,6 +55,8 @@ test_that("lactate_trend recovers a steady change per 30 days", {
   expect_lt(obla$low, obla$per_30_days)
   expect_s3_class(autoplot(trend), "ggplot")
   expect_error(lactate_trend(tests[[1]], tests[[2]], day = 1:2), "at least three")
+  ## a list of tests can be spliced in
+  expect_equal(lactate_trend(!!!tests, day = days), trend)
 })
 
 test_that("the trend plot marks tests outside the noise band, and draws the curves", {

@@ -128,7 +128,11 @@ print.lactate_diagnostics <- function(x, ...) {
            " ", unit, ")", collapse = ", ")
   ))
   cat(sprintf(
-    "Best-predicting curve (leave one out): %s, %.2f mmol/L.\n", x$fits$fit[1], x$fits$prediction_error[1]
+    paste(
+      "Best-predicting curve: %s, which missed each stage by %.2f mmol/L on average when fitted without it",
+      "(root-mean-square leave-one-out error).\n"
+    ),
+    x$fits$fit[1], x$fits$prediction_error[1]
   ))
   invisible(x)
 }
@@ -148,9 +152,18 @@ autoplot.lactate_diagnostics <- function(object, ...) {
     )
   }
   reference <- function(...) ggplot2::geom_hline(..., colour = colours[["accent"]], linewidth = 0.6, linetype = "22")
+  ## one-line subtitles as plain text: a text box inside patchwork reserves the height it would need at the width of
+  ## the whole figure, and overlaps the title
   panel <- function(title, subtitle) {
-    list(ggplot2::labs(title = title, subtitle = subtitle), theme_lactater(),
-         ggplot2::theme(plot.title = ggplot2::element_text(size = ggplot2::rel(1.05))))
+    list(
+      ggplot2::labs(title = title, subtitle = subtitle),
+      theme_lactater() %+replace% ggplot2::theme(
+        plot.title = ggplot2::element_text(face = "bold", size = ggplot2::rel(1.05), hjust = 0,
+                                           margin = ggplot2::margin(b = 3)),
+        plot.subtitle = ggplot2::element_text(colour = colours[["muted"]], size = ggplot2::rel(0.85), hjust = 0,
+                                              lineheight = 1.1, margin = ggplot2::margin(b = 10))
+      )
+    )
   }
 
   fit <- ggplot2::ggplot(stages, ggplot2::aes(intensity, lactate)) +
@@ -160,41 +173,34 @@ autoplot.lactate_diagnostics <- function(object, ...) {
                           linetype = "22") +
     dot() +
     ggplot2::labs(x = intensity_label(sport), y = "Lactate (mmol/L)") +
-    panel("Fit to the stages", "Dots should sit close to the curve,\nwith no run of dots on one side")
+    panel("Fit to the stages", "Dots close to the curve, with no run of dots on one side")
   residuals <- ggplot2::ggplot(stages, ggplot2::aes(fitted, residual)) +
     reference(yintercept = 0) +
     dot() +
     ggplot2::labs(x = "Fitted lactate (mmol/L)", y = "Residual (mmol/L)") +
-    panel("Residuals vs fitted", "Dots should scatter around zero;\nan arch means the curve has the wrong shape")
+    panel("Residuals vs fitted", "Dots around zero; an arch means the curve has the wrong shape")
   quantiles <- stats::qqnorm(stages$standardized, plot.it = FALSE)
   normal <- ggplot2::ggplot(data.frame(x = quantiles$x, y = quantiles$y), ggplot2::aes(x, y)) +
     ggplot2::geom_abline(intercept = 0, slope = 1, colour = colours[["accent"]], linewidth = 0.6, linetype = "22") +
     dot() +
     ggplot2::labs(x = "Theoretical quantiles", y = "Standardized residuals") +
-    panel("Normality of residuals", "Dots should follow the line; with so few\nstages this check has little power")
+    panel("Normality of residuals", "Dots on the line; with so few stages, a weak check")
   influence <- ggplot2::ggplot(stages, ggplot2::aes(intensity, cooks_distance)) +
     reference(yintercept = object$cut) +
     ggplot2::geom_segment(ggplot2::aes(xend = intensity, y = 0, yend = cooks_distance), colour = colours[["muted"]],
                           linewidth = 0.5) +
     dot() +
     ggplot2::labs(x = intensity_label(sport), y = "Cook's distance") +
-    panel("Influential stages", "Stages above the line pull the curve;\ncheck them for sampling errors")
+    panel("Influential stages", "Stages above the line pull the curve: check their samples")
 
-  loo <- as.data.frame(object$leave_one_out)
-  loo <- loo[!is.na(loo$change), ]
-  loo$method <- factor(loo$method, levels = rev(unique(as.character(object$jackknife$method))))
-  ## only the five largest changes are named, on the inner side of the dot, so the panel stays readable
-  largest <- loo[utils_head(order(-abs(loo$change)), 5), ]
-  sensitivity <- ggplot2::ggplot(loo, ggplot2::aes(change, method)) +
-    ggplot2::geom_vline(xintercept = 0, colour = colours[["accent"]], linewidth = 0.6, linetype = "22") +
-    dot() +
-    ggplot2::geom_text(
-      ggplot2::aes(label = paste("without", format_intensity(stage, sport)), hjust = ifelse(change < 0, -0.2, 1.2)),
-      largest, size = 2.6, colour = colours[["muted"]]
-    ) +
-    ggplot2::labs(x = paste0("Change without one stage (", intensity_unit(sport), ")"), y = NULL) +
-    panel("Leave one stage out",
-          "Each dot: the threshold without one stage;\na wide spread means it rests on one stage")
+  sensitivity <- leave_one_out_panel(object, colours, sport) +
+    panel(
+      "Leave one stage out",
+      paste0(
+        "How far each threshold moves without one stage (numbers: moves of 3% or more).\n",
+        "Dark cells: stages a threshold rests on."
+      )
+    )
   fits <- as.data.frame(object$fits)
   fits$fit <- factor(fits$fit, levels = rev(fits$fit))
   prediction <- ggplot2::ggplot(fits, ggplot2::aes(prediction_error, fit)) +
@@ -202,13 +208,59 @@ autoplot.lactate_diagnostics <- function(object, ...) {
                           linewidth = 0.5) +
     dot() +
     ggplot2::labs(x = "Prediction error (mmol/L)", y = NULL) +
-    panel("Which curve predicts best", "Each stage predicted by a curve fitted\nwithout it; lower is better")
+    panel("Which curve predicts best", "Each stage predicted without it; lower is better")
 
-  patchwork::wrap_plots(fit, residuals, normal, influence, sensitivity, prediction, ncol = 2,
-                        heights = c(1, 1, max(1.2, length(unique(loo$method)) / 10))) +
+  ## the long method names of the bottom row must not push the panels above them to the right
+  rows <- length(unique(object$leave_one_out$method))
+  bottom <- patchwork::free(sensitivity + prediction + patchwork::plot_layout(widths = c(1.8, 1)))
+  ((fit + residuals) / (normal + influence) / bottom) +
+    patchwork::plot_layout(heights = c(1, 1, max(1.8, rows / 5))) +
     patchwork::plot_annotation(
       title = "Checking the lactate curve",
       subtitle = sprintf("%s on %d points", info$settings$fit, nrow(stages)),
       theme = theme_lactater()
+    )
+}
+
+#' The leave-one-stage-out grid
+#'
+#' One row per method and one column per stage left out, shaded by how far the threshold moves without that stage,
+#' with the move written in the cells where it is at least 3% of the threshold. For internal use only.
+#'
+#' @param object The result of [lactate_diagnostics()].
+#' @param colours The plot colours.
+#' @param sport The sport.
+#' @keywords internal
+leave_one_out_panel <- function(object, colours, sport) {
+  loo <- as.data.frame(object$leave_one_out)
+  methods <- unique(as.character(object$jackknife$method))
+  loo$row <- match(loo$method, rev(methods))
+  stages <- sort(unique(loo$stage))
+  loo$column <- match(loo$stage, stages)
+  share <- abs(loo$change) / unname(object$info$intensity[loo$method])
+  ## full colour at a move of 10%
+  loo$shade <- pmin(share / 0.1, 1)
+  loo$label <- ifelse(
+    is.na(loo$change), "-",
+    ifelse(share >= 0.03, sprintf("%+.*f", intensity_digits(sport), loo$change), "")
+  )
+  tint <- if(identical(colours[["paper"]], "#ffffff")) colours[["curve"]] else colours[["accent"]]
+  ggplot2::ggplot(loo, ggplot2::aes(column, row)) +
+    ggplot2::geom_tile(ggplot2::aes(alpha = 0.04 + 0.86 * shade), fill = tint, width = 0.94, height = 0.88,
+                       na.rm = TRUE) +
+    ggplot2::geom_text(
+      ggplot2::aes(label = label), size = 2.6,
+      colour = ifelse(!is.na(loo$shade) & loo$shade > 0.55, colours[["paper"]], colours[["ink"]])
+    ) +
+    ggplot2::scale_alpha_identity() +
+    ggplot2::scale_x_continuous(
+      breaks = seq_along(stages), labels = format_intensity(stages, sport), position = "top", expand = c(0, 0.1)
+    ) +
+    ggplot2::scale_y_continuous(breaks = seq_along(methods), labels = method_label(rev(methods)), expand = c(0, 0.1)) +
+    ggplot2::labs(x = paste0("Stage left out (", intensity_unit(sport), ")"), y = NULL) +
+    theme_lactater() +
+    ggplot2::theme(
+      axis.line = ggplot2::element_blank(), axis.ticks = ggplot2::element_blank(),
+      axis.text.y = ggplot2::element_text(colour = colours[["ink"]])
     )
 }

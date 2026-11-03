@@ -105,11 +105,14 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   the rise above the baseline or LTratio, and Log-log and LTP their fitted
   straight lines, dashed beyond the part they fit. Axis lines, no grid, lactate
   axes in whole numbers, and colors checked for color-vision deficiency.
+  Subtitles and captions wrap to the width of the plot (ggtext), the arrow
+  stops at the edge of the threshold dot whatever the size of the plot, and
+  method names carry their subscripts (D<sub>max</sub>, ModD<sub>max</sub>).
 * `autoplot(x)` draws an overview, in the style of a forest plot: the fitted
   curve on top and one row per threshold below on the same intensity axis,
   grouped by method family, with confidence intervals when computed, and a
-  table beside it with the lactate, heart rate, RPE and % of peak at each
-  threshold. `autoplot(x, method = "Dmax")` draws one method; `autoplot()` is
+  table beside it with the lactate, heart rate, RPE, % of the peak power or
+  speed and % of the highest heart rate (HR<sub>max</sub>) at each threshold. `autoplot(x, method = "Dmax")` draws one method; `autoplot()` is
   re-exported from ggplot2.
 * `options(lactater.style = "night")` gives every plot a dark style and
   `"journal"` a quieter print style (an ink curve with one amber accent);
@@ -129,7 +132,8 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 * `lactate_checks()` flags what is easy to miss: too few stages, no resting
   sample, thresholds not found or at the edge of the tested range, an early
   lactate dip, no rise in the last stage, a test that may have stopped before
-  LTP2, and fixed-concentration methods used on a non-blood `sample`.
+  LTP2, and fixed-concentration methods used on a non-blood `sample`. It
+  prints as a checklist, with a tick for each check that passed.
 * `lactate_fit_quality()` compares the curves on your data (R-squared, RMSE,
   standard error of the estimate, largest residual, and the leave-one-out
   prediction error, which does not reward overfitting) to help choose `fit`
@@ -138,7 +142,9 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   curve (flagged against the median of F, which works with 6 to 10 stages),
   every threshold computed again without each stage (range and jackknife
   standard error), and a six-panel plot with a line under each panel on what
-  to look for.
+  to look for. A grid shows how far each threshold moves without each stage,
+  so a threshold that rests on one stage, or a stage many thresholds rest on,
+  stands out.
 * `lactate_zones()` builds three or five training zones from the thresholds
   you choose as LT1 and LT2, with the zone boundaries at the intensity domains
   (moderate below LT1, heavy from LT1 to LT2, severe above LT2). Five zones
@@ -166,6 +172,7 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   threshold over three or more tests. Its plot shows each test against a band
   for the noise of the method around the first test (tests outside it are
   filled), or, with `view = "curves"`, the lactate curves light to dark by date.
+  A list of tests can be spliced in with `!!!`.
 * New `curve_shape()`: did the curve only shift, or change its shape? Both
   tests are fitted with one exponential shape moved by a shift, and with a
   shape each; an F test and AICc compare the two, and the shift comes with a
@@ -205,6 +212,7 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   open data and Heuberger et al. 2018, both CC BY 4.0, credited in
   `?lactate_tests` and `COPYRIGHTS`); three are simulated from published
   protocols and values where no open data exists, with a simulated RPE.
+* `demo_data` gains a simulated RPE column, by the same rule.
 
 ## Documentation for teaching
 
@@ -214,6 +222,10 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   panel, confidence intervals), "Training zones", "Training load", "Comparing
   tests" and "The example data".
 * "Get started" opens with an interactive map of the workflow on the website.
+* Every citation in the articles links to its paper, and every reference to its
+  DOI. "Best practices" opens with the test in five steps and a sketch of what
+  moves the lactate curve, and gives each section as a table with the strength
+  of its evidence. The examples use dplyr, so they read like everyday R.
 
 ## Beyond the step test
 

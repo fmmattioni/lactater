@@ -41,6 +41,7 @@ Suggests:
     collapsibleTree,
     covr,
     datapasta,
+    dplyr,
     knitr,
     lintr,
     miniUI,
@@ -56,6 +57,8 @@ Suggests:
     testthat (>= 3.0.0)
 Imports: 
     ggplot2 (>= 4.0.0),
+    ggtext (>= 0.2.0),
+    grid,
     patchwork,
     rlang,
     splines,

@@ -4,13 +4,15 @@
 \alias{curve_layers}
 \title{Layers of a method drawn on the fitted curve}
 \usage{
-curve_layers(plot_data, intensity, lactate, colours)
+curve_layers(plot_data, intensity, lactate, colours, sport)
 }
 \arguments{
 \item{plot_data}{What the method drew on: the fitted \code{curve} (with a Dmax \code{line}, a Bsln+ \code{baseline},
 or the IAT \code{from} point), a \code{breakpoints} fit, or a \code{ratio} curve, and the \code{fitting} label.}
 
 \item{colours}{The plot colours.}
+
+\item{sport}{The sport, for the unit of the LTratio label.}
 }
 \value{
 a list with the \code{layers}, the lactate \code{y} where the threshold sits, and the \code{top} of the drawing.

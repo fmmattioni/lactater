@@ -16,7 +16,7 @@ lactate_trend(..., day)
 )
 }
 \arguments{
-\item{...}{The results of \code{\link[=lactate_threshold]{lactate_threshold()}}, in any order.}
+\item{...}{The results of \code{\link[=lactate_threshold]{lactate_threshold()}}, in any order. A list of results can be spliced in with \verb{!!!}.}
 
 \item{day}{The day of each test (e.g. days since the first test), in the same order as \code{...}.}
 
@@ -47,7 +47,7 @@ days <- unique(series$day)
 tests <- lapply(days, function(d) {
   lactate_threshold(subset(series, day == d), intensity, lactate, plot = FALSE)
 })
-trend <- do.call(lactate_trend, c(tests, list(day = days)))
+trend <- lactate_trend(!!!tests, day = days)
 trend
 autoplot(trend)
 autoplot(trend, view = "curves")
