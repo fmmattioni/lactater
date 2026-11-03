@@ -24,12 +24,12 @@ downloads](https://cranlogs.r-pkg.org/badges/grand-total/lactater?color=blue)](h
 
 **lactater** estimates lactate thresholds from a step incremental test,
 in one call and with the methods sport scientists use: Log-log, OBLA,
-Bsln+, the D<sub>max</sub> family, the lactate turning points, LTratio,
-and the individual anaerobic thresholds of Dickhuth and of Stegmann. It
-shows how much the methods agree, how sure each threshold is, what to
-double-check in your data, and turns the thresholds you choose into
-training zones. It is written for teaching too: every function and
-article says what the evidence behind it is.
+Bsln+, the D<sub>max</sub> family, the lactate turning points,
+LT<sub>ratio</sub>, and the individual anaerobic thresholds of Dickhuth
+and of Stegmann. It shows how much the methods agree, how sure each
+threshold is, what to double-check in your data, and turns the
+thresholds you choose into training zones. It is written for teaching
+too: every function and article says what the evidence behind it is.
 
 ## Installation
 
@@ -216,9 +216,12 @@ autoplot(five)
 the coach, two A4 pages when printed: LT1 and LT2 and what they mean,
 the zones, the predicted performance, what to double-check, the stages
 and every method ([see an
-example](https://fmmattioni.github.io/lactater/report-example.html)). Or
-build it step by step, with your lab’s name and logo and only the parts
-you want: `recording_sheet()` gives you a printable sheet
+example](https://fmmattioni.github.io/lactater/report-example.html)).
+Give it two to five tests of one athlete and their dates, and it reports
+the progress over them ([see an
+example](https://fmmattioni.github.io/lactater/report-series-example.html)).
+Or build it step by step, with your lab’s name and logo and only the
+parts you want: `recording_sheet()` gives you a printable sheet
 ([PDF](https://fmmattioni.github.io/lactater/step-test-sheet.pdf)) and a
 CSV template, to record every test the same way, and the
 [cheatsheet](https://fmmattioni.github.io/lactater/lactater-cheatsheet.pdf)

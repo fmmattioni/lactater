@@ -6,16 +6,19 @@
 #' `pdf = TRUE`. To choose the sections, their order, or to add your lab's name and logo, build the report step by
 #' step with [report_start()]. Needs the gt package.
 #'
-#' @param x The result of [lactate_threshold()].
+#' @param x The result of [lactate_threshold()], or a list of two to five of them with their `dates`.
 #' @param file Where to write the report, an `.html` file.
 #' @param athlete A named list for the header, passed to [report_header()], e.g. `list(name = "Ana Silva", date = "3
 #'   November 2026", sex = "female", age = 27, body_mass = 61)`.
 #' @param lt1,lt2 The thresholds that mark LT1 and LT2, as in [lactate_zones()].
-#' @param protocol One line on how the test was done: ergometer, stages, sampling site, analyzer.
+#' @param protocol One line on how the test was done: ergometer, stages, sampling site, analyzer. Not shown for a
+#'   series.
 #' @param notes Free text for the end of the report.
 #' @param pdf Whether to print a PDF next to the HTML file as well. Needs the pagedown package and Google Chrome or
 #'   Chromium.
 #' @param open Whether to open the report in the browser.
+#' @param dates With a list of two to five tests in `x`, the date of each test (dates, or days since the first test).
+#'   The report then starts with the progress over the tests, and describes the latest one.
 #'
 #' @return the path of the report, invisibly.
 #' @seealso [report_start()] to build a report step by step.
@@ -34,15 +37,26 @@
 #'   open = FALSE
 #' )
 test_report <- function(x, file = "lactate-test-report.html", athlete = list(), lt1 = "LTP1", lt2 = "LTP2",
-                        protocol = NULL, notes = NULL, pdf = FALSE, open = interactive()) {
-  report <- do.call(report_header, c(list(report_start(x, lt1 = lt1, lt2 = lt2)), athlete)) |>
-    report_summary() |>
-    report_zones() |>
-    report_page_break() |>
-    report_prediction() |>
-    report_checks() |>
-    report_test(protocol = protocol) |>
-    report_methods()
+                        protocol = NULL, notes = NULL, pdf = FALSE, open = interactive(), dates = NULL) {
+  report <- do.call(report_header, c(list(report_start(x, lt1 = lt1, lt2 = lt2, dates = dates)), athlete))
+  report <- if(is.null(report$series)) {
+    report |>
+      report_summary() |>
+      report_zones() |>
+      report_page_break() |>
+      report_prediction() |>
+      report_checks() |>
+      report_test(protocol = protocol) |>
+      report_methods()
+  } else {
+    ## a series: the progress first, then the latest test, which follows on from the latest change; the zones chart
+    ## of every test is already in the progress
+    report |>
+      report_progress() |>
+      report_summary() |>
+      report_zones(chart = FALSE) |>
+      report_checks()
+  }
   if(!is.null(notes)) report <- report_text(report, "Notes", notes)
   report_save(report, file = file, pdf = pdf, open = open)
 }
@@ -52,10 +66,16 @@ test_report <- function(x, file = "lactate-test-report.html", athlete = list(), 
 #' Start a report with `report_start()`, then add the parts you want, in the order you want them, and write it with
 #' `report_save()`. Printing a report previews it in the viewer. [test_report()] builds the default report in one call.
 #'
+#' To report a series of tests of one athlete, give `report_start()` a list of tests and their `dates`: the sections
+#' above then describe the latest test, and `report_progress()` shows the progress over all of them.
+#'
 #' * `report_header()`: who was tested and where. The athlete's name, the date, any other details you name (`sex`,
 #'   `age`, `club`, `tester`...), your lab or institution, and its logo.
 #' * `report_summary()`: the answer: LT1 and LT2 as the title, what they mean, and LT1, LT2 and the peak with their
 #'   lactate, heart rate, RPE, percentage of peak and, with `body_mass`, per kg.
+#' * `report_progress()`: for a series, how LT1 and LT2 changed since the first test, every lactate curve with the
+#'   zones of each test, test by test, and whether the latest change is larger than the noise of the method
+#'   ([compare_tests()]).
 #' * `report_zones()`: the zones chart and table, three or five zones.
 #' * `report_prediction()`: the predicted race performance, from the chosen thresholds when an equation takes them.
 #' * `report_checks()`: what to double-check in the data.
@@ -64,8 +84,12 @@ test_report <- function(x, file = "lactate-test-report.html", athlete = list(), 
 #' * `report_text()`: a section of your own, such as notes or a training plan.
 #' * `report_page_break()`: start a new page when printed.
 #'
-#' @param x The result of [lactate_threshold()].
+#' @param x The result of [lactate_threshold()], or a list of two to five of them for a series of tests of one
+#'   athlete.
 #' @param lt1,lt2 The thresholds that mark LT1 and LT2, as in [lactate_zones()].
+#' @param dates For a series, the date of each test: dates, or days since the first test. Without them, the names of
+#'   `x` are read as dates.
+#' @param cv The typical error of the methods, as in [compare_tests()]; the defaults cover only some methods.
 #' @param report A report from `report_start()`.
 #' @param name The athlete's name, the heading of the report.
 #' @param date The date of the test, as you want it printed.
@@ -100,12 +124,19 @@ test_report <- function(x, file = "lactate-test-report.html", athlete = list(), 
 #'   report_zones(model = 3) |>
 #'   report_text("Training", "Two sessions a week in zone 2, one in zone 3.")
 #' report_save(report, tempfile(fileext = ".html"), open = FALSE)
-report_start <- function(x, lt1 = "LTP1", lt2 = "LTP2") {
+report_start <- function(x, lt1 = "LTP1", lt2 = "LTP2", dates = NULL) {
   rlang::check_installed("gt", reason = "to build the report.")
+  series <- NULL
+  if(!inherits(x, "lactate_thresholds") && is.list(x)) {
+    series <- prepare_series(x, dates)
+    ## every test needs both thresholds, which is better found now than when the report is saved
+    series$zones <- series_zones(series$tests, series$labels, lt1, lt2)
+    x <- series$tests[[length(series$tests)]]
+  }
   info <- lactater_info(x)
   structure(
     list(
-      x = x, info = info, three = lactate_zones(x, lt1 = lt1, lt2 = lt2),
+      x = x, info = info, series = series, lt = list(lt1, lt2), three = lactate_zones(x, lt1 = lt1, lt2 = lt2),
       five = lactate_zones(x, lt1 = lt1, lt2 = lt2, model = 5), header = list(), sections = list()
     ),
     class = "lactate_test_report"
@@ -146,6 +177,15 @@ report_zones <- function(report, model = 5, chart = TRUE) {
       html_zones(zones, r$info$settings$sport)
     )
   })
+}
+
+#' @rdname report_start
+#' @export
+report_progress <- function(report, cv = NULL) {
+  check_report(report)
+  if(is.null(report$series))
+    stop("`report_progress()` needs a series: give `report_start()` a list of tests and their `dates`.", call. = FALSE)
+  add_section(report, "progress", function(r) html_progress(r, cv))
 }
 
 #' @rdname report_start
@@ -234,6 +274,27 @@ print.lactate_test_report <- function(x, ...) {
 NULL
 
 #' @rdname report_internals
+#' @param tests A list of results of [lactate_threshold()].
+#' @param dates Their dates, or days since the first test.
+prepare_series <- function(tests, dates) {
+  if(length(tests) < 2 || length(tests) > 5 || !all(vapply(tests, inherits, logical(1), "lactate_thresholds")))
+    stop("`x` must be one result of `lactate_threshold()`, or a list of two to five.", call. = FALSE)
+  if(is.null(dates)) dates <- names(tests)
+  if(is.null(dates) || length(dates) != length(tests))
+    stop("Give each test its date with `dates`: dates, or days since the first test.", call. = FALSE)
+  ## date-times, as Excel dates read by readxl, count as their dates
+  if(inherits(dates, "POSIXt")) dates <- as.Date(dates)
+  if(is.character(dates)) dates <- tryCatch(as.Date(dates), error = function(e) rep(as.Date(NA), length(dates)))
+  days <- if(inherits(dates, "Date")) as.numeric(dates - min(dates)) else suppressWarnings(as.numeric(dates))
+  if(anyNA(days) || anyDuplicated(days)) stop("`dates` must be distinct dates or numbers of days.", call. = FALSE)
+  sports <- unique(vapply(tests, function(t) lactater_info(t)$settings$sport, ""))
+  if(length(sports) > 1) stop("The tests of a series must come from one sport.", call. = FALSE)
+  labels <- date_labels(if(inherits(dates, "Date")) dates else days)
+  order <- order(days)
+  list(tests = unname(tests)[order], labels = labels[order])
+}
+
+#' @rdname report_internals
 check_report <- function(report) {
   if(!inherits(report, "lactate_test_report")) stop("`report` must come from `report_start()`.", call. = FALSE)
 }
@@ -278,7 +339,13 @@ html_page <- function(report) {
 html_header <- function(report) {
   tags <- htmltools::tags
   header <- report$header
-  details <- c(list(date = header$date, sport = tools::toTitleCase(report$info$settings$sport)), header$details)
+  series <- report$series
+  tests <- if(!is.null(series)) {
+    sprintf("%d, %s to %s", length(series$labels), series$labels[1], series$labels[length(series$labels)])
+  }
+  details <- c(
+    list(date = header$date, tests = tests, sport = tools::toTitleCase(report$info$settings$sport)), header$details
+  )
   if(!is.null(details$body_mass)) details$body_mass <- paste(details$body_mass, "kg")
   details <- Filter(Negate(is.null), details)
   labels <- sub("^(.)", "\\U\\1", gsub("_", " ", names(details)), perl = TRUE)
@@ -299,14 +366,15 @@ html_header <- function(report) {
 
 #' @rdname report_internals
 html_method <- function(zones, boundary) {
-  gsub("Dmax", "D<sub>max</sub>", attr(zones, "lactater_zones")$labels[boundary], fixed = TRUE)
+  method_html(attr(zones, "lactater_zones")$labels[boundary])
 }
 
 #' @rdname report_internals
 html_title <- function(r) {
   lt <- attr(r$three, "lactater_zones")$lt
   sport <- r$info$settings$sport
-  sprintf("LT1 at %s, LT2 at %s", intensity_text(lt[1], sport), intensity_text(lt[2], sport))
+  title <- sprintf("LT1 at %s, LT2 at %s", intensity_text(lt[1], sport), intensity_text(lt[2], sport))
+  if(is.null(r$series)) title else paste("In the latest test:", title)
 }
 
 #' @rdname report_internals
@@ -385,17 +453,131 @@ html_stats <- function(r) {
 
 #' @rdname report_internals
 html_figure <- function(zones) {
-  path <- tempfile(fileext = ".png")
-  on.exit(unlink(path))
-  plot <- autoplot(zones) + ggplot2::labs(title = NULL, subtitle = NULL)
-  ggplot2::ggsave(path, plot, width = 8, height = 2.8, dpi = 200)
-  htmltools::tags$figure(
-    ## gt embeds the image in the page, so the report stays one file
-    htmltools::HTML(gt::local_image(path, height = "auto")),
-    htmltools::tags$figcaption(
+  html_plot(
+    autoplot(zones),
+    paste(
       "The lactate curve of the test, with the zones in the colors of their domain: green moderate, yellow heavy,",
       "red severe."
     )
+  )
+}
+
+#' @rdname report_internals
+#' @param plot A ggplot or a patchwork, drawn without its title and subtitle.
+#' @param caption The text under it.
+#' @param height Its height, in inches; it is 7 inches wide.
+html_plot <- function(plot, caption, height = 3.5) {
+  path <- tempfile(fileext = ".png")
+  on.exit(unlink(path))
+  untitled <- if(inherits(plot, "patchwork")) {
+    patchwork::plot_annotation(title = NULL, subtitle = NULL)
+  } else {
+    ggplot2::labs(title = NULL, subtitle = NULL)
+  }
+  ggplot2::ggsave(path, plot + untitled, width = 7, height = height, dpi = 200)
+  htmltools::tags$figure(
+    ## gt embeds the image in the page, so the report stays one file
+    htmltools::HTML(gt::local_image(path, height = "auto")),
+    htmltools::tags$figcaption(caption)
+  )
+}
+
+#' @rdname report_internals
+html_progress <- function(r, cv) {
+  tags <- htmltools::tags
+  series <- r$series
+  tests <- series$tests
+  n <- length(tests)
+  sport <- r$info$settings$sport
+  unit <- intensity_unit(sport)
+  signed <- function(v) paste(sub("^-", "\u2212", sprintf("%+.*f", intensity_digits(sport), v)), unit)
+  ## LT1 and LT2 of every test from its zones, so that a number works as well as a method
+  rows <- do.call(rbind, lapply(seq_len(n), function(k) {
+    zones <- series$zones[[k]]
+    data <- lactater_info(tests[[k]])$data
+    data.frame(
+      test = series$labels[k], lt1 = zones$intensity_from[3], lt2 = zones$intensity_from[4],
+      heart_rate = if("heart_rate_from" %in% names(zones)) zones$heart_rate_from[4] else NA_real_,
+      peak = max(data$intensity), peak_lactate = max(data$lactate)
+    )
+  }))
+  chosen <- attr(r$three, "lactater_zones")$labels
+  methods <- intersect(chosen, as.character(r$x$method))
+
+  table <- data.frame(
+    test = rows$test, lt1 = format_intensity(rows$lt1, sport), lt2 = format_intensity(rows$lt2, sport),
+    heart_rate = ifelse(is.na(rows$heart_rate), "", sprintf("%.0f", rows$heart_rate)),
+    peak = format_intensity(rows$peak, sport), peak_lactate = sprintf("%.1f", rows$peak_lactate)
+  )
+  if(all(table$heart_rate == "")) table$heart_rate <- NULL
+  by_test <- gt::gt(table) |>
+    gt::cols_align("right", columns = -"test") |>
+    gt::tab_style(gt::cell_text(whitespace = "nowrap"), gt::cells_body(columns = "test")) |>
+    gt::tab_style(gt::cell_text(weight = 600), gt::cells_body(rows = n)) |>
+    gt::cols_label(.list = c(
+      list(
+        test = "Test", lt1 = gt::html(sprintf("LT1, %s (%s)", method_html(chosen[1]), unit)),
+        lt2 = gt::html(sprintf("LT2, %s (%s)", method_html(chosen[2]), unit))
+      ),
+      if(!is.null(table$heart_rate)) list(heart_rate = "Heart rate at LT2 (bpm)"),
+      list(
+        peak = paste0("Peak (", unit, ")"),
+        peak_lactate = gt::html("Peak lactate (mmol&middot;L<sup>&minus;1</sup>)")
+      )
+    ))
+
+  ## the latest test against the one before, method by method, with the chosen ones first
+  comparison <- compare_tests(tests[[n - 1]], tests[[n]], cv = cv)
+  comparison <- comparison[comparison$method %in% methods | !is.na(comparison$verdict), ]
+  comparison <- comparison[order(!comparison$method %in% methods), ]
+  boundary <- match(as.character(comparison$method), chosen)
+  latest <- data.frame(
+    method = paste0(ifelse(is.na(boundary), "", paste0("LT", boundary, ", ")), method_html(comparison$method)),
+    before = format_intensity(comparison$before, sport), after = format_intensity(comparison$after, sport),
+    change = signed(comparison$change),
+    interval = ifelse(
+      is.na(comparison$change_low), "",
+      paste(sub("^-", "\u2212", format_intensity(comparison$change_low, sport)), "to",
+            sub("^-", "\u2212", format_intensity(comparison$change_high, sport)))
+    ),
+    verdict = ifelse(is.na(comparison$verdict), "noise not known", as.character(comparison$verdict))
+  )
+  against <- gt::gt(latest) |>
+    gt::fmt_markdown(columns = "method") |>
+    gt::cols_align("right", columns = c("before", "after", "change", "interval")) |>
+    gt::tab_style(gt::cell_text(weight = 600), gt::cells_body(columns = "verdict", rows = latest$verdict %in%
+                                                                c("increase", "decrease"))) |>
+    gt::cols_label(
+      method = "", before = series$labels[n - 1], after = series$labels[n], change = "Change",
+      interval = "90% interval", verdict = "Verdict"
+    )
+
+  change <- rows[n, c("lt1", "lt2")] - rows[1, c("lt1", "lt2")]
+  htmltools::tagList(
+    tags$h2(class = "claim", sprintf("Since the first test: LT1 %s, LT2 %s", signed(change$lt1), signed(change$lt2))),
+    tags$p(class = "lede", htmltools::HTML(sprintf(
+      paste(
+        "%d tests from %s to %s, with LT1 as %s and LT2 as %s. A threshold also moves when fitness does not, so",
+        "a change counts only when it is larger than the noise of the method."
+      ),
+      n, series$labels[1], series$labels[n], method_html(chosen[1]), method_html(chosen[2])
+    ))),
+    html_plot(
+      plot_series(tests, series$labels, r$lt[[1]], r$lt[[2]]),
+      paste(
+        "Every lactate curve, light to dark from the first to the latest test, and below them the five training",
+        "zones of each test, with LT1 and LT2 at their boundaries; dashed lines: 2 and 4 mmol/L."
+      ),
+      height = 4 + 0.3 * n
+    ),
+    tags$h2("Test by test"),
+    html_table(by_test),
+    tags$h2(sprintf("The latest test against the one before (%s)", series$labels[n - 1])),
+    html_table(against),
+    tags$p(class = "caption", paste(
+      "A change is an increase or a decrease when its whole 90% interval, from the typical error of the method, lies",
+      "on one side of zero, and unclear when the interval spans zero."
+    ))
   )
 }
 
@@ -469,7 +651,7 @@ html_prediction <- function(r) {
   outside <- grepl("outside the range", notes)
   extrapolated <- vapply(prediction$method, function(m) any(startsWith(notes[outside], paste0(m, " ("))), logical(1))
   boundary <- match(prediction$method, chosen)
-  method <- gsub("Dmax", "D<sub>max</sub>", prediction$method, fixed = TRUE)
+  method <- method_html(prediction$method)
   table <- data.frame(
     event = prediction$event,
     from = paste0(
@@ -575,12 +757,11 @@ html_stages <- function(info) {
 #' @rdname report_internals
 html_methods <- function(x, info) {
   sport <- info$settings$sport
-  subscript <- function(v) gsub("Dmax", "D<sub>max</sub>", v, fixed = TRUE)
   family <- as.character(x$method_category)
   ## the family named once, on its first row, so the table stays short
   table <- data.frame(
-    family = ifelse(duplicated(family), "", subscript(family)),
-    method = subscript(as.character(x$method)),
+    family = ifelse(duplicated(family), "", method_html(family)),
+    method = method_html(as.character(x$method)),
     intensity = ifelse(is.na(x$intensity), "not found", format_intensity(x$intensity, sport)),
     ## one decimal, or two when needed (Bsln+ targets such as 1.43)
     lactate = ifelse(is.na(x$lactate), "", sprintf(

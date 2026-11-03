@@ -87,7 +87,7 @@
         <tr><td>Bsln+ 0.5&ndash;1.5</td><td>0.5 to 1.5 mmol/L above the resting value</td></tr>
         <tr><td>D<sub>max</sub> family</td><td>The point furthest below a line to the last stage</td></tr>
         <tr><td>LTP1, LTP2</td><td>The turn points of three straight segments</td></tr>
-        <tr><td>LTratio, IAT</td><td>The lowest lactate / intensity; 1.5 mmol/L above it</td></tr>
+        <tr><td>LT<sub>ratio</sub>, IAT</td><td>The lowest lactate / intensity; 1.5 mmol/L above it</td></tr>
         <tr><td>Stegmann</td><td>A tangent from recovery to the curve</td></tr>
       </table>
       <h3>Useful arguments</h3>
@@ -104,7 +104,7 @@
       <dl>
         <dt>fixed</dt><dd>OBLA targets, mmol/L; default 2 to 4</dd>
         <dt>baseline_plus</dt><dd>Bsln+ rises, mmol/L; default 0.5, 1, 1.5</dd>
-        <dt>iat_rise</dt><dd>The IAT rise above LTratio; default 1.5</dd>
+        <dt>iat_rise</dt><dd>The IAT rise above LT<sub>ratio</sub>; default 1.5</dd>
         <dt>dmax_anchor</dt><dd>Where the D<sub>max</sub> lines start and end</dd>
         <dt>ltp_breakpoints</dt><dd>1 for a test that stopped before LTP2</dd>
         <dt>max_intensity</dt><dd>Leave out stages above it</dd>
@@ -192,7 +192,7 @@ predict_performance(results, equation = own)</pre>
   report_zones() |>
   report_save("ana.html", pdf = TRUE)</pre>
       <dl>
-        <dt>test_report()</dt><dd>The default two-page report in one call</dd>
+        <dt>test_report()</dt><dd>The default two-page report in one call; 2-5 tests and their <code>dates</code> for the progress</dd>
         <dt>report_*()</dt><dd>Header, summary, zones, prediction, checks, test, methods, your own text</dd>
         <dt>lactate_report()</dt><dd>Every threshold as a gt table for a paper</dd>
         <dt>gt_lactater()</dt><dd>The same look for your own gt tables</dd>

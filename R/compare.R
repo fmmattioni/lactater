@@ -240,11 +240,12 @@ relative_thresholds <- function(x, body_mass = NULL) {
 #' with its uncertainty instead of reading noise from one test to the next (Hopkins, 2017).
 #'
 #' @param ... The results of [lactate_threshold()], in any order. A list of results can be spliced in with `!!!`.
-#' @param day The day of each test (e.g. days since the first test), in the same order as `...`.
+#' @param day The date of each test, in the same order as `...`: dates, or days since the first test.
 #'
 #' @return a `lactate_trend` tibble with one row per method found in every test: `method`, `tests`, the
 #' change per 30 days (`per_30_days`) with its 90% interval (`low`, `high`), and the first and last fitted
-#' values. Plot it with [autoplot()].
+#' values. Plot it with [autoplot()]: up to five tests as their lactate curves and training zones, more as each
+#' threshold over time.
 #'
 #' @references
 #' Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.
@@ -255,18 +256,22 @@ relative_thresholds <- function(x, body_mass = NULL) {
 #'
 #' @examples
 #' series <- subset(lactate_tests, athlete == "cyclist_series")
-#' days <- unique(series$day)
+#' days <- c(0, 163, 1107, 1865, 2046)
 #' tests <- lapply(days, function(d) {
 #'   lactate_threshold(subset(series, day == d), intensity, lactate, plot = FALSE)
 #' })
-#' trend <- lactate_trend(!!!tests, day = days)
+#' ## the test dates are not in the data: an example start date
+#' trend <- lactate_trend(!!!tests, day = as.Date("2019-01-14") + days)
 #' trend
-#' autoplot(trend)
-#' autoplot(trend, view = "curves")
+#' autoplot(trend, lt1 = "Bsln + 0.5", lt2 = "ModDmax")
+#' autoplot(trend, view = "thresholds")
 lactate_trend <- function(..., day) {
   tests <- rlang::list2(...)
   infos <- lapply(tests, lactater_info)
   if(length(tests) < 3) stop("A trend needs at least three tests.", call. = FALSE)
+  if(inherits(day, "POSIXt")) day <- as.Date(day)
+  labels <- date_labels(day)
+  if(inherits(day, "Date")) day <- as.numeric(day - min(day))
   if(!is.numeric(day) || length(day) != length(tests) || anyNA(day) || anyDuplicated(day))
     stop("`day` must give one distinct day per test.", call. = FALSE)
   if(length(unique(vapply(infos, function(i) i$settings$sport, character(1)))) > 1)
@@ -292,7 +297,7 @@ lactate_trend <- function(..., day) {
   out <- tibble::as_tibble(do.call(rbind, rows))
   out$method <- factor(out$method, levels = methods)
   attr(out, "lactater_trend") <- list(
-    values = values, methods = methods, day = day, sport = infos[[1]]$settings$sport,
+    tests = tests, labels = labels, values = values, methods = methods, day = day, sport = infos[[1]]$settings$sport,
     intervals = lapply(infos, `[[`, "intervals"), curves = lapply(infos, `[[`, "curve"),
     data = lapply(infos, `[[`, "data")
   )
@@ -371,16 +376,22 @@ list_to_thresholds <- function(info) {
 #' @param object The result of [lactate_trend()].
 #' @param method The methods to plot in the `"thresholds"` view. Default to ModDmax, IAT, OBLA 4.0 and Dmax, which have
 #' a published test-retest variation (see [compare_tests()]), when present.
-#' @param view `"thresholds"` (default): one panel per method, each test as a dot (with its confidence interval when
-#' computed) and a gray band for the noise of the method around the first test, so that dots outside the band are
-#' changes larger than the noise (as in monitoring charts; Hopkins, 2017). `"curves"`: the lactate curves of all
-#' tests on one plot, light to dark by date, to see where along the intensity range the curve moved.
+#' @param view `"curves"`, the default for up to five tests: the lactate curves of all tests, light to dark by date,
+#' to see where along the intensity range the curve moved, above the five training zones of each test from `lt1` and
+#' `lt2`. `"thresholds"`, the default for more tests: one panel per method, each test as a dot (with its confidence
+#' interval when computed) and a gray band for the noise of the method around the first test, so that dots outside
+#' the band are changes larger than the noise (as in monitoring charts; Hopkins, 2017).
+#' @param lt1,lt2 The thresholds that mark LT1 and LT2 in the `"curves"` view, as in [lactate_zones()].
 #' @param cv The test-retest coefficient of variation (%) for the noise band, as in [compare_tests()].
 #' @export
-autoplot.lactate_trend <- function(object, method = NULL, view = c("thresholds", "curves"), cv = NULL, ...) {
-  view <- match.arg(view)
+autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL, lt1 = "LTP1", lt2 = "LTP2", ...) {
   trend <- attr(object, "lactater_trend")
-  if(view == "curves") return(plot_trend_curves(trend))
+  if(is.null(view)) view <- if(length(trend$day) <= 5) "curves" else "thresholds"
+  view <- match.arg(view, c("curves", "thresholds"))
+  if(view == "curves") {
+    order <- order(trend$day)
+    return(plot_series(trend$tests[order], trend$labels[order], lt1, lt2))
+  }
   colours <- lactater_colours()
   cvs <- method_cvs(cv, trend$methods)
   if(is.null(method)) {
@@ -437,39 +448,112 @@ autoplot.lactate_trend <- function(object, method = NULL, view = c("thresholds",
     theme_lactater()
 }
 
-#' The lactate curves of a series of tests
+#' The lactate curves and training zones of a few tests
 #'
-#' @param trend The `lactater_trend` attribute.
+#' `plot_series()` draws every lactate curve, light to dark by date, above the five zones of each test as one bar, on
+#' one intensity axis. `series_zones()` gives the five zones of each test, and names the test when a threshold is
+#' missing. `date_labels()` names tests by date ("3 Nov 2026") or by day ("Day 58"). For internal use only.
+#'
+#' @param tests Results of [lactate_threshold()], oldest first.
+#' @param labels The name of each test, from `date_labels()`.
+#' @param lt1,lt2 The thresholds that mark LT1 and LT2, as in [lactate_zones()].
+#' @param day Dates, or days since the first test.
 #' @keywords internal
-plot_trend_curves <- function(trend) {
+plot_series <- function(tests, labels, lt1, lt2) {
+  n <- length(tests)
+  if(n > 5) stop("The curves of more than five tests do not fit on one plot: choose five.", call. = FALSE)
   colours <- lactater_colours()
-  shades <- grDevices::colorRampPalette(c(colours[["faint"]], colours[["curve"]]))(length(trend$day))
-  order <- order(trend$day)
-  curves <- do.call(rbind, lapply(order, function(k) cbind(curve_points(trend$curves[[k]]), day = trend$day[k])))
-  stages <- do.call(rbind, lapply(order, function(k) {
-    data <- trend$data[[k]]
-    cbind(data[data$intensity > 0, c("intensity", "lactate")], day = trend$day[k])
+  infos <- lapply(tests, lactater_info)
+  sport <- infos[[1]]$settings$sport
+  zones <- series_zones(tests, labels, lt1, lt2)
+  named <- function(k, d) cbind(d, test = factor(labels[k], levels = labels))
+  curves <- do.call(rbind, lapply(seq_len(n), function(k) named(k, curve_points(infos[[k]]$curve))))
+  stages <- do.call(rbind, lapply(seq_len(n), function(k) {
+    named(k, infos[[k]]$data[infos[[k]]$data$intensity > 0, c("intensity", "lactate")])
   }))
-  ends <- do.call(rbind, lapply(split(curves, curves$day), function(d) d[nrow(d), ]))
-  curves$day <- factor(curves$day, levels = trend$day[order])
-  stages$day <- factor(stages$day, levels = trend$day[order])
-  ends$day <- factor(ends$day, levels = trend$day[order])
-  top <- max(stages$lactate, curves$lactate) * 1.05
+  span <- diff(range(stages$intensity, curves$intensity))
+  xlim <- c(min(stages$intensity, curves$intensity) - 0.02 * span, max(curves$intensity) + 0.2 * span)
 
-  ggplot2::ggplot(curves, ggplot2::aes(intensity, lactate, colour = day)) +
+  ## the name of each test at the end of its curve, pushed up until it clears the names already placed near it
+  ends <- do.call(rbind, lapply(split(curves, curves$test), function(d) d[nrow(d), ]))
+  gap <- 0.07 * max(curves$lactate)
+  placed <- integer()
+  for(i in order(ends$lactate)) {
+    repeat {
+      near <- placed[abs(ends$intensity[placed] - ends$intensity[i]) < 0.18 * span &
+                       abs(ends$lactate[placed] - ends$lactate[i]) < gap]
+      if(!length(near)) break
+      ## a little more than the gap, so that rounding cannot find the same name near again
+      ends$lactate[i] <- max(ends$lactate[near]) + gap * 1.001
+    }
+    placed <- c(placed, i)
+  }
+  top <- max(stages$lactate, curves$lactate, ends$lactate) * 1.05
+
+  shades <- grDevices::colorRampPalette(c(colours[["faint"]], colours[["curve"]]), space = "Lab")(n)
+  lactate <- ggplot2::ggplot(curves, ggplot2::aes(intensity, lactate, colour = test)) +
     ggplot2::geom_hline(yintercept = c(2, 4), colour = colours[["faint"]], linewidth = 0.3, linetype = "22") +
-    ggplot2::geom_line(linewidth = 0.8) +
-    ggplot2::geom_point(data = stages, shape = 21, fill = colours[["paper"]], size = 1.9, stroke = 0.7) +
-    ggplot2::geom_text(ggplot2::aes(label = paste("day", day)), ends, hjust = -0.15, size = 3) +
-    ggplot2::scale_colour_manual(values = stats::setNames(shades, trend$day[order]), guide = "none") +
-    ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0.02, 0.12))) +
-    ggplot2::scale_y_continuous(limits = c(0, top), breaks = lactate_breaks(top), expand = c(0, 0)) +
-    ggplot2::labs(
-      title = "Where the curve moved",
-      subtitle = sprintf("%d tests, light to dark by date; dashed: 2 and 4 mmol/L", length(trend$day)),
-      x = intensity_label(trend$sport), y = "Blood lactate (mmol/L)"
+    ggplot2::geom_line(linewidth = 0.9) +
+    ggplot2::geom_point(data = stages, shape = 21, fill = colours[["paper"]], size = 1.7, stroke = 0.7) +
+    ggplot2::geom_label(
+      ggplot2::aes(label = test), ends, hjust = -0.12, size = 3.1, fontface = "bold", colour = colours[["ink"]],
+      fill = colours[["paper"]], border.colour = NA, label.padding = ggplot2::unit(0.08, "lines")
     ) +
+    ggplot2::scale_colour_manual(values = stats::setNames(shades, labels), guide = "none") +
+    ggplot2::scale_y_continuous(limits = c(0, top), breaks = lactate_breaks(top), expand = c(0, 0)) +
+    ggplot2::coord_cartesian(xlim = xlim, expand = FALSE) +
+    ggplot2::labs(x = NULL, y = "Blood lactate (mmol/L)") +
     theme_lactater()
+
+  ## one bar per test, the first at the top, in the colors of the zones, with LT1 and LT2 at their boundaries
+  bars <- do.call(rbind, lapply(seq_len(n), function(k) {
+    z <- zones[[k]]
+    data.frame(
+      row = n + 1 - k, from = ifelse(is.na(z$intensity_from), xlim[1], z$intensity_from),
+      to = ifelse(is.na(z$intensity_to), xlim[2], z$intensity_to), fill = zone_colours[["5"]]
+    )
+  }))
+  marks <- do.call(rbind, lapply(seq_len(n), function(k) {
+    data.frame(row = n + 1 - k, intensity = zones[[k]]$intensity_from[3:4])
+  }))
+  zone_bars <- ggplot2::ggplot(bars) +
+    ggplot2::geom_rect(
+      ggplot2::aes(xmin = from, xmax = to, ymin = row - 0.36, ymax = row + 0.36), fill = bars$fill, alpha = 0.55,
+      colour = colours[["paper"]], linewidth = 0.6
+    ) +
+    ggplot2::geom_text(
+      ggplot2::aes(intensity, row, label = format_intensity(intensity, sport)), marks, hjust = 1.15, size = 2.7,
+      fontface = "bold", colour = colours[["ink"]]
+    ) +
+    ggplot2::scale_y_continuous(breaks = seq_len(n), labels = rev(labels), expand = c(0, 0.1)) +
+    ggplot2::coord_cartesian(xlim = xlim, expand = FALSE) +
+    ggplot2::labs(x = intensity_label(sport), y = NULL) +
+    theme_lactater() +
+    ggplot2::theme(axis.line.y = ggplot2::element_blank(), axis.ticks.y = ggplot2::element_blank())
+
+  patchwork::wrap_plots(lactate, zone_bars, ncol = 1, heights = c(3, 0.35 * n + 0.4)) +
+    patchwork::plot_annotation(
+      title = "Where the curve and the zones moved",
+      subtitle = sprintf(
+        "%d tests, light to dark by date; dashed: 2 and 4 mmol/L. Bars: the five zones of each test, with LT1 and LT2",
+        n
+      ),
+      theme = theme_lactater()
+    )
+}
+
+#' @rdname plot_series
+series_zones <- function(tests, labels, lt1, lt2) {
+  lapply(seq_along(tests), function(k) {
+    tryCatch(lactate_zones(tests[[k]], lt1 = lt1, lt2 = lt2, model = 5), error = function(e) {
+      stop(sprintf("The test of %s: %s", labels[k], conditionMessage(e)), call. = FALSE)
+    })
+  })
+}
+
+#' @rdname plot_series
+date_labels <- function(day) {
+  if(inherits(day, "Date")) trimws(format(day, "%e %b %Y")) else paste("Day", day)
 }
 
 utils_head <- function(x, n) x[seq_len(min(n, length(x)))]

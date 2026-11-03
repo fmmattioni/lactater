@@ -2,10 +2,13 @@
 % Please edit documentation in R/plot.R
 \name{method_plotmath}
 \alias{method_plotmath}
+\alias{method_html}
 \alias{method_label}
 \title{Method names with their subscripts}
 \usage{
 method_plotmath(x)
+
+method_html(x)
 
 method_label(x, bold = FALSE)
 }
@@ -18,8 +21,10 @@ method_label(x, bold = FALSE)
 a character vector, or an expression vector.
 }
 \description{
-Plotmath, so that \code{"ModDmax"} is drawn as ModD with a subscript max, and \code{"VO2max"} with a dot over the V.
+Plotmath, so that \code{"ModDmax"} is drawn as ModD with a subscript max, \code{"LTratio"} as LT with a subscript ratio, and
+\code{"VO2max"} with a dot over the V.
 Plotmath keeps the labels plain \code{element_text()}, which users can restyle. \code{method_plotmath()} gives the text to
-parse (for \code{label_parsed} and \code{parse = TRUE}), \code{method_label()} the parsed expressions.
+parse (for \code{label_parsed} and \code{parse = TRUE}), \code{method_label()} the parsed expressions, and \code{method_html()} the same
+names for HTML.
 }
 \keyword{internal}

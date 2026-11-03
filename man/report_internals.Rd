@@ -2,6 +2,7 @@
 % Please edit documentation in R/test-report.R
 \name{report_internals}
 \alias{report_internals}
+\alias{prepare_series}
 \alias{check_report}
 \alias{add_section}
 \alias{html_page}
@@ -11,6 +12,8 @@
 \alias{html_lede}
 \alias{html_stats}
 \alias{html_figure}
+\alias{html_plot}
+\alias{html_progress}
 \alias{html_zones}
 \alias{html_prediction}
 \alias{html_checks}
@@ -18,6 +21,8 @@
 \alias{html_methods}
 \title{Report internals}
 \usage{
+prepare_series(tests, dates)
+
 check_report(report)
 
 add_section(report, part, draw)
@@ -36,6 +41,10 @@ html_stats(r)
 
 html_figure(zones)
 
+html_plot(plot, caption, height = 3.5)
+
+html_progress(r, cv)
+
 html_zones(zones, sport)
 
 html_prediction(r)
@@ -47,6 +56,10 @@ html_stages(info)
 html_methods(x, info)
 }
 \arguments{
+\item{tests}{A list of results of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
+
+\item{dates}{Their dates, or days since the first test.}
+
 \item{report, r}{A report from \code{\link[=report_start]{report_start()}}.}
 
 \item{part}{The name of the section, for printing.}
@@ -56,6 +69,12 @@ html_methods(x, info)
 \item{zones}{The result of \code{\link[=lactate_zones]{lactate_zones()}}.}
 
 \item{boundary}{1 for LT1, 2 for LT2.}
+
+\item{plot}{A ggplot or a patchwork, drawn without its title and subtitle.}
+
+\item{caption}{The text under it.}
+
+\item{height}{Its height, in inches; it is 7 inches wide.}
 
 \item{sport}{The sport.}
 

@@ -1,5 +1,6 @@
 ## Writes the files the website offers for download, into pkgdown/assets (copied to the root of the site):
-## the recording sheet as PDF and an example test report. Run from the package root after changing either:
+## the recording sheet as PDF, an example test report and an example report of a series. Run from the package root
+## after changing any of them:
 ##
 ##   Rscript data-raw/site_assets.R
 ##
@@ -28,3 +29,14 @@ report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
   simulated)") |>
   report_methods() |>
   report_save("pkgdown/assets/report-example.html", open = FALSE)
+
+## five tests of one cyclist; the test dates are not in the data, so they start on an example date
+series <- lactate_tests[lactate_tests$athlete == "cyclist_series", ]
+days <- c(0, 163, 1107, 1865, 2046)
+tests <- lapply(days, function(d) {
+  lactate_threshold(series[series$day == d, ], intensity, lactate, heart_rate, plot = FALSE)
+})
+test_report(
+  tests, "pkgdown/assets/report-series-example.html", dates = as.Date("2019-01-14") + days,
+  athlete = list(name = "Trained cyclist (example)", sex = "male"), lt1 = "Bsln + 0.5", lt2 = "ModDmax", open = FALSE
+)

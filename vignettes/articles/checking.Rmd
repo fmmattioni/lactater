@@ -171,7 +171,7 @@ lactate_fit_quality(runner) |>
 
 Choose the curve before you look at the thresholds, use the prediction error as a guide rather than a rule, and keep
 the same curve between tests of the same athlete. Some methods fix their curve anyway: Exp-D<sub>max</sub> and Log-Exp-ModD<sub>max</sub>
-use the exponential, LTratio and IAT the B-spline, and Log-log and LTP the measured stages.
+use the exponential, LT<sub>ratio</sub> and IAT the B-spline, and Log-log and LTP the measured stages.
 
 ## How sure is a threshold?
 

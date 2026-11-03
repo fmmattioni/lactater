@@ -137,6 +137,11 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   `report_zones()`, `report_prediction()`, `report_checks()`, `report_test()`,
   `report_methods()`, `report_text()` and `report_page_break()`, then
   `report_save()`; printing a report previews it.
+* Give `test_report()` or `report_start()` two to five tests of one athlete and
+  their `dates`, and the report shows the progress (`report_progress()`): how
+  LT1 and LT2 moved since the first test, every lactate curve above the zones of
+  each test, the tests side by side, and whether the latest change is larger
+  than the noise of the method. The latest test follows on the second page.
 * New `gt_lactater()` gives your own gt tables the look of lactater's.
 * New `recording_sheet()` copies a printable sheet and a CSV template into your
   folder, to record every test the same way (the sheet is also on the website
@@ -189,10 +194,12 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 * New `curve_shift()`: the intensity gained at each lactate and the lactate saved
   at chosen intensities; the comparison plot shows the shift at 2 and 4 mmol/L.
 * New `lactate_trend()`: a straight-line trend with its 90% interval for each
-  threshold over three or more tests. Its plot shows each test against a band
-  for the noise of the method around the first test (tests outside it are
-  filled), or, with `view = "curves"`, the lactate curves light to dark by date.
-  A list of tests can be spliced in with `!!!`.
+  threshold over three or more tests. Its plot draws up to five tests as their
+  lactate curves, light to dark by date, above the five zones of each test
+  (`lt1`, `lt2`), and more tests as each threshold over time against a band for
+  the noise of the method around the first test (`view = "thresholds"`). `day`
+  takes dates, which then name the tests. A list of tests can be spliced in with
+  `!!!`.
 * New `curve_shape()`: did the curve only shift, or change its shape? Both
   tests are fitted with one exponential shape moved by a shift, and with a
   shape each; an F test and AICc compare the two, and the shift comes with a

@@ -48,9 +48,9 @@ tribble(
   "LTP1, LTP2", "Breakpoints of three straight lines through lactate and intensity", "none (measured stages)",
   "[Hofmann et al., 1997](https://doi.org/10.1097/00005768-199706000-00005); [Pokan et al.,
   1997](https://doi.org/10.1097/00005768-199708000-00009)",
-  "LTratio", "Lowest lactate / intensity ratio", "B-spline",
+  "LT<sub>ratio</sub>", "Lowest lactate / intensity ratio", "B-spline",
   "[Dickhuth et al., 1999](https://doi.org/10.1055/s-2007-971105)",
-  "IAT", "1.5 mmol/L above the lactate at LTratio", "B-spline",
+  "IAT", "1.5 mmol/L above the lactate at LT<sub>ratio</sub>", "B-spline",
   "[Dickhuth et al., 1999](https://doi.org/10.1055/s-2007-971105); Röcker et al., 1997",
   "Stegmann", "Tangent to the curve from the point in recovery where lactate is back at its end-of-exercise value",
   "your choice", "[Stegmann et al., 1981](https://doi.org/10.1055/s-2008-1034604)"

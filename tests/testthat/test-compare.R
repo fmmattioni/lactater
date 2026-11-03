@@ -53,23 +53,34 @@ test_that("lactate_trend recovers a steady change per 30 days", {
   at_start <- attr(tests[[1]], "lactater")$intensity[["OBLA 4.0"]]
   expect_equal(obla$per_30_days, at_start / 100, tolerance = 0.25)
   expect_lt(obla$low, obla$per_30_days)
-  expect_s3_class(autoplot(trend), "ggplot")
+  expect_s3_class(autoplot(trend), "patchwork")
   expect_error(lactate_trend(tests[[1]], tests[[2]], day = 1:2), "at least three")
   ## a list of tests can be spliced in
   expect_equal(lactate_trend(!!!tests, day = days), trend)
 })
 
-test_that("the trend plot marks tests outside the noise band, and draws the curves", {
+test_that("the trend plot draws up to five curves with their zones, and more tests against the noise band", {
   days <- c(0, 30, 60)
   tests <- lapply(c(1, 1.005, 1.1), function(by) run(shifted(by)))
   trend <- do.call(lactate_trend, c(tests, list(day = days)))
+  curves <- autoplot(trend, lt1 = "LTP1", lt2 = "ModDmax")
+  expect_s3_class(curves, "patchwork")
+  grDevices::pdf(NULL)
+  expect_silent(patchwork::patchworkGrob(curves))
+  grDevices::dev.off()
+  expect_error(autoplot(trend, lt2 = "nope"), "The test of Day 0")
+  ## with dates, the tests are named by them, and the trend is the same
+  dated <- lactate_trend(!!!tests, day = as.Date("2026-01-10") + days)
+  expect_equal(attr(dated, "lactater_trend")$labels, c("10 Jan 2026", "9 Feb 2026", "11 Mar 2026"))
+  expect_equal(dated$per_30_days, trend$per_30_days)
   ## +0.5% stays inside the band of a 1% typical error (+/- 2.3%); +10% lies outside
-  points <- autoplot(trend, method = "OBLA 4.0", cv = 1)$data
+  points <- autoplot(trend, view = "thresholds", method = "OBLA 4.0", cv = 1)$data
   expect_equal(points$outside, c(FALSE, FALSE, TRUE))
-  curves <- autoplot(trend, view = "curves")
-  expect_s3_class(curves, "ggplot")
-  expect_silent(ggplot2::ggplot_build(curves))
-  expect_error(autoplot(trend, cv = c(1, 2)), "`cv`")
+  expect_error(autoplot(trend, view = "thresholds", cv = c(1, 2)), "`cv`")
+  ## more than five tests: each threshold over time
+  six <- lactate_trend(!!!rep(tests, 2), day = 1:6)
+  expect_false(inherits(autoplot(six), "patchwork"))
+  expect_error(autoplot(six, view = "curves"), "more than five")
 })
 
 test_that("the comparison plot draws the shift arrows", {

@@ -44,9 +44,11 @@ test_that("every method plots in both styles, labelled in whole watts", {
 
 test_that("method labels carry their subscripts, and the arrow stops on the edge of the dot", {
   expect_equal(
-    method_plotmath(c("ModDmax", "Log-Poly-ModDmax", "IAT", "VO2max")),
-    c('"ModD"[max]*""', '"Log-Poly-ModD"[max]*""', '"IAT"', "dot(V)*O[2*max]")
+    method_plotmath(c("ModDmax", "Log-Poly-ModDmax", "IAT", "VO2max", "LTratio")),
+    c('"ModD"[max]*""', '"Log-Poly-ModD"[max]*""', '"IAT"', "dot(V)*O[2*max]", '"LT"[ratio]')
   )
+  expect_equal(method_html(c("LTratio", "Log-Exp-ModDmax", "IAT")),
+               c("LT<sub>ratio</sub>", "Log-Exp-ModD<sub>max</sub>", "IAT"))
   expect_type(method_label("Dmax", bold = TRUE), "expression")
   ## a label at the top left of a 2-inch box, and the dot at the bottom right
   pointer <- grid::gTree(

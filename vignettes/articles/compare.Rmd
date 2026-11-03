@@ -100,31 +100,36 @@ Read the result with care:
 
 ## A series of tests
 
-Over three or more tests, `lactate_trend()` fits a straight-line trend to each threshold, with its interval, to show
-the direction without reading too much into one test ([Hopkins, 2017](https://www.sportsci.org/2017/wghtrend.htm)).
+For up to five tests, the plot of `lactate_trend()` shows where the curve moved and what that did to the training
+zones: every lactate curve, light to dark by date, above the five zones of each test from the LT1 and LT2 you
+choose. `day` takes the date of each test, or the days since the first. The test dates are not in `lactate_tests`, so
+this example starts on a made-up date, with five of the six tests:
+
+```{r, fig.height = 6}
+days <- c(0, 163, 1107, 1865, 2046)
+tests <- purrr::map(days, analyse)
+trend <- lactate_trend(!!!tests, day = as.Date("2019-01-14") + days)
+autoplot(trend, lt1 = "Bsln + 0.5", lt2 = "ModDmax")
+```
+
+The curve did not move in a straight line: in the third test, three years in, both thresholds sat below those of the
+first test, with a higher peak lactate at the same peak power. `lactate_trend()` also fits a straight line to each
+threshold, with its 90% interval, to show the direction without reading too much into one test ([Hopkins,
+2017](https://www.sportsci.org/2017/wghtrend.htm)):
 
 ```{r}
-days <- unique(series$day)
-tests <- purrr::map(days, analyse)
-trend <- lactate_trend(!!!tests, day = days)
 trend |>
-  filter(method %in% c("OBLA 4.0", "ModDmax", "Dmax", "IAT"))
+  filter(method %in% c("Bsln + 0.5", "ModDmax", "OBLA 4.0", "IAT"))
 ```
 
-The plot answers "did it change?" test by test. Each test is a dot; the gray band is the noise of the method around
-the first test, where 90% of test-to-test changes fall when nothing changed (the first test +/- 1.645 x sqrt(2) x the
-typical error; [Hopkins, 2000](https://doi.org/10.2165/00007256-200030010-00001)). Filled dots lie outside it. By default it shows the methods with a published
-test-retest variation; set `cv` for others.
+For longer series, such as monitoring over a season, the plot shows each threshold over time instead (`view =
+"thresholds"`, the default above five tests): each test as a dot, against a gray band for the noise of the method
+around the first test, where 90% of test-to-test changes fall when nothing changed ([Hopkins,
+2000](https://doi.org/10.2165/00007256-200030010-00001)).
 
-```{r, fig.height = 4}
-autoplot(trend)
-```
-
-The curves view shows where along the intensity range the curve moved, light to dark by date:
-
-```{r, fig.height = 5}
-autoplot(trend, view = "curves")
-```
+To report a series to the athlete or the coach, give `test_report()` two to five tests and their dates: the report
+starts with the progress, then describes the latest test ([see an
+example](https://fmmattioni.github.io/lactater/report-series-example.html)).
 
 ## Comparing athletes
 

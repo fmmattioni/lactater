@@ -5,6 +5,7 @@
 \alias{report_header}
 \alias{report_summary}
 \alias{report_zones}
+\alias{report_progress}
 \alias{report_prediction}
 \alias{report_checks}
 \alias{report_test}
@@ -14,13 +15,15 @@
 \alias{report_save}
 \title{Build a test report step by step}
 \usage{
-report_start(x, lt1 = "LTP1", lt2 = "LTP2")
+report_start(x, lt1 = "LTP1", lt2 = "LTP2", dates = NULL)
 
 report_header(report, name = NULL, date = NULL, ..., lab = NULL, logo = NULL)
 
 report_summary(report)
 
 report_zones(report, model = 5, chart = TRUE)
+
+report_progress(report, cv = NULL)
 
 report_prediction(report)
 
@@ -42,9 +45,13 @@ report_save(
 )
 }
 \arguments{
-\item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
+\item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}, or a list of two to five of them for a series of tests of one
+athlete.}
 
 \item{lt1, lt2}{The thresholds that mark LT1 and LT2, as in \code{\link[=lactate_zones]{lactate_zones()}}.}
+
+\item{dates}{For a series, the date of each test: dates, or days since the first test. Without them, the names of
+\code{x} are read as dates.}
 
 \item{report}{A report from \code{report_start()}.}
 
@@ -61,6 +68,8 @@ report_save(
 \item{model}{\code{3} or \code{5} zones.}
 
 \item{chart}{Whether to draw the zones chart above the table.}
+
+\item{cv}{The typical error of the methods, as in \code{\link[=compare_tests]{compare_tests()}}; the defaults cover only some methods.}
 
 \item{protocol}{One line on how the test was done: ergometer, stages, sampling site, analyzer.}
 
@@ -83,11 +92,16 @@ Start a report with \code{report_start()}, then add the parts you want, in the o
 \code{report_save()}. Printing a report previews it in the viewer. \code{\link[=test_report]{test_report()}} builds the default report in one call.
 }
 \details{
+To report a series of tests of one athlete, give \code{report_start()} a list of tests and their \code{dates}: the sections
+above then describe the latest test, and \code{report_progress()} shows the progress over all of them.
 \itemize{
 \item \code{report_header()}: who was tested and where. The athlete's name, the date, any other details you name (\code{sex},
 \code{age}, \code{club}, \code{tester}...), your lab or institution, and its logo.
 \item \code{report_summary()}: the answer: LT1 and LT2 as the title, what they mean, and LT1, LT2 and the peak with their
 lactate, heart rate, RPE, percentage of peak and, with \code{body_mass}, per kg.
+\item \code{report_progress()}: for a series, how LT1 and LT2 changed since the first test, every lactate curve with the
+zones of each test, test by test, and whether the latest change is larger than the noise of the method
+(\code{\link[=compare_tests]{compare_tests()}}).
 \item \code{report_zones()}: the zones chart and table, three or five zones.
 \item \code{report_prediction()}: the predicted race performance, from the chosen thresholds when an equation takes them.
 \item \code{report_checks()}: what to double-check in the data.

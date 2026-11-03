@@ -75,3 +75,37 @@ test_that("a report can be built step by step, with the sections in any order", 
   expect_error(report_zones(report, model = 4), "3 or 5")
   expect_error(report_header(report, logo = "nope.png"), "Cannot find the logo")
 })
+
+test_that("a series report shows the progress, then the latest test, and checks its tests first", {
+  skip_if_not_installed("gt")
+  run <- function(by) {
+    lactate_threshold(transform(demo_data, intensity = intensity * by), intensity, lactate, heart_rate, plot = FALSE)
+  }
+  tests <- list(run(1), run(1.04), run(1.08))
+  dates <- as.Date(c("2026-01-10", "2026-03-10", "2026-05-10"))
+  file <- tempfile(fileext = ".html")
+  on.exit(unlink(file))
+  ## in any order, sorted by date
+  test_report(tests[c(3, 1, 2)], file, dates = dates[c(3, 1, 2)], lt1 = "LTP1", lt2 = "ModDmax", open = FALSE)
+  html <- paste(readLines(file, warn = FALSE), collapse = "\n")
+  expect_match(html, "3, 10 Jan 2026 to 10 May 2026", fixed = TRUE)
+  expect_match(html, "<h2 class=\"claim\">Since the first test: LT1 +", fixed = TRUE)
+  expect_match(html, "The latest test against the one before (10 Mar 2026)", fixed = TRUE)
+  expect_lt(regexpr("Since the first test", html), regexpr("In the latest test:", html))
+  ## one chart: the curves and zones of every test
+  expect_equal(lengths(regmatches(html, gregexpr("data:image/png;base64", html))), 1)
+  ## the names of the list as dates, or days
+  expect_s3_class(report_start(stats::setNames(tests[1:2], c("2026-01-10", "2026-03-10"))), "lactate_test_report")
+  expect_equal(report_start(tests, dates = c(0, 60, 120))$series$labels, c("Day 0", "Day 60", "Day 120"))
+  excel <- as.POSIXct(c("2026-01-10", "2026-03-10", "2026-05-10"), tz = "UTC")
+  expect_equal(report_start(tests, dates = excel)$series$labels, c("10 Jan 2026", "10 Mar 2026", "10 May 2026"))
+  expect_error(report_start(tests), "dates")
+  expect_error(report_start(tests, dates = c(1, 1, 2)), "distinct")
+  expect_error(report_start(rep(tests, 2), dates = 1:6), "two to five")
+  rowing <- lactate_threshold(lactate_tests[lactate_tests$test == "rowing", ], intensity, lactate, sport = "rowing",
+                              plot = FALSE)
+  expect_error(report_start(list(tests[[1]], rowing), dates = 1:2), "one sport")
+  expect_error(report_progress(report_start(tests[[1]])), "needs a series")
+  ## a threshold missing from a test stops the report at the start, naming the test
+  expect_error(report_start(tests, lt2 = "nope", dates = c(0, 60, 120)), "The test of Day 0")
+})

@@ -221,7 +221,7 @@ curve_layers <- function(plot_data, intensity, lactate, colours, sport) {
     ))
     if(from[["label"]] == "LTratio") {
       at <- as.numeric(from[["intensity"]])
-      layers <- c(layers, other_point(at, base, paste("LTratio", intensity_text(at, sport)), colours))
+      layers <- c(layers, other_point(at, base, sprintf('"LT"[ratio]~~"%s"', intensity_text(at, sport)), colours))
     }
   }
   list(
@@ -278,7 +278,7 @@ breakpoint_layers <- function(fit, method, intensity, log_axes, colours, sport) 
     other <- if(method == "LTP1") 2 else 1
     layers <- c(layers, other_point(
       fit$psi[other], predict_breakpoints(fit, fit$psi[other]),
-      paste0("LTP", other, " ", intensity_text(fit$psi[other], sport)), colours
+      sprintf('"LTP%d"~~"%s"', other, intensity_text(fit$psi[other], sport)), colours
     ))
   }
   list(
@@ -365,7 +365,7 @@ breakpoint_lines <- function(fit) {
 #' A secondary point with a small label
 #'
 #' @param x,y Where the point sits.
-#' @param label The label below it.
+#' @param label The label below it, as plotmath (a quoted string, or e.g. `"LT"[ratio]`).
 #' @param colours The plot colours.
 #' @keywords internal
 other_point <- function(x, y, label, colours) {
@@ -374,7 +374,8 @@ other_point <- function(x, y, label, colours) {
       "point", x = x, y = y, shape = 21, size = 3, stroke = 1, fill = colours[["paper"]], colour = colours[["accent"]]
     ),
     ggplot2::annotate(
-      "text", x = x, y = y, label = label, hjust = -0.2, vjust = 1.4, size = 3, colour = colours[["muted"]]
+      "text", x = x, y = y, label = label, parse = TRUE, hjust = -0.1, vjust = 1.4, size = 3,
+      colour = colours[["muted"]]
     )
   )
 }
@@ -528,7 +529,9 @@ method_note <- function(method, settings) {
     "LTP1" = "The first turn point of straight segments fitted to the stages (Hofmann et al., 1997)",
     "LTP2" = "The second turn point of three straight segments fitted to the stages (Hofmann et al., 1997)",
     "LTratio" = "The lowest lactate / intensity ratio on a spline (Dickhuth et al., 1999)",
-    "IAT" = sprintf("%s mmol/L above the lactate at LTratio (Dickhuth et al., 1999)", format(settings$iat_rise)),
+    "IAT" = sprintf(
+      "%s mmol/L above the lactate at LT<sub>ratio</sub> (Dickhuth et al., 1999)", format(settings$iat_rise)
+    ),
     "Stegmann" = paste(
       "The tangent to the lactate curve from the point in recovery where lactate is back at its end-of-exercise value",
       "(Stegmann et al., 1981)"
@@ -540,9 +543,11 @@ method_note <- function(method, settings) {
 
 #' Method names with their subscripts
 #'
-#' Plotmath, so that `"ModDmax"` is drawn as ModD with a subscript max, and `"VO2max"` with a dot over the V.
+#' Plotmath, so that `"ModDmax"` is drawn as ModD with a subscript max, `"LTratio"` as LT with a subscript ratio, and
+#' `"VO2max"` with a dot over the V.
 #' Plotmath keeps the labels plain `element_text()`, which users can restyle. `method_plotmath()` gives the text to
-#' parse (for `label_parsed` and `parse = TRUE`), `method_label()` the parsed expressions.
+#' parse (for `label_parsed` and `parse = TRUE`), `method_label()` the parsed expressions, and `method_html()` the same
+#' names for HTML.
 #'
 #' @param x Method names.
 #' @param bold Whether to draw them in bold, for titles.
@@ -553,8 +558,14 @@ method_plotmath <- function(x) {
   out <- sprintf('"%s"', x)
   dmax <- grepl("Dmax", x, fixed = TRUE)
   out[dmax] <- sprintf('"%sD"[max]*"%s"', sub("Dmax.*", "", x[dmax]), sub(".*Dmax", "", x[dmax]))
+  out[x == "LTratio"] <- '"LT"[ratio]'
   out[x == "VO2max"] <- "dot(V)*O[2*max]"
   out
+}
+
+#' @rdname method_plotmath
+method_html <- function(x) {
+  gsub("\\bLTratio\\b", "LT<sub>ratio</sub>", gsub("Dmax", "D<sub>max</sub>", x, fixed = TRUE))
 }
 
 #' @rdname method_plotmath

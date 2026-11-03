@@ -9,7 +9,7 @@ other_point(x, y, label, colours)
 \arguments{
 \item{x, y}{Where the point sits.}
 
-\item{label}{The label below it.}
+\item{label}{The label below it, as plotmath (a quoted string, or e.g. \code{"LT"[ratio]}).}
 
 \item{colours}{The plot colours.}
 }

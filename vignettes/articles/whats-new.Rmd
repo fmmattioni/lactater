@@ -49,7 +49,7 @@ old |>
   the stage with the lowest residual sum of squares; the threshold is where they cross.
 * **LTP.** The turn points are the exact least-squares optimum on the measured stages, found by exhaustive search,
   so they never depend on starting values.
-* **LTratio.** The exact minimum, within the exercise stages.
+* **LT<sub>ratio</sub>.** The exact minimum, within the exercise stages.
 * **Heart rate.** Interpolated between the measured stages, so it follows the bend of the heart-rate curve.
 * **Resting sample.** It is the row with intensity 0, so tests without one keep all their stages.
 

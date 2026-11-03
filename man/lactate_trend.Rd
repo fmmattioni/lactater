@@ -10,32 +10,38 @@ lactate_trend(..., day)
 \method{autoplot}{lactate_trend}(
   object,
   method = NULL,
-  view = c("thresholds", "curves"),
+  view = NULL,
   cv = NULL,
+  lt1 = "LTP1",
+  lt2 = "LTP2",
   ...
 )
 }
 \arguments{
 \item{...}{The results of \code{\link[=lactate_threshold]{lactate_threshold()}}, in any order. A list of results can be spliced in with \verb{!!!}.}
 
-\item{day}{The day of each test (e.g. days since the first test), in the same order as \code{...}.}
+\item{day}{The date of each test, in the same order as \code{...}: dates, or days since the first test.}
 
 \item{object}{The result of \code{\link[=lactate_trend]{lactate_trend()}}.}
 
 \item{method}{The methods to plot in the \code{"thresholds"} view. Default to ModDmax, IAT, OBLA 4.0 and Dmax, which have
 a published test-retest variation (see \code{\link[=compare_tests]{compare_tests()}}), when present.}
 
-\item{view}{\code{"thresholds"} (default): one panel per method, each test as a dot (with its confidence interval when
-computed) and a gray band for the noise of the method around the first test, so that dots outside the band are
-changes larger than the noise (as in monitoring charts; Hopkins, 2017). \code{"curves"}: the lactate curves of all
-tests on one plot, light to dark by date, to see where along the intensity range the curve moved.}
+\item{view}{\code{"curves"}, the default for up to five tests: the lactate curves of all tests, light to dark by date,
+to see where along the intensity range the curve moved, above the five training zones of each test from \code{lt1} and
+\code{lt2}. \code{"thresholds"}, the default for more tests: one panel per method, each test as a dot (with its confidence
+interval when computed) and a gray band for the noise of the method around the first test, so that dots outside
+the band are changes larger than the noise (as in monitoring charts; Hopkins, 2017).}
 
 \item{cv}{The test-retest coefficient of variation (\%) for the noise band, as in \code{\link[=compare_tests]{compare_tests()}}.}
+
+\item{lt1, lt2}{The thresholds that mark LT1 and LT2 in the \code{"curves"} view, as in \code{\link[=lactate_zones]{lactate_zones()}}.}
 }
 \value{
 a \code{lactate_trend} tibble with one row per method found in every test: \code{method}, \code{tests}, the
 change per 30 days (\code{per_30_days}) with its 90\% interval (\code{low}, \code{high}), and the first and last fitted
-values. Plot it with \code{\link[=autoplot]{autoplot()}}.
+values. Plot it with \code{\link[=autoplot]{autoplot()}}: up to five tests as their lactate curves and training zones, more as each
+threshold over time.
 }
 \description{
 Fits a straight line through each threshold over three or more tests of the same athlete, to show the trend
@@ -43,14 +49,15 @@ with its uncertainty instead of reading noise from one test to the next (Hopkins
 }
 \examples{
 series <- subset(lactate_tests, athlete == "cyclist_series")
-days <- unique(series$day)
+days <- c(0, 163, 1107, 1865, 2046)
 tests <- lapply(days, function(d) {
   lactate_threshold(subset(series, day == d), intensity, lactate, plot = FALSE)
 })
-trend <- lactate_trend(!!!tests, day = days)
+## the test dates are not in the data: an example start date
+trend <- lactate_trend(!!!tests, day = as.Date("2019-01-14") + days)
 trend
-autoplot(trend)
-autoplot(trend, view = "curves")
+autoplot(trend, lt1 = "Bsln + 0.5", lt2 = "ModDmax")
+autoplot(trend, view = "thresholds")
 }
 \references{
 Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.

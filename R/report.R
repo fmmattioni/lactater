@@ -24,7 +24,7 @@ lactate_report <- function(x, title = "Lactate thresholds") {
   table <- data.frame(
     category = as.character(x$method_category),
     ## with the subscript of the Dmax family
-    method = gsub("Dmax", "D<sub>max</sub>", as.character(x$method), fixed = TRUE),
+    method = method_html(as.character(x$method)),
     intensity = ifelse(is.na(x$intensity), "not found", value(x$intensity))
   )
   if("intensity_low" %in% names(x)) {
@@ -42,12 +42,12 @@ lactate_report <- function(x, title = "Lactate thresholds") {
   flagged <- checks[checks$status != "ok", ]
   stages <- sum(info$data$intensity > 0)
 
-  ## one row group per method family, built by hand so the labels can carry the subscript of Dmax
+  ## one row group per method family, built by hand so the labels can carry their subscripts
   families <- unique(table$category)
   report <- gt::gt(table[setdiff(names(table), "category")])
   for(family in families) {
     report <- gt::tab_row_group(
-      report, label = gt::html(gsub("Dmax", "D<sub>max</sub>", family, fixed = TRUE)),
+      report, label = gt::html(method_html(family)),
       rows = which(table$category == family), id = family
     )
   }

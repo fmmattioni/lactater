@@ -13,11 +13,12 @@ test_report(
   protocol = NULL,
   notes = NULL,
   pdf = FALSE,
-  open = interactive()
+  open = interactive(),
+  dates = NULL
 )
 }
 \arguments{
-\item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
+\item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}, or a list of two to five of them with their \code{dates}.}
 
 \item{file}{Where to write the report, an \code{.html} file.}
 
@@ -25,7 +26,8 @@ test_report(
 
 \item{lt1, lt2}{The thresholds that mark LT1 and LT2, as in \code{\link[=lactate_zones]{lactate_zones()}}.}
 
-\item{protocol}{One line on how the test was done: ergometer, stages, sampling site, analyzer.}
+\item{protocol}{One line on how the test was done: ergometer, stages, sampling site, analyzer. Not shown for a
+series.}
 
 \item{notes}{Free text for the end of the report.}
 
@@ -33,6 +35,9 @@ test_report(
 Chromium.}
 
 \item{open}{Whether to open the report in the browser.}
+
+\item{dates}{With a list of two to five tests in \code{x}, the date of each test (dates, or days since the first test).
+The report then starts with the progress over the tests, and describes the latest one.}
 }
 \value{
 the path of the report, invisibly.
