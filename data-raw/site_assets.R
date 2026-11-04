@@ -28,7 +28,6 @@ report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
   ) |>
   report_summary() |>
   report_zones() |>
-  report_page_break() |>
   report_prediction() |>
   report_checks() |>
   report_test(protocol = "Cycle ergometer, 3-min stages of +25 W from 50 W, earlobe capillary blood (demo_data; RPE

@@ -83,6 +83,15 @@ Each zone comes with its intensity, the lactate on the fitted curve, and, when g
 rate and RPE at a boundary are interpolated between the stages, and extrapolated from the first three stages when a
 boundary lies below the first stage.
 
+With heart rate in the test, the plot shows it in a panel under the curve, on the same intensity axis, with its value
+at LT1 and LT2. Many lab reports draw it on the lactate plot against a second axis instead; `heart_rate = "axis"` does
+that, and `options(lactater.heart_rate = "axis")` does it for every plot and report. Where the two lines cross on such
+a plot depends only on how the two axes are scaled, so read the heart rate from its own axis, not from the crossing.
+
+```{r}
+autoplot(zones, heart_rate = "axis")
+```
+
 ## Five zones
 
 The five-zone scale used in endurance sports ([Seiler, 2010](https://doi.org/10.1123/ijspp.5.3.276)) maps onto the domains: zones 1 and 2 lie below LT1, zone

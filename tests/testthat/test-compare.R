@@ -68,6 +68,11 @@ test_that("the trend plot draws up to five curves with their zones, and more tes
   grDevices::pdf(NULL)
   expect_silent(patchwork::patchworkGrob(curves))
   grDevices::dev.off()
+  ## the curves, the heart rate of every test, the zone bars; without heart rate, no heart rate panel
+  expect_length(curves, 3)
+  expect_equal(nrow(curves[[2]]$data), sum(sapply(tests, function(t) sum(lactater_info(t)$data$intensity > 0))))
+  no_hr <- lapply(c(1, 1.005, 1.1), function(by) lactate_threshold(shifted(by), intensity, lactate, plot = FALSE))
+  expect_length(autoplot(do.call(lactate_trend, c(no_hr, list(day = days))), lt1 = "LTP1", lt2 = "ModDmax"), 2)
   expect_error(autoplot(trend, lt2 = "nope"), "The test of Day 0")
   ## with dates, the tests are named by them, and the trend is the same
   dated <- lactate_trend(!!!tests, day = as.Date("2026-01-10") + days)

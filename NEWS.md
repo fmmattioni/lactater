@@ -179,7 +179,11 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   split the moderate and severe domains equally, at Seiler's (2010) 1.5 and
   6.0 mmol/L, or at your own intensities. Each zone comes with intensity,
   pace, lactate, heart-rate and RPE ranges, and the plot colors the zones
-  green, yellow and red by domain.
+  green, yellow and red by domain. When the test has heart rate, the plot shows
+  it in a panel under the curve, read at LT1 and LT2; `heart_rate = "axis"`
+  puts it on the lactate plot against a second axis instead, as many lab
+  reports do (`options(lactater.heart_rate = "axis")` for every plot and
+  report).
 * `.by` analyses many tests in one call (e.g. `.by = c("athlete", "date")`).
 * Rows with a missing intensity or lactate are dropped with a warning, so a
   missed sample does not void a test; impossible inputs (lactate of 0,
@@ -198,7 +202,8 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   at chosen intensities; the comparison plot shows the shift at 2 and 4 mmol/L.
 * New `lactate_trend()`: a straight-line trend with its 90% interval for each
   threshold over three or more tests. Its plot draws up to five tests as their
-  lactate curves, light to dark by date, above the five zones of each test
+  lactate curves, light to dark by date, then their heart rate in the same
+  colors, above the five zones of each test
   (`lt1`, `lt2`), and more tests as each threshold over time against a band for
   the noise of the method around the first test (`view = "thresholds"`). `day`
   takes dates, which then name the tests. A list of tests can be spliced in with

@@ -70,9 +70,9 @@ with its values. <code>autoplot(results)</code>
 
 <td width="50%" valign="top">
 
-<a href="https://fmmattioni.github.io/lactater/reference/lactate_trend.html"><img src="man/figures/readme/gallery-series.png" alt="The lactate curves of five tests, light to dark by date, above the five training zones of each test"></a><br><b>Up
-to five tests</b>: where the curve and the zones moved, by date.
-<code>autoplot(lactate_trend(…))</code>
+<a href="https://fmmattioni.github.io/lactater/reference/lactate_trend.html"><img src="man/figures/readme/gallery-series.png" alt="The lactate curves of five tests, light to dark by date, then their heart rate, above the five training zones of each test"></a><br><b>Up
+to five tests</b>: where the curve, the heart rate and the zones moved,
+by date. <code>autoplot(lactate_trend(…))</code>
 </td>
 
 </tr>
@@ -89,9 +89,9 @@ threshold with lactate and heart rate. <code>autoplot(results, method =
 
 <td width="50%" valign="top">
 
-<a href="https://fmmattioni.github.io/lactater/reference/lactate_zones.html"><img src="man/figures/readme/gallery-zones.png" alt="Five training zones on the lactate curve, colored by intensity domain"></a><br><b>Training
-zones</b>: three or five, colored by intensity domain.
-<code>autoplot(lactate_zones(…))</code>
+<a href="https://fmmattioni.github.io/lactater/reference/lactate_zones.html"><img src="man/figures/readme/gallery-zones.png" alt="Five training zones on the lactate curve, colored by intensity domain, with the heart rate of the stages in a panel below"></a><br><b>Training
+zones</b>: three or five, colored by intensity domain, with the heart
+rate at LT1 and LT2. <code>autoplot(lactate_zones(…))</code>
 </td>
 
 </tr>

@@ -450,9 +450,10 @@ autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL
 
 #' The lactate curves and training zones of a few tests
 #'
-#' `plot_series()` draws every lactate curve, light to dark by date, above the five zones of each test as one bar, on
-#' one intensity axis. `series_zones()` gives the five zones of each test, and names the test when a threshold is
-#' missing. `date_labels()` names tests by date ("3 Nov 2026") or by day ("Day 58"). For internal use only.
+#' `plot_series()` draws every lactate curve, light to dark by date, then the heart rate of the stages in the same
+#' colors (when the tests have it), above the five zones of each test as one bar, on one intensity axis.
+#' `series_zones()` gives the five zones of each test, and names the test when a threshold is missing.
+#' `date_labels()` names tests by date ("3 Nov 2026") or by day ("Day 58"). For internal use only.
 #'
 #' @param tests Results of [lactate_threshold()], oldest first.
 #' @param labels The name of each test, from `date_labels()`.
@@ -531,12 +532,42 @@ plot_series <- function(tests, labels, lt1, lt2) {
     theme_lactater() +
     ggplot2::theme(axis.line.y = ggplot2::element_blank(), axis.ticks.y = ggplot2::element_blank())
 
-  patchwork::wrap_plots(lactate, zone_bars, ncol = 1, heights = c(3, 0.35 * n + 0.4)) +
+  ## the heart rate of the exercise stages of every test that has it, in the colors of its curve
+  hr <- do.call(rbind, lapply(seq_len(n), function(k) {
+    d <- infos[[k]]$data
+    if(!"heart_rate" %in% names(d)) return(NULL)
+    d <- d[d$intensity > 0 & !is.na(d$heart_rate), c("intensity", "heart_rate")]
+    if(nrow(d) > 0) named(k, d)
+  }))
+  plots <- list(lactate, zone_bars)
+  heights <- c(3, 0.35 * n + 0.4)
+  if(!is.null(hr) && nrow(hr) >= 2) {
+    hr_panel <- ggplot2::ggplot(hr, ggplot2::aes(intensity, heart_rate, colour = test)) +
+      ggplot2::geom_line(linewidth = 0.8) +
+      ggplot2::geom_point(shape = 21, fill = colours[["paper"]], size = 1.6, stroke = 0.7) +
+      ggplot2::scale_colour_manual(values = stats::setNames(shades, labels), guide = "none") +
+      ggplot2::scale_y_continuous(n.breaks = 4) +
+      ggplot2::coord_cartesian(
+        xlim = xlim, ylim = c(floor((min(hr$heart_rate) - 5) / 20) * 20, max(hr$heart_rate) + 6), expand = FALSE
+      ) +
+      ggplot2::labs(x = NULL, y = "Heart rate (bpm)") +
+      theme_lactater()
+    plots <- list(lactate, hr_panel, zone_bars)
+    heights <- c(3, 1, heights[2])
+  }
+
+  with_hr <- length(plots) == 3
+  patchwork::wrap_plots(plots, ncol = 1, heights = heights) +
     patchwork::plot_annotation(
-      title = "Where the curve and the zones moved",
-      subtitle = sprintf(
-        "%d tests, light to dark by date; dashed: 2 and 4 mmol/L. Bars: the five zones of each test, with LT1 and LT2",
-        n
+      title = if(with_hr) {
+        "Where the curve, the heart rate and the zones moved"
+      } else {
+        "Where the curve and the zones moved"
+      },
+      subtitle = paste0(
+        n, " tests, light to dark by date; dashed: 2 and 4 mmol/L.",
+        if(with_hr) " Below them, the heart rate of the stages.",
+        " Bars: the five zones of each test, with LT1 and LT2"
       ),
       theme = theme_lactater()
     )

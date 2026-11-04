@@ -22,8 +22,9 @@ date_labels(day)
 \item{day}{Dates, or days since the first test.}
 }
 \description{
-\code{plot_series()} draws every lactate curve, light to dark by date, above the five zones of each test as one bar, on
-one intensity axis. \code{series_zones()} gives the five zones of each test, and names the test when a threshold is
-missing. \code{date_labels()} names tests by date ("3 Nov 2026") or by day ("Day 58"). For internal use only.
+\code{plot_series()} draws every lactate curve, light to dark by date, then the heart rate of the stages in the same
+colors (when the tests have it), above the five zones of each test as one bar, on one intensity axis.
+\code{series_zones()} gives the five zones of each test, and names the test when a threshold is missing.
+\code{date_labels()} names tests by date ("3 Nov 2026") or by day ("Day 58"). For internal use only.
 }
 \keyword{internal}

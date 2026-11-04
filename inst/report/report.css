@@ -79,8 +79,11 @@ footer { margin-top: 36px; font-size: 12px; color: var(--muted); }
   figure { margin-top: 10px; }
   footer { margin-top: 6px; font-size: 10px; }
   .page-break { break-before: page; }
-  .page-break + h2 { margin-top: 0; }
-  figure, .stat, tr { break-inside: avoid; }
+  section:has(> .page-break) + section > h2:first-child { margin-top: 0; }
+  /* a section moves to the next page whole, its heading with its table; one with a chart may break between the
+     chart and its table, and the table then moves whole */
+  section, figure, .stat, tr, .gt_table { break-inside: avoid; }
+  section:has(figure) { break-inside: auto; }
   .gt_table .gt_row, .gt_table .gt_group_heading { padding-top: 2px !important; padding-bottom: 2px !important; }
   h2 { break-after: avoid; }
 }

@@ -30,10 +30,39 @@ test_that("own cuts are checked against their domains", {
 })
 
 test_that("a zone below the first stage does not stretch the zones plot", {
-  swim <- lactate_threshold(lactate_tests[lactate_tests$test == "swimming", ], intensity, lactate, sport = "swimming",
-                            plot = FALSE)
+  swim <- lactate_threshold(lactate_tests[lactate_tests$test == "swimming", ], intensity, lactate, heart_rate,
+                            sport = "swimming", plot = FALSE)
   zones <- lactate_zones(swim, lt1 = "LTP1", lt2 = "ModDmax", model = 5)
   ## zone 1 ends far below the swimmer's first stage, so the plot starts above it, at the test
-  x_range <- ggplot2::ggplot_build(autoplot(zones))$layout$panel_params[[1]]$x.range
+  plot <- autoplot(zones)
+  x_range <- ggplot2::ggplot_build(plot[[1]])$layout$panel_params[[1]]$x.range
   expect_gt(x_range[1], zones$intensity_to[1])
+  ## the heart rate panel below shares the intensity axis
+  expect_equal(ggplot2::ggplot_build(plot[[2]])$layout$panel_params[[1]]$x.range, x_range)
+})
+
+test_that("the zones plot shows the heart rate in a panel below, on a second axis, or not at all", {
+  zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax")
+  panel <- autoplot(zones)
+  expect_s3_class(panel, "patchwork")
+  expect_length(panel, 2)
+  ## read at LT1 and LT2 as in the table of the zones
+  expect_equal(ggplot2::layer_data(panel[[2]], 5)$label, sprintf("%.0f bpm", zones$heart_rate_from[2:3]))
+  axis <- autoplot(zones, heart_rate = "axis")
+  expect_false(inherits(axis, "patchwork"))
+  expect_equal(axis$scales$get_scales("y")$secondary.axis$name, "Heart rate (bpm)")
+  grDevices::pdf(NULL)
+  expect_silent(patchwork::patchworkGrob(panel))
+  expect_silent(ggplot2::ggplotGrob(axis))
+  grDevices::dev.off()
+  expect_false(inherits(autoplot(zones, heart_rate = "none"), "patchwork"))
+  expect_error(autoplot(zones, heart_rate = "twin"), "should be one of")
+  old <- options(lactater.heart_rate = "none")
+  on.exit(options(old), add = TRUE)
+  expect_false(inherits(autoplot(zones), "patchwork"))
+  ## a test without heart rate has nothing to show
+  options(old)
+  no_hr <- lactate_threshold(demo_data, intensity, lactate, plot = FALSE)
+  no_hr <- lactate_zones(no_hr, lt1 = "Log-log", lt2 = "ModDmax")
+  expect_false(inherits(autoplot(no_hr), "patchwork"))
 })

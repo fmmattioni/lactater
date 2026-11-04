@@ -7,7 +7,7 @@
 \usage{
 lactate_zones(x, lt1 = "LTP1", lt2 = "LTP2", model = 3, split = "equal")
 
-\method{autoplot}{lactate_zones}(object, ...)
+\method{autoplot}{lactate_zones}(object, heart_rate = getOption("lactater.heart_rate", "panel"), ...)
 }
 \arguments{
 \item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
@@ -21,6 +21,11 @@ and \code{"LTP2"}, the turn points that define the zones in Hofmann & Tschakert 
 \code{"seiler"}, or two intensities. Ignored with three zones.}
 
 \item{object}{The result of \code{\link[=lactate_zones]{lactate_zones()}}.}
+
+\item{heart_rate}{How the plot shows the heart rate of the stages, when the test has it: \code{"panel"} (default), in a
+panel under the curve on the same intensity axis, read at LT1 and LT2; \code{"axis"}, on the lactate plot against a
+second axis, as many lab reports do; or \code{"none"}. \code{options(lactater.heart_rate = "axis")} sets it for every plot
+and report.}
 
 \item{...}{Not used.}
 }

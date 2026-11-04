@@ -198,9 +198,14 @@ domain_splits <- function(split, lt, info) {
 
 #' @rdname lactate_zones
 #' @param object The result of [lactate_zones()].
+#' @param heart_rate How the plot shows the heart rate of the stages, when the test has it: `"panel"` (default), in a
+#'   panel under the curve on the same intensity axis, read at LT1 and LT2; `"axis"`, on the lactate plot against a
+#'   second axis, as many lab reports do; or `"none"`. `options(lactater.heart_rate = "axis")` sets it for every plot
+#'   and report.
 #' @param ... Not used.
 #' @export
-autoplot.lactate_zones <- function(object, ...) {
+autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.heart_rate", "panel"), ...) {
+  heart_rate <- match.arg(heart_rate, c("panel", "axis", "none"))
   zones <- attr(object, "lactater_zones")
   info <- zones$info
   colours <- lactater_colours()
@@ -235,8 +240,34 @@ autoplot.lactate_zones <- function(object, ...) {
   bands$range <- ifelse(narrow, bands$range, paste(bands$range, unit))
   top <- max(points$lactate, curve$lactate) * 1.25
   marks <- data.frame(intensity = zones$lt, label = sprintf('"%s"~~%s', c("LT1", "LT2"), method_plotmath(zones$labels)))
+  ## the heart rate of the exercise stages; the resting value would squeeze them into the top of the scale
+  hr <- if("heart_rate" %in% names(points)) {
+    points[info$data$intensity > 0 & !is.na(points$heart_rate), ]
+  } else {
+    points[0, ]
+  }
+  if(nrow(hr) < 2) heart_rate <- "none"
+  y_axis <- ggplot2::waiver()
+  hr_layers <- NULL
+  if(heart_rate == "axis") {
+    ## the heart rate scale maps onto the lower 80% of the lactate axis, under the zone labels
+    lo <- max(0, floor(min(hr$heart_rate) / 20) * 20 - 40)
+    hi <- ceiling(max(hr$heart_rate) / 20) * 20
+    hr$y <- (hr$heart_rate - lo) / (hi - lo) * 0.8 * top
+    y_axis <- ggplot2::sec_axis(~ . / (0.8 * top) * (hi - lo) + lo, name = "Heart rate (bpm)",
+                                breaks = seq(lo + 20, hi, by = 20))
+    hr_layers <- list(
+      ggplot2::geom_line(ggplot2::aes(intensity, y), hr, colour = colours[["ink"]], linewidth = 0.5),
+      ggplot2::geom_point(ggplot2::aes(intensity, y), hr, shape = 22, size = 1.6, stroke = 0.6,
+                          fill = colours[["paper"]], colour = colours[["ink"]]),
+      ggplot2::annotate("text", x = hr$intensity[1], y = hr$y[1], label = "Heart rate", hjust = 0.2, vjust = -1.2,
+                        size = 2.9, colour = colours[["ink"]])
+    )
+  }
+  title <- sprintf("%d training zones", n)
+  subtitle <- "Zones at the intensity domains: moderate below LT1, heavy from LT1 to LT2, severe above LT2"
 
-  ggplot2::ggplot() +
+  lactate <- ggplot2::ggplot() +
     ggplot2::annotate(
       "rect", xmin = bands$from, xmax = bands$to, ymin = 0, ymax = top, fill = bands$fill, alpha = 0.2
     ) +
@@ -260,15 +291,50 @@ autoplot.lactate_zones <- function(object, ...) {
       ggplot2::aes(x = intensity, y = 0, label = label), marks, parse = TRUE,
       angle = 90, hjust = -0.1, vjust = -0.6, size = 2.9, colour = colours[["muted"]]
     ) +
+    hr_layers +
     ggplot2::geom_line(ggplot2::aes(intensity, lactate), curve, colour = colours[["curve"]], linewidth = 0.9) +
     stage_layers(points, info$data, colours) +
     ggplot2::scale_x_continuous(expand = c(0, 0)) +
-    ggplot2::scale_y_continuous(limits = c(0, top), breaks = lactate_breaks(top), expand = c(0, 0)) +
-    ggplot2::labs(
-      title = sprintf("%d training zones", n),
-      subtitle = "Zones at the intensity domains: moderate below LT1, heavy from LT1 to LT2, severe above LT2",
-      x = intensity_label(sport),
-      y = "Blood lactate (mmol/L)"
-    ) +
+    ggplot2::scale_y_continuous(limits = c(0, top), breaks = lactate_breaks(top), expand = c(0, 0), sec.axis = y_axis) +
+    ggplot2::labs(title = title, subtitle = subtitle, x = intensity_label(sport), y = "Blood lactate (mmol/L)") +
     theme_lactater()
+  if(heart_rate != "panel") return(lactate)
+
+  ## the heart rate under the curve, on the same intensity axis, with its value at LT1 and LT2 beside the line: left of
+  ## it and above, or right and below when the threshold is near the left edge
+  at <- data.frame(intensity = zones$lt, heart_rate = zone_value(info$data, "heart_rate", zones$lt, 0))
+  at <- at[!is.na(at$heart_rate), ]
+  left <- (at$intensity - limits[1]) / diff(limits) > 0.15
+  ## at least 5 bpm of room under the lowest stage, so its dot is not cut by the axis
+  hr_limits <- c(floor((min(hr$heart_rate) - 5) / 20) * 20, ceiling(max(hr$heart_rate) / 20) * 20 + 10)
+  hr_panel <- ggplot2::ggplot() +
+    ggplot2::annotate(
+      "rect", xmin = bands$from, xmax = bands$to, ymin = hr_limits[1], ymax = hr_limits[2], fill = bands$fill,
+      alpha = 0.2
+    ) +
+    ggplot2::annotate(
+      "segment", x = zones$lt, xend = zones$lt, y = hr_limits[1], yend = hr_limits[2], colour = colours[["ink"]],
+      linewidth = 0.4, linetype = "22"
+    ) +
+    ggplot2::geom_line(ggplot2::aes(intensity, heart_rate), hr, colour = colours[["ink"]], linewidth = 0.6) +
+    ggplot2::geom_point(ggplot2::aes(intensity, heart_rate), hr, shape = 21, size = 1.8, stroke = 0.6,
+                        fill = colours[["paper"]], colour = colours[["ink"]]) +
+    ggplot2::annotate(
+      "text", x = at$intensity, y = at$heart_rate, label = sprintf("%.0f bpm", at$heart_rate),
+      hjust = ifelse(left, 1.12, -0.12), vjust = ifelse(left, -0.5, 1.5), size = 3, fontface = "bold",
+      colour = colours[["ink"]]
+    ) +
+    ggplot2::scale_y_continuous(limits = hr_limits, n.breaks = 4, expand = c(0, 0)) +
+    ggplot2::coord_cartesian(xlim = limits, expand = FALSE) +
+    ggplot2::labs(x = intensity_label(sport), y = "Heart rate\n(bpm)") +
+    theme_lactater()
+  lactate <- lactate +
+    ggplot2::labs(title = NULL, subtitle = NULL, x = NULL) +
+    ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.ticks.x = ggplot2::element_blank(),
+                   axis.line.x = ggplot2::element_blank())
+  patchwork::wrap_plots(lactate, hr_panel, ncol = 1, heights = c(3, 1.1)) +
+    patchwork::plot_annotation(
+      title = title, subtitle = paste0(subtitle, ". Below: the heart rate of the stages, read at LT1 and LT2"),
+      theme = theme_lactater()
+    )
 }

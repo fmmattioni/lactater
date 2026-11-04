@@ -1,8 +1,9 @@
 #' A report of a step test, as a web page
 #'
 #' Writes the default report of a step test in one call: the header with the athlete's details, LT1 and LT2 with what
-#' they mean, the training zones, then on a second page the predicted performance, what to double-check, the test,
-#' and every method. Open it in a browser, or print it to PDF from there (two A4 pages for a typical test), or set
+#' they mean, the training zones, the predicted performance, what to double-check, the test, and every method. Open it
+#' in a browser, or print it to PDF from there (two A4 pages for a typical test, three with the heart rate panel under
+#' the curve; a section moves to the next page whole), or set
 #' `pdf = TRUE`. To choose the sections, their order, or to add your lab's name and logo, build the report step by
 #' step with [report_start()]. Needs the gt package.
 #'
@@ -43,7 +44,6 @@ test_report <- function(x, file = "lactate-test-report.html", athlete = list(), 
     report |>
       report_summary() |>
       report_zones() |>
-      report_page_break() |>
       report_prediction() |>
       report_checks() |>
       report_test(protocol = protocol) |>
@@ -335,7 +335,7 @@ html_page <- function(report) {
     ),
     tags$body(
       html_header(report),
-      tags$main(lapply(report$sections, function(draw) draw(report))),
+      tags$main(lapply(report$sections, function(draw) tags$section(draw(report)))),
       tags$footer(sprintf(
         "Made with lactater %s on %s. Thresholds from a %s fitted to %d stages.", utils::packageVersion("lactater"),
         trimws(format(Sys.Date(), "%e %B %Y")), info$settings$fit, sum(info$data$intensity > 0)
@@ -462,12 +462,15 @@ html_stats <- function(r) {
 
 #' @rdname report_internals
 html_figure <- function(zones) {
+  plot <- autoplot(zones)
+  panel <- inherits(plot, "patchwork")
   html_plot(
-    autoplot(zones),
+    plot,
     paste(
       "The lactate curve of the test, with the zones in the colors of their domain: green moderate, yellow heavy,",
-      "red severe."
-    )
+      "red severe.", if(panel) "Below it, the heart rate of the stages, read at LT1 and LT2."
+    ),
+    height = if(panel) 5.2 else 3.5
   )
 }
 
@@ -562,6 +565,8 @@ html_progress <- function(r, cv) {
     )
 
   change <- rows[n, c("lt1", "lt2")] - rows[1, c("lt1", "lt2")]
+  plot <- plot_series(tests, series$labels, r$lt[[1]], r$lt[[2]])
+  with_hr <- length(plot) == 3
   htmltools::tagList(
     tags$h2(class = "claim", sprintf("Since the first test: LT1 %s, LT2 %s", signed(change$lt1), signed(change$lt2))),
     tags$p(class = "lede", htmltools::HTML(sprintf(
@@ -572,12 +577,14 @@ html_progress <- function(r, cv) {
       n, series$labels[1], series$labels[n], method_html(chosen[1]), method_html(chosen[2])
     ))),
     html_plot(
-      plot_series(tests, series$labels, r$lt[[1]], r$lt[[2]]),
+      plot,
       paste(
-        "Every lactate curve, light to dark from the first to the latest test, and below them the five training",
-        "zones of each test, with LT1 and LT2 at their boundaries; dashed lines: 2 and 4 mmol/L."
+        "Every lactate curve, light to dark from the first to the latest test,",
+        if(with_hr) "then the heart rate of the stages in the same colors,",
+        "and below them the five training zones of each test, with LT1 and LT2 at their boundaries; dashed lines: 2",
+        "and 4 mmol/L."
       ),
-      height = 4 + 0.3 * n
+      height = if(with_hr) 3.6 + 0.3 * n + 1 else 4 + 0.3 * n
     ),
     tags$h2("Test by test"),
     html_table(by_test),

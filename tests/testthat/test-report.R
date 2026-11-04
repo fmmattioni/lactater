@@ -29,6 +29,7 @@ test_that("test_report writes one self-contained page with every section", {
   expect_equal(lengths(regmatches(html, gregexpr("<html", html))), 1)
   expect_match(html, "<title>Lactate step test, Ana &lt;test&gt;</title>", fixed = TRUE)
   expect_match(html, "the report of test_report()", fixed = TRUE)
+  expect_match(html, "Below it, the heart rate of the stages, read at LT1 and LT2.", fixed = TRUE)
   ## the title states the two thresholds
   zones <- attr(lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax"), "lactater_zones")$lt
   expect_match(html, sprintf("<h2 class=\"claim\">LT1 at %.0f W, LT2 at %.0f W</h2>", zones[1], zones[2]), fixed = TRUE)
