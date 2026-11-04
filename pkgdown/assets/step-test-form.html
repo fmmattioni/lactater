@@ -13,51 +13,60 @@
 </script>
 
 <style>
-  :root { --ink: #11181f; --muted: #5b6672; --line: #c9d0d8; --soft: #e6e9ee; --accent: #1f5fa8; --flag: #c4452f;
-          --paper: #ffffff; }
+  :root { --ink: #11181f; --label: #3d4752; --muted: #5b6672; --line: #c9d0d8; --soft: #e6e9ee; --cell: #f4f6f8;
+          --accent: #1f5fa8; --flag: #c4452f; --paper: #ffffff; }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body { font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; font-size: 15px; color: var(--ink);
          background: var(--paper); line-height: 1.4; }
-  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 56px; }
   header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 8px;
            border-bottom: 1.5px solid var(--ink); }
-  h1 { margin: 0; font-size: 22px; font-weight: 600; }
+  h1 { margin: 0; font-size: 24px; font-weight: 600; }
   .wordmark { font-family: "IBM Plex Mono", monospace; font-weight: 500; color: var(--ink); text-decoration: none; }
   .lede { color: var(--muted); margin: 10px 0 0; }
   .current { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 14px; font-size: 14px; }
   .current[hidden] { display: none; }
-  h2 { margin: 28px 0 8px; font-size: 16px; font-weight: 600; }
+  /* sections by a thin rule and space; boxed inputs a tester can find and hit on a tablet */
+  h2 { margin: 36px 0 12px; padding-top: 18px; border-top: 1px solid var(--soft); font-size: 16px; font-weight: 600; }
   .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
-  .fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 18px; }
-  label { display: flex; flex-direction: column; justify-content: space-between; gap: 3px; font-size: 13px;
-          color: var(--muted); }
-  input, select, textarea { font: inherit; font-size: 15px; color: var(--ink); background: transparent; border: 0;
-                            border-bottom: 1px solid var(--line); padding: 4px 2px; border-radius: 0; width: 100%; }
-  input:focus, select:focus, textarea:focus { outline: none; border-bottom: 1.5px solid var(--accent); }
-  textarea { border: 1px solid var(--line); min-height: 90px; padding: 6px; resize: vertical; }
-  [aria-invalid="true"] { border-bottom: 1.5px solid var(--flag); color: var(--flag); }
+  .fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px 20px; }
+  label { display: flex; flex-direction: column; justify-content: space-between; gap: 5px; font-size: 13px;
+          color: var(--label); }
+  input, select, textarea { font: inherit; font-size: 15px; color: var(--ink); background: var(--paper);
+                            border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; min-height: 40px;
+                            width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent);
+                                              box-shadow: 0 0 0 3px #1f5fa826; }
+  textarea { min-height: 90px; resize: vertical; }
+  [aria-invalid="true"] { border-color: var(--flag); color: var(--flag); box-shadow: 0 0 0 3px #c4452f1f; }
   table { width: 100%; border-collapse: collapse; }
   .table-wrap { overflow-x: auto; }
   #stages { min-width: 640px; }
   #recovery { max-width: 420px; }
-  th { font-size: 13px; text-align: left; font-weight: 600; padding: 6px 4px; border-bottom: 1.5px solid var(--ink); }
-  td { border-bottom: 1px solid var(--line); padding: 2px 4px; }
-  td input { border-bottom: 0; }
-  td.stage { color: var(--muted); width: 56px; }
+  th { font-size: 12.5px; color: var(--label); text-align: left; font-weight: 600; padding: 8px 6px;
+       border-bottom: 1px solid var(--ink); }
+  th.numeric { text-align: right; }
+  td { border-bottom: 1px solid var(--soft); padding: 3px; }
+  td input { border-color: transparent; background: var(--cell); min-height: 38px; font-size: 16px; }
+  td input:focus { background: var(--paper); }
+  td.stage { width: 56px; font-weight: 600; padding-left: 6px; }
   td.remove { width: 32px; text-align: right; }
+  #stages td:nth-child(3) { width: 120px; }
+  #stages td:nth-child(7) { width: 28%; }
   .numeric input { text-align: right; font-variant-numeric: tabular-nums; }
   button { font: inherit; font-size: 14px; color: var(--ink); background: transparent; border: 1px solid var(--line);
-           padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+           padding: 8px 14px; min-height: 40px; border-radius: 6px; cursor: pointer; }
   button:hover { border-color: var(--ink); }
   button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
-  button.quiet { border: 0; color: var(--muted); padding: 2px 6px; }
-  .row-actions { margin-top: 8px; }
+  button.quiet { border: 0; color: var(--muted); padding: 2px 6px; min-height: 0; font-size: 18px; }
+  .row-actions { margin-top: 10px; }
   .flags { color: var(--flag); font-size: 13px; margin: 6px 0 0; min-height: 1em; }
-  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 28px; padding-top: 16px;
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 36px; padding-top: 20px;
              border-top: 1px solid var(--soft); }
   .status { color: var(--muted); font-size: 13px; margin-left: auto; }
-  pre { font-family: "IBM Plex Mono", monospace; font-size: 13px; background: #f4f6f8; padding: 12px; overflow-x: auto; }
+  pre { font-family: "IBM Plex Mono", monospace; font-size: 13px; background: var(--cell); padding: 12px;
+        overflow-x: auto; }
   footer { margin-top: 28px; color: var(--muted); font-size: 13px; }
   footer p { margin: 0 0 6px; }
   footer a { color: var(--ink); }
@@ -65,9 +74,10 @@
     body { font-size: 11px; }
     main { max-width: none; padding: 0; }
     .actions, .row-actions, td.remove, .no-print { display: none; }
-    input, select, textarea { font-size: 11px; }
+    input, select, textarea { font-size: 11px; min-height: 0; padding: 2px 4px; border: 0; border-radius: 0;
+                              border-bottom: 1px solid var(--line); box-shadow: none; background: none; }
     textarea { border: 0; min-height: 0; }
-    h2 { margin: 12px 0 4px; font-size: 12px; }
+    h2 { margin: 12px 0 4px; padding-top: 6px; font-size: 12px; }
   }
 </style>
 </head>
@@ -136,8 +146,9 @@
 
   <h2>Stages <span class="hint">sample in the last 30 s of each stage, heart rate and RPE in the same window</span></h2>
   <div class="table-wrap"><table id="stages">
-    <thead><tr><th>Stage</th><th>Intensity (<span class="unit">W</span>)</th><th>Clock time</th>
-      <th>Lactate (mmol/L)</th><th>Heart rate (bpm)</th><th>RPE</th><th>Notes</th><th></th></tr></thead>
+    <thead><tr><th>Stage</th><th class="numeric">Intensity (<span class="unit">W</span>)</th><th>Clock time</th>
+      <th class="numeric">Lactate (mmol/L)</th><th class="numeric">Heart rate (bpm)</th><th class="numeric">RPE</th>
+      <th>Notes</th><th></th></tr></thead>
     <tbody></tbody>
   </table></div>
   <div class="row-actions"><button type="button" id="add-stage">Add stage</button></div>
@@ -150,7 +161,7 @@
     <label>Peak heart rate (bpm) <input data-field="peak_heart_rate" inputmode="decimal"></label>
   </div>
   <table id="recovery" style="margin-top: 12px">
-    <thead><tr><th>Minutes after the end</th><th>Lactate (mmol/L)</th><th></th></tr></thead>
+    <thead><tr><th class="numeric">Minutes after the end</th><th class="numeric">Lactate (mmol/L)</th><th></th></tr></thead>
     <tbody></tbody>
   </table>
   <div class="row-actions"><button type="button" id="add-recovery">Add sample</button></div>
