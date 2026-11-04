@@ -254,6 +254,11 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   DOI. "Best practices" opens with the test in five steps and a sketch of what
   moves the lactate curve, and gives each section as a table with the strength
   of its evidence. The examples use dplyr, so they read like everyday R.
+* "The methods and the evidence" and "Training zones" give the studies that
+  tested thresholds against the measured maximal lactate steady state, why one
+  lactate concentration cannot mark it for everyone, and the debate over where
+  the heavy and severe domains meet; "Training zones" says why zones from
+  thresholds beat percentages of a maximum.
 
 ## Beyond the step test
 

@@ -23,7 +23,9 @@ lactate above resting values (LT1) and a second, abrupt increase (LT2), which sp
 zones with distinct metabolic, hormonal and cardio-respiratory responses ([Hofmann & Tschakert, 2017](https://doi.org/10.3389/fphys.2017.00337)). The methods in
 lactater fall into the three families of a review that counted 25 lactate threshold concepts: fixed lactate
 concentrations, a first rise above baseline, and concepts aimed at the maximal lactate steady state (MLSS) or a
-distinct change in the curve ([Faude et al., 2009](https://doi.org/10.2165/00007256-200939060-00003)).
+distinct change in the curve ([Faude et al., 2009](https://doi.org/10.2165/00007256-200939060-00003)). Some still carry the name "anaerobic threshold", which is
+historical: blood lactate rises because glycolysis speeds up and lactate appears faster than it is removed, not
+mainly because the muscle runs short of oxygen ([Poole et al., 2021](https://doi.org/10.1113/JP279963)).
 
 ```{r methods-table, echo = FALSE}
 tribble(
@@ -79,6 +81,12 @@ The intensity is found by solving the fitted curve for the target
 lactate. When the curve crosses the target more than once (an early lactate dip), the highest crossing is used.
 Bsln+ takes the resting sample as the baseline, or the first stage when there is no resting sample.
 
+A fixed concentration assumes that everyone's MLSS sits at the same lactate, and it does not. In national and
+international athletes the lactate at the MLSS was 3.1 +/- 0.5 mmol/L in rowing, 5.4 +/- 1.0 in cycling and 6.6 +/- 0.9
+in speed skating, although the MLSS sat at 72 to 78% of the maximal workload in all three ([Beneke & von Duvillard,
+1996](https://doi.org/10.1097/00005768-199602000-00013)). In 33 men cycling it was 4.9 +/- 1.4 mmol/L, whatever their performance ([Beneke et al.,
+2000](https://doi.org/10.1097/00005768-200006000-00016)), and in 57 men it ranged from 2.2 to 9.2 mmol/L ([Hauser et al., 2014](https://doi.org/10.1055/s-0033-1353176)).
+
 ### The D<sub>max</sub> family
 
 Every variant takes the point where the fitted curve lies furthest *below* a straight line that
@@ -129,7 +137,9 @@ the tangent the maximal rate of lactate elimination. Give lactater the recovery 
 lactate) and the stage duration as `stage_duration`: lactater puts the recovery minutes on the intensity axis at the
 rate the test rose, finds the return to the end-of-exercise value by linear interpolation between the recovery
 samples, and draws the tangent that touches the fitted curve from below. Some of the model's assumptions about lactate
-kinetics "have been challenged" ([Faude et al., 2009](https://doi.org/10.2165/00007256-200939060-00003)).
+kinetics "have been challenged" ([Faude et al., 2009](https://doi.org/10.2165/00007256-200939060-00003)). Nor can the threshold always be found: when lactate falls fast after
+the test, it is already below its end-of-exercise value at the first recovery sample, which ruled the method out in 5
+of 12 elite cyclists ([Płoszczyca et al., 2020](https://doi.org/10.1186/s13102-020-00219-3)) and 6 of 57 men ([Hauser et al., 2014](https://doi.org/10.1055/s-0033-1353176)). lactater then returns `NA`.
 
 Here with `demo_data` (3-min stages) and recovery samples simulated for the example:
 
@@ -159,6 +169,19 @@ tribble(
   "Log-Poly-ModD<sub>max</sub> from the 4-min test gave the best estimate of the MLSS (mean difference 1.1 W, ICC
   0.96). D<sub>max</sub> differed from the MLSS by 19 to 49 W, and OBLA 4.0 overestimated it in every test.",
   "Single study",
+  "[P\u0142oszczyca et al., 2020](https://doi.org/10.1186/s13102-020-00219-3)",
+  "12 elite male cyclists (V&#775;O<sub>2max</sub> 71 mL/kg/min); 3-min stages of +40 W and 30-min constant-power bouts;
+  fingertip blood, Biosen",
+  "D<sub>max</sub> was 1.7 +/- 3.9 W below the MLSS, and Stegmann's IAT 4.3 +/- 7.9 W below in the 7 riders it could be
+  computed for. Bsln + 1.0 was 6.7 W below on average but far off in single riders. ModD<sub>max</sub> and OBLA 4.0
+  overestimated the MLSS by 32 and 43 W.",
+  "Single study",
+  "[Hauser et al., 2014](https://doi.org/10.1055/s-0033-1353176)",
+  "57 men from untrained to 14 h of training a week; 4-min stages of +40 W and 30-min constant-power bouts; earlobe
+  blood, Biosen",
+  "OBLA 4.0 was 7.4 +/- 25.1 W below the MLSS and Stegmann's IAT 12.4 +/- 24.6 W above it; LT<sub>ratio</sub> + 1.5 mmol/L,
+  the IAT of lactater, was 37.4 +/- 26.4 W below. Despite correlations of 0.83 to 0.89, single athletes were far off.",
+  "Single study",
   "[Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846)",
   "48 male cyclists, 109 tests (24 on placebo); five tests each; venous blood, Lactate Pro 2",
   "Intra-subject variation over five tests: 3.4% for D<sub>max</sub>, 3.6% for IAT, 3.8% for 4 mmol/L, 4.3% for
@@ -182,7 +205,15 @@ tribble(
   gt_lactater()
 ```
 
-Most of this evidence comes from trained, male, cycling populations; check how well it matches the athletes you test.
+How close a method lands to the MLSS depends on the protocol and the athletes: D<sub>max</sub> was within 2 W of it
+with 3-min stages in elite cyclists, but 19 to 49 W off in the study of Jamnick et al. Most of this evidence comes from trained,
+male, cycling populations; check how well it matches the athletes you test.
+
+Whether the MLSS is the boundary between the heavy and the severe domains is itself debated. [Jones et al.
+(2019)](https://doi.org/10.14814/phy2.14098) argue that the MLSS, as usually measured, falls below the maximal metabolic steady state, and that the critical
+power marks the boundary. In a meta-analysis of 10 studies the critical power was 12 W above the MLSS on average, with
+95% limits of agreement from -19 to 44 W, and further above it in fitter and younger people ([Micheli et al.,
+2025](https://doi.org/10.7717/peerj.19060)).
 
 ## Collecting good data
 
@@ -201,6 +232,12 @@ for those papers.
 Beaver WL, Wasserman K, Whipp BJ. Improved detection of lactate threshold during exercise using a log-log
 transformation. J Appl Physiol. 1985;59(6):1936-40. [doi:10.1152/jappl.1985.59.6.1936](https://doi.org/10.1152/jappl.1985.59.6.1936)
 
+Beneke R, von Duvillard SP. Determination of maximal lactate steady state response in selected sports events. Med
+Sci Sports Exerc. 1996;28(2):241-6. [doi:10.1097/00005768-199602000-00013](https://doi.org/10.1097/00005768-199602000-00013)
+
+Beneke R, Hütler M, Leithäuser RM. Maximal lactate-steady-state independent of performance. Med Sci Sports Exerc.
+2000;32(6):1135-9. [doi:10.1097/00005768-200006000-00016](https://doi.org/10.1097/00005768-200006000-00016)
+
 Bentley DJ, Newell J, Bishop D. Incremental exercise test design and analysis: implications for performance
 diagnostics in endurance athletes. Sports Med. 2007;37(7):575-86. [doi:10.2165/00007256-200737070-00002](https://doi.org/10.2165/00007256-200737070-00002)
 
@@ -218,6 +255,9 @@ treadmill running: relationship and reproducibility. Int J Sports Med. 1999;20(2
 
 Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid are they? Sports Med. 2009;39(6):469-90.
 [doi:10.2165/00007256-200939060-00003](https://doi.org/10.2165/00007256-200939060-00003)
+
+Hauser T, Adam J, Schulz H. Comparison of selected lactate threshold parameters with maximal lactate steady state in
+cycling. Int J Sports Med. 2014;35(6):517-21. [doi:10.1055/s-0033-1353176](https://doi.org/10.1055/s-0033-1353176)
 
 Heck H, Mader A, Hess G, Mucke S, Muller R, Hollmann W. Justification of the 4-mmol/l lactate threshold. Int J Sports
 Med. 1985;6(3):117-30. [doi:10.1055/s-2008-1025824](https://doi.org/10.1055/s-2008-1025824)
@@ -242,11 +282,25 @@ lactate threshold and V̇O<sub>2peak</sub>. PLOS ONE. 2018;13(7):e0199794. [doi:
 Jamnick NA, Pettitt RW, Granata C, Pyne DB, Bishop DJ. An examination and critique of current methods to determine
 exercise intensity. Sports Med. 2020;50(10):1729-56. [doi:10.1007/s40279-020-01322-8](https://doi.org/10.1007/s40279-020-01322-8)
 
+Jones AM, Burnley M, Black MI, Poole DC, Vanhatalo A. The maximal metabolic steady state: redefining the 'gold
+standard'. Physiol Rep. 2019;7(10):e14098. [doi:10.14814/phy2.14098](https://doi.org/10.14814/phy2.14098)
+
 Kindermann W, Simon G, Keul J. The significance of the aerobic-anaerobic transition for the determination of work
 load intensities during endurance training. Eur J Appl Physiol Occup Physiol. 1979;42(1):25-34. [doi:10.1007/BF00421101](https://doi.org/10.1007/BF00421101)
 
+Micheli L, Lucertini F, Grossi T, Pogliaghi S, Keir DA, Ferri Marini C. Analysis of the factors influencing the
+proximity and agreement between critical power and maximal lactate steady state: a systematic review and
+meta-analyses. PeerJ. 2025;13:e19060. [doi:10.7717/peerj.19060](https://doi.org/10.7717/peerj.19060)
+
+Płoszczyca K, Jazic D, Piotrowicz Z, Chalimoniuk M, Langfort J, Czuba M. Comparison of maximal lactate steady state
+with anaerobic threshold determined by various methods based on graded exercise test with 3-minute stages in elite
+cyclists. BMC Sports Sci Med Rehabil. 2020;12:70. [doi:10.1186/s13102-020-00219-3](https://doi.org/10.1186/s13102-020-00219-3)
+
 Pokan R, Hofmann P, von Duvillard SP, et al. Left ventricular function in response to the transition from aerobic to
 anaerobic metabolism. Med Sci Sports Exerc. 1997;29(8):1040-7. [doi:10.1097/00005768-199708000-00009](https://doi.org/10.1097/00005768-199708000-00009)
+
+Poole DC, Rossiter HB, Brooks GA, Gladden LB. The anaerobic threshold: 50+ years of controversy. J Physiol.
+2021;599(3):737-67. [doi:10.1113/JP279963](https://doi.org/10.1113/JP279963)
 
 Röcker K, Schotte O, Niess AM, Heitkamp HC, Dickhuth HH. Laufbandtestdaten und Wettkampfprognosen für den
 Langstreckenlauf (Treadmill testing and the prediction of race results in distance running). Dtsch Z Sportmed.

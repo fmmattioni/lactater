@@ -26,11 +26,14 @@ zone_colours <- list(
 #'   * Two intensities, `c(zone 1|2, zone 4|5)`, for your own cuts.
 #'
 #' @details
-#' LT1 is usually a "first rise" threshold (e.g. `"LTP1"`, `"Log-log"`, `"Bsln + 0.5"`), and LT2 a threshold near the
-#' maximal metabolic steady state (e.g. `"LTP2"`, `"ModDmax"`, `"Log-Poly-ModDmax"`, `"OBLA 4.0"`, `"IAT"`).
-#' Different choices give different zones, so report which ones you used. No published five-zone scale is built on
-#' individual thresholds alone: its lactate and heart-rate limits are averages, so treat the splits inside a domain
-#' as a convention and check them against how the athlete responds.
+#' LT1 is usually a "first rise" threshold (e.g. `"LTP1"`, `"Log-log"`, `"Bsln + 0.5"`), and LT2 a threshold meant to
+#' estimate the maximal lactate steady state (MLSS; e.g. `"LTP2"`, `"ModDmax"`, `"Log-Poly-ModDmax"`, `"OBLA 4.0"`,
+#' `"IAT"`). Against a measured MLSS these landed from about 40 W below to 40 W above it on average, by method,
+#' protocol and athletes (Hauser et al., 2014; Ploszczyca et al., 2020), and whether the MLSS or the critical power
+#' marks the boundary between the heavy and severe domains is debated (Jones et al., 2019). Different choices give
+#' different zones, so report which ones you used. No published five-zone scale is built on individual thresholds
+#' alone: its lactate and heart-rate limits are averages, so treat the splits inside a domain as a convention and check
+#' them against how the athlete responds.
 #'
 #' @param x The result of [lactate_threshold()].
 #' @param lt1,lt2 The thresholds that mark LT1 and LT2: a method in `x$method`, or an intensity. Default to `"LTP1"`
@@ -49,8 +52,18 @@ zone_colours <- list(
 #' Hofmann P, Tschakert G. Intensity- and duration-based options to regulate endurance training. Frontiers in
 #' Physiology. 2017;8:337.
 #'
+#' Hauser T, Adam J, Schulz H. Comparison of selected lactate threshold parameters with maximal lactate steady state in
+#' cycling. International Journal of Sports Medicine. 2014;35(6):517-521.
+#'
 #' Jamnick NA, Pettitt RW, Granata C, Pyne DB, Bishop DJ. An examination and critique of current methods to determine
 #' exercise intensity. Sports Medicine. 2020;50(10):1729-1756.
+#'
+#' Jones AM, Burnley M, Black MI, Poole DC, Vanhatalo A. The maximal metabolic steady state: redefining the 'gold
+#' standard'. Physiological Reports. 2019;7(10):e14098.
+#'
+#' Ploszczyca K, Jazic D, Piotrowicz Z, Chalimoniuk M, Langfort J, Czuba M. Comparison of maximal lactate steady state
+#' with anaerobic threshold determined by various methods based on graded exercise test with 3-minute stages in elite
+#' cyclists. BMC Sports Science, Medicine and Rehabilitation. 2020;12:70.
 #'
 #' Seiler S. What is best practice for training intensity and duration distribution in endurance athletes?
 #' International Journal of Sports Physiology and Performance. 2010;5(3):276-291.

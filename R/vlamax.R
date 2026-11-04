@@ -18,6 +18,11 @@
 #' little beyond the sprint power itself. Compare values only within the same protocol, ergometer and
 #' lactate analyzer.
 #'
+#' The default `test_duration` of 15 s is the sprint of Meixner et al. (2024) and of most cycling studies. A review of
+#' 60 studies recommends a sport-specific all-out sprint of 10-12 s instead, with lactate sampled every minute for 10
+#' min, and calls the rate from 15 s or longer a peak rather than a maximal rate; it also found the use of VLamax to
+#' predict performances of 1 min or longer inconclusive (Quittmann, 2026). Set `test_duration` to your sprint.
+#'
 #' @param lactate_pre Blood lactate before the sprint (mmol/L).
 #' @param lactate_post Blood lactate samples after the sprint (mmol/L); the highest is used.
 #' @param test_duration Sprint duration in seconds. Default to `15`.
@@ -37,6 +42,9 @@
 #'
 #' Clark B, Macdermid PW. VLamax correlates strongly with glycolytic performance. Research Quarterly for
 #' Exercise and Sport. 2025:1-8.
+#'
+#' Quittmann OJ. Maximal lactate accumulation rate (cLamax): current evidence and future directions for exercise
+#' testing and training. European Journal of Applied Physiology. 2026;126(1):1-36. doi:10.1007/s00421-025-06022-7
 #'
 #' @export
 #'

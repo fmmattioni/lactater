@@ -30,6 +30,11 @@ a 1-s change in it can change V̇La<sub>max</sub> by up to 26% ([Meixner et al.,
 added little beyond the power of the sprint itself ([Clark & Macdermid, 2025](https://doi.org/10.1080/02701367.2025.2481176)). Compare V̇La<sub>max</sub> only within the same
 protocol, ergometer and analyzer.
 
+`vlamax()` assumes a 15-s sprint by default, as in Meixner et al. and most cycling studies. A review of 60 studies
+recommends a sport-specific all-out sprint of 10-12 s with lactate sampled every minute for 10 min, calls the rate
+from 15 s or longer a peak rather than a maximal rate, and found the use of V̇La<sub>max</sub> to predict performances of 1 min
+or longer inconclusive ([Quittmann, 2026](https://doi.org/10.1007/s00421-025-06022-7)). Give `test_duration` the length of your sprint.
+
 ## References
 
 Clark B, Macdermid PW. V̇La<sub>max</sub> correlates strongly with glycolytic performance. Res Q Exerc Sport. 2025:1-8.
@@ -41,3 +46,6 @@ vLamax: a systematic review. J Sci Cycling. 2025;14(1):9. [doi:10.28985/1425.jsc
 Meixner B, Nusser V, Koehler K, Sablain M, Boone J, Sperlich B. Reliability of power output, maximal rate of capillary
 blood lactate accumulation, and phosphagen contribution time following 15-s sprint cycling in amateur cyclists.
 Physiol Rep. 2024;12(10):e16086. [doi:10.14814/phy2.16086](https://doi.org/10.14814/phy2.16086)
+
+Quittmann OJ. Maximal lactate accumulation rate (ċLa<sub>max</sub>): current evidence and future directions for exercise testing
+and training. Eur J Appl Physiol. 2026;126(1):1-36. [doi:10.1007/s00421-025-06022-7](https://doi.org/10.1007/s00421-025-06022-7)

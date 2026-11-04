@@ -48,7 +48,7 @@ about running a step test and analyzing it, as a checklist.
 
 Read each point with its evidence in mind. Few come from guidelines: most come from single studies in small groups,
 often of trained men, and some from expert reviews. The last column of each table says which: a guideline, a
-review, single studies (with how many people), or no study we found. A dagger (&dagger;) marks the one
+meta-analysis, a review, single studies (with how many people), or no study we found. A dagger (&dagger;) marks the one
 study read from its abstract only.
 
 ## What moves the curve
@@ -157,9 +157,11 @@ tribble(
   "1 study, n = 8",
   "Hydration",
   "Start every test equally hydrated.",
-  "In 7 moderately trained women, losing 2.6% of body mass to dehydration moved the Log-log threshold from 72% to 66%
-  of V&#775;O<sub>2max</sub> ([Moquin & Mazzeo, 2000](https://doi.org/10.1097/00005768-200002000-00021)).",
-  "1 study, n = 7",
+  "In a meta-analysis of studies that dehydrated adults before exercise, by 3.6% of body mass on average, the oxygen
+  uptake at the lactate threshold was 4.4% lower (95% CI 1.7-7.1%; [Deshayes et al., 2020](https://doi.org/10.1007/s40279-019-01223-5)). In 7 moderately
+  trained women, losing 2.6% of body mass moved the Log-log threshold from 72% to 66% of V&#775;O<sub>2max</sub> ([Moquin &
+  Mazzeo, 2000](https://doi.org/10.1097/00005768-200002000-00021)).",
+  "Meta-analysis",
   "Time of day",
   "Test at the same time of day, ideally when the athlete usually trains.",
   "In 11 endurance-trained men tested on a rowing ergometer at six times of day, the power at the D<sub>max</sub>
@@ -263,14 +265,17 @@ tribble(
   so `lactate_checks()` warns when `sample` says otherwise.",
   "Review",
   "Analyzer",
-  "Calibrate it as the manufacturer says, and test each athlete on the same device.",
+  "Calibrate it as the manufacturer says, test each athlete on the same device, and do not compare tests run on
+  different analyzers.",
   "The typical error of three portable analyzers was 0.4 to 1.0 mmol/L depending on the device ([Tanner et al.,
   2010](https://doi.org/10.1007/s00421-010-1379-9)), and all three read lower than a laboratory analyzer. Six hand-held
   analyzers all read lower than a laboratory
   analyzer, most at the highest
   concentrations, which \"would overestimate the ability of the athlete\" ([Bonaventura et al.,
-  2015](https://pmc.ncbi.nlm.nih.gov/articles/PMC4306774/)).",
-  "2 studies"
+  2015](https://pmc.ncbi.nlm.nih.gov/articles/PMC4306774/)). With four current hand-held analyzers the direction depended on the device: against a
+  laboratory analyzer they read 10% lower to 42% higher, and a second laboratory analyzer read 32% lower; at 3 mmol/L
+  their 95% prediction intervals were 0.6 to 0.9 mmol/L wide (venous blood; [Mentzoni et al., 2024](https://doi.org/10.1007/s00421-024-05572-6)).",
+  "3 studies"
 ) |>
   practice_table()
 ```
@@ -404,6 +409,10 @@ lactate analysers. J Sports Sci Med. 2015;14:203-14. [PMCID:PMC4306774](https://
 Dassonville J, Beillot J, Lessard Y, et al. Blood lactate concentrations during exercise: effect of sampling site
 and exercise mode. J Sports Med Phys Fitness. 1998;38(1):39-46. [PMID:9638031](https://pubmed.ncbi.nlm.nih.gov/9638031/)
 
+Deshayes TA, Jeker D, Goulet EDB. Impact of pre-exercise hypohydration on aerobic exercise performance, peak oxygen
+consumption and oxygen consumption at lactate threshold: a systematic review with meta-analysis. Sports Med.
+2020;50(3):581-96. [doi:10.1007/s40279-019-01223-5](https://doi.org/10.1007/s40279-019-01223-5)
+
 Dickhuth HH, Yin L, Niess A, et al. Ventilatory, lactate-derived and catecholamine thresholds during incremental
 treadmill running: relationship and reproducibility. Int J Sports Med. 1999;20(2):122-7. [doi:10.1055/s-2007-971105](https://doi.org/10.1055/s-2007-971105)
 
@@ -447,6 +456,10 @@ Sports Med. 1999;33(5):336-9. [doi:10.1136/bjsm.33.5.336](https://doi.org/10.113
 
 Maassen N, Busse MW. The relationship between lactic acid and work load: a measure for endurance capacity or an
 indicator of carbohydrate deficiency? Eur J Appl Physiol Occup Physiol. 1989;58(7):728-37. [doi:10.1007/BF00637384](https://doi.org/10.1007/BF00637384)
+
+Mentzoni F, Skaugen M, Eythorsdottir I, Roterud S, Johansen ES, Losnegard T. Precision and accuracy of four handheld
+blood lactate analyzers across low to high exercise intensities. Eur J Appl Physiol. 2024;124(12):3781-8.
+[doi:10.1007/s00421-024-05572-6](https://doi.org/10.1007/s00421-024-05572-6)
 
 Moquin A, Mazzeo RS. Effect of mild dehydration on the lactate threshold in women. Med Sci Sports Exerc.
 2000;32(2):396-402. [doi:10.1097/00005768-200002000-00021](https://doi.org/10.1097/00005768-200002000-00021)
