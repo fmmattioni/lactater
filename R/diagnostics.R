@@ -199,8 +199,8 @@ autoplot.lactate_diagnostics <- function(object, ...) {
     panel(
       "Leave one stage out",
       paste0(
-        "How far each threshold moves without one stage (numbers: moves of 3% or more).\n",
-        "Dark cells: stages a threshold rests on."
+        "How far each threshold moves without each stage: red up, blue down.\n",
+        "Dark cells: stages a threshold rests on; numbers: moves of 3% or more."
       )
     )
   fits <- as.data.frame(object$fits)
@@ -226,8 +226,9 @@ autoplot.lactate_diagnostics <- function(object, ...) {
 
 #' The leave-one-stage-out grid
 #'
-#' One row per method and one column per stage left out, shaded by how far the threshold moves without that stage,
-#' with the move written in the cells where it is at least 3% of the threshold. For internal use only.
+#' One row per method and one column per stage left out, red where the threshold rises without that stage and blue
+#' where it falls, darker the further it moves, with the move written in the cells where it is at least 3% of the
+#' threshold. For internal use only.
 #'
 #' @param object The result of [lactate_diagnostics()].
 #' @param colours The plot colours.
@@ -246,15 +247,19 @@ leave_one_out_panel <- function(object, colours, sport) {
     is.na(loo$change), "-",
     ifelse(share >= 0.03, sprintf("%+.*f", intensity_digits(sport), loo$change), "")
   )
-  tint <- if(identical(colours[["paper"]], "#ffffff")) colours[["curve"]] else colours[["accent"]]
+  ## the sign of the move as hue, its size as depth; a pair that stays apart with colour-vision deficiency
+  dark <- !identical(colours[["paper"]], "#ffffff")
+  loo$fill <- ifelse(loo$change > 0, if(dark) "#d9654f" else "#c4452f", if(dark) "#4a95d6" else "#1f5fa8")
   ggplot2::ggplot(loo, ggplot2::aes(column, row)) +
-    ggplot2::geom_tile(ggplot2::aes(alpha = 0.04 + 0.86 * shade), fill = tint, width = 0.94, height = 0.88,
-                       na.rm = TRUE) +
+    ## a neutral cell under every move, so that a move near zero is gray rather than faintly red or blue
+    ggplot2::geom_tile(fill = colours[["faint"]], alpha = 0.2, width = 0.94, height = 0.88) +
+    ggplot2::geom_tile(ggplot2::aes(alpha = 0.9 * shade, fill = fill), width = 0.94, height = 0.88, na.rm = TRUE) +
     ggplot2::geom_text(
       ggplot2::aes(label = label), size = 2.6,
       colour = ifelse(!is.na(loo$shade) & loo$shade > 0.55, colours[["paper"]], colours[["ink"]])
     ) +
     ggplot2::scale_alpha_identity() +
+    ggplot2::scale_fill_identity() +
     ggplot2::scale_x_continuous(
       breaks = seq_along(stages), labels = format_intensity(stages, sport), position = "top", expand = c(0, 0.1)
     ) +

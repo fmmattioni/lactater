@@ -1,6 +1,6 @@
 ## column names used inside ggplot2::aes() in the plots
 globalVariables(c(
-  "change", "column", "cooks_distance", "day", "fitted", "from", "group", "half", "high", "hjust", "intensity",
+  "change", "column", "cooks_distance", "day", "fill", "fitted", "from", "group", "half", "high", "hjust", "intensity",
   "intensity_after", "intensity_before", "label", "label_at", "lactate", "line", "low", "method", "outside",
   "prediction_error", "ratio", "residual", "row", "shade", "share", "stage", "test", "text", "threshold", "to",
   "value", "value_at", "x", "y", "zone"

@@ -14,7 +14,8 @@ leave_one_out_panel(object, colours, sport)
 \item{sport}{The sport.}
 }
 \description{
-One row per method and one column per stage left out, shaded by how far the threshold moves without that stage,
-with the move written in the cells where it is at least 3\% of the threshold. For internal use only.
+One row per method and one column per stage left out, red where the threshold rises without that stage and blue
+where it falls, darker the further it moves, with the move written in the cells where it is at least 3\% of the
+threshold. For internal use only.
 }
 \keyword{internal}

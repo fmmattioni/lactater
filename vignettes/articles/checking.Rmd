@@ -89,8 +89,8 @@ move if that stage were left out ([Cook, 1977](https://doi.org/10.2307/1268249))
   p ([Cook, 1977](https://doi.org/10.2307/1268249)).
 
 **Leave one stage out.** Every threshold computed again without each stage in turn (a jackknife; [Efron, 1982](https://doi.org/10.1137/1.9781611970319)). A
-grid has one row per method and one column per stage left out, shaded by how far the threshold moves, with the move
-written where it is 3% of the threshold or more, about the day-to-day variation of a threshold ([Heuberger et al.,
+grid has one row per method and one column per stage left out, red where the threshold rises without that stage and
+blue where it falls, darker the further it moves, with the move written where it is 3% of the threshold or more, about the day-to-day variation of a threshold ([Heuberger et al.,
 2018](https://doi.org/10.1371/journal.pone.0206846)). A pale row means the threshold does not rest on any single
 stage; a dark cell names the stage it rests on; a dark column is a stage that many thresholds rest on, which is worth
 a second look at its sample. Dropping the first or last stage changes where the D<sub>max</sub> line starts or ends,
