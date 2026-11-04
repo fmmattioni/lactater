@@ -2,6 +2,10 @@ url: https://fmmattioni.github.io/lactater/
 
 destination: docs
 
+# example plots 7.3 x 6.6 in (the default 4.5 in squeezes the overview and the trend plot)
+figures:
+  fig.asp: 0.9
+
 template:
   bootstrap: 5
   light-switch: true

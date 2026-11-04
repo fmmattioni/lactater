@@ -2,7 +2,8 @@
 #'
 #' Regression diagnostics for the fitted lactate curve, adapted to tests of 6 to 10 stages, and a leave-one-out check
 #' of every threshold. Print it for a short summary, and plot it with [autoplot()] for six panels, each with a line on
-#' what to look for.
+#' what to look for; they need a tall plot, about 9 x 10 inches, and the article [Checking the
+#' analysis](https://fmmattioni.github.io/lactater/articles/checking.html) shows them panel by panel.
 #'
 #' * **Residuals**: the measured lactate minus the curve. A run of residuals of the same sign, or an arch against the
 #'   fitted values, means the shape of the curve is wrong for this test.
@@ -43,7 +44,8 @@
 #' results <- lactate_threshold(female, intensity, lactate, heart_rate, plot = FALSE)
 #' diagnostics <- lactate_diagnostics(results)
 #' diagnostics
-#' autoplot(diagnostics)
+#' ## six panels: draw them in a tall window, about 9 x 10 inches
+#' if(interactive()) autoplot(diagnostics)
 lactate_diagnostics <- function(x) {
   info <- lactater_info(x)
   curve <- info$curve

@@ -25,7 +25,7 @@ a \code{lactate_diagnostics} object: a list with \code{stages} (one row per stag
 \description{
 Regression diagnostics for the fitted lactate curve, adapted to tests of 6 to 10 stages, and a leave-one-out check
 of every threshold. Print it for a short summary, and plot it with \code{\link[=autoplot]{autoplot()}} for six panels, each with a line on
-what to look for.
+what to look for; they need a tall plot, about 9 x 10 inches, and the article \href{https://fmmattioni.github.io/lactater/articles/checking.html}{Checking the analysis} shows them panel by panel.
 }
 \details{
 \itemize{
@@ -52,7 +52,8 @@ female <- subset(lactate_tests, test == "cycling_female")
 results <- lactate_threshold(female, intensity, lactate, heart_rate, plot = FALSE)
 diagnostics <- lactate_diagnostics(results)
 diagnostics
-autoplot(diagnostics)
+## six panels: draw them in a tall window, about 9 x 10 inches
+if(interactive()) autoplot(diagnostics)
 }
 \references{
 Bonaventura JM, Sharpe K, Knight E, Fuller KL, Tanner RK, Gore CJ. Reliability and accuracy of six hand-held blood

@@ -396,8 +396,9 @@ stage_layers <- function(points, data, colours, label_rest = TRUE) {
   list(
     if(nrow(rest) > 0) stage_points(rest, colours, outline = colours[["faint"]]),
     if(nrow(rest) > 0 && label_rest) {
-      ggplot2::annotate("text", x = rest$intensity, y = rest$lactate, label = "rest", vjust = -1.2, size = 2.9,
-                        colour = colours[["muted"]])
+      ## from the dot to the right: the rest sits at the left edge of the plot
+      ggplot2::annotate("text", x = rest$intensity, y = rest$lactate, label = "rest", hjust = 0, vjust = -1.2,
+                        size = 2.9, colour = colours[["muted"]])
     },
     stage_points(stages, colours)
   )

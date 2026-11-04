@@ -5,6 +5,8 @@ title: "Predicting performance"
 ```{r, include = FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7.5, fig.height = 4.4, dpi = 110, out.width = "100%")
 library(lactater)
+library(dplyr)
+library(gt)
 plex <- requireNamespace("systemfonts", quietly = TRUE) &&
   isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
 if (plex) options(lactater.font = "IBM Plex Sans")
@@ -105,15 +107,28 @@ autoplot(cyclist_prediction)
 This rider is one of the 48, so his prediction is not a fair test of the equations. On the whole sample, the
 leave-one-out prediction errors (each rider predicted by the equation fitted without him) were:
 
-| Predictor | Riders | r | Leave-one-out error | Time-trial power, % of the predictor |
-|---|---|---|---|---|
-| LTP2 | 39 | 0.88 | 12.3 W | 92 +/- 5% |
-| IAT | 39 | 0.87 | 12.5 W | 95 +/- 6% |
-| ModD<sub>max</sub> | 35 | 0.87 | 12.8 W | 94 +/- 4% |
-| OBLA 4.0 | 33 | 0.84 | 12.9 W | 90 +/- 6% |
-| Log-Poly-ModD<sub>max</sub> | 38 | 0.86 | 13.8 W | 94 +/- 6% |
-| D<sub>max</sub> | 39 | 0.79 | 16.2 W | 104 +/- 7% |
-| Peak power of the step test | 39 | 0.92 | 10.4 W | 82 +/- 3% |
+```{r, echo = FALSE}
+tribble(
+  ~predictor, ~riders, ~r, ~error, ~share,
+  "LTP2", 39, 0.88, "12.3 W", "92 +/- 5%",
+  "IAT", 39, 0.87, "12.5 W", "95 +/- 6%",
+  "ModD<sub>max</sub>", 35, 0.87, "12.8 W", "94 +/- 4%",
+  "OBLA 4.0", 33, 0.84, "12.9 W", "90 +/- 6%",
+  "Log-Poly-ModD<sub>max</sub>", 38, 0.86, "13.8 W", "94 +/- 6%",
+  "D<sub>max</sub>", 39, 0.79, "16.2 W", "104 +/- 7%",
+  "Peak power of the step test", 39, 0.92, "10.4 W", "82 +/- 3%"
+) |>
+  gt() |>
+  fmt_markdown(columns = predictor) |>
+  fmt_number(columns = r, decimals = 2) |>
+  cols_label(
+    predictor = "Predictor", riders = "Riders", r = "r", error = "Leave-one-out error",
+    share = "Time-trial power, % of the predictor"
+  ) |>
+  cols_align("right", columns = -predictor) |>
+  tab_style(cell_text(weight = 600), cells_body(rows = predictor == "Peak power of the step test")) |>
+  gt_lactater()
+```
 
 The last row is the lesson: the highest power of the step test predicted the time trial at least as well as any
 lactate threshold, as other cycling studies found. A threshold is still the better guide to training, because it
@@ -156,18 +171,38 @@ method, and join the race results by athlete.
 How fast are races run, relative to a threshold? The answer depends on the threshold, the distance and the level of
 the athlete, which is why it is shown here as a table to learn from, not as a predictor:
 
-| Sport and race | Race intensity relative to the threshold | Population | Source |
-|---|---|---|---|
-| Running, 5 km | 117-120% of IAT | 427 competitive runners | [Roecker et al., 1998](https://doi.org/10.1097/00005768-199810000-00014) (equations at IAT 14-17 km/h) |
-| Running, 10 km | 109-110% of IAT | | |
-| Running, half marathon | 104-107% of IAT | | |
-| Running, marathon | 94-97% of IAT | | |
-| Running, marathon | 87 +/- 6% of the speed at 4 mmol/L (78-98%) | 18 men, 2:22 to 4:12 | [Sjödin & Jacobs, 1981](https://doi.org/10.1055/s-2008-1034579) |
-| Running, marathon | about the speed at 2.5-3 mmol/L in a field test | 24 elite marathon runners | [Föhrenbach et al., 1987](https://doi.org/10.1055/s-2008-1025633) |
-| Cycling, 45-min time trial | 92% of LTP2, 90% of OBLA 4.0, 104% of D<sub>max</sub> | 48 well-trained men | [Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846) (refitted) |
-| Rowing, 2000 m | speed at 4 mmol/L = 89% of race speed | 13 club rowers | [Cosgrove et al., 1999](https://doi.org/10.1080/026404199365407) |
-| Swimming, 400 m | 109% of the speed at 4 mmol/L | 15 competitive swimmers | [Ribeiro et al., 1990](https://doi.org/10.1136/bjsm.24.3.196) |
-| Swimming, 800-1500 m | 3.4% above the maximal lactate steady state | swimmers | [Hering & Stepan, 2021](https://doi.org/10.3389/fphys.2021.668123) |
+```{r, echo = FALSE}
+tribble(
+  ~race, ~intensity, ~population, ~source,
+  "Running, 5 km", "117-120% of IAT", "427 competitive runners",
+  "[Roecker et al., 1998](https://doi.org/10.1097/00005768-199810000-00014) (equations at IAT 14-17 km/h)",
+  "Running, 10 km", "109-110% of IAT", "", "",
+  "Running, half marathon", "104-107% of IAT", "", "",
+  "Running, marathon", "94-97% of IAT", "", "",
+  "Running, marathon", "87 +/- 6% of the speed at 4 mmol/L (78-98%)", "18 men, 2:22 to 4:12",
+  "[Sj\u00f6din & Jacobs, 1981](https://doi.org/10.1055/s-2008-1034579)",
+  "Running, marathon", "about the speed at 2.5-3 mmol/L in a field test", "24 elite marathon runners",
+  "[F\u00f6hrenbach et al., 1987](https://doi.org/10.1055/s-2008-1025633)",
+  "Cycling, 45-min time trial", "92% of LTP2, 90% of OBLA 4.0, 104% of D<sub>max</sub>", "48 well-trained men",
+  "[Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846) (refitted)",
+  "Rowing, 2000 m", "speed at 4 mmol/L = 89% of race speed", "13 club rowers",
+  "[Cosgrove et al., 1999](https://doi.org/10.1080/026404199365407)",
+  "Swimming, 400 m", "109% of the speed at 4 mmol/L", "15 competitive swimmers",
+  "[Ribeiro et al., 1990](https://doi.org/10.1136/bjsm.24.3.196)",
+  "Swimming, 800-1500 m", "3.4% above the maximal lactate steady state", "swimmers",
+  "[Hering & Stepan, 2021](https://doi.org/10.3389/fphys.2021.668123)"
+) |>
+  gt() |>
+  fmt_markdown(columns = everything()) |>
+  cols_label(
+    race = "Sport and race", intensity = "Race intensity relative to the threshold", population = "Population",
+    source = "Source"
+  ) |>
+  cols_width(race ~ pct(20), intensity ~ pct(34), population ~ pct(20), source ~ pct(26)) |>
+  tab_style(cell_text(weight = 600), cells_body(columns = race)) |>
+  tab_style(cell_text(v_align = "top"), cells_body()) |>
+  gt_lactater()
+```
 
 In rowing, the power at 4 mmol/L is the threshold most often related to 2000 m performance, but maximal oxygen
 uptake or peak power often predicted better ([Cosgrove et al., 1999](https://doi.org/10.1080/026404199365407); [Kilbey et al., 2025](https://doi.org/10.1186/s40798-024-00796-4)). For rowing and swimming,

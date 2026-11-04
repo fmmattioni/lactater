@@ -28,3 +28,12 @@ test_that("own cuts are checked against their domains", {
   expect_error(lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5, split = c(120, 170)), "`split`")
   expect_error(lactate_zones(results, model = 7), "`model`")
 })
+
+test_that("a zone below the first stage does not stretch the zones plot", {
+  swim <- lactate_threshold(lactate_tests[lactate_tests$test == "swimming", ], intensity, lactate, sport = "swimming",
+                            plot = FALSE)
+  zones <- lactate_zones(swim, lt1 = "LTP1", lt2 = "ModDmax", model = 5)
+  ## zone 1 ends far below the swimmer's first stage, so the plot starts above it, at the test
+  x_range <- ggplot2::ggplot_build(autoplot(zones))$layout$panel_params[[1]]$x.range
+  expect_gt(x_range[1], zones$intensity_to[1])
+})

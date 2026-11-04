@@ -25,12 +25,8 @@ lactate_tests |>
   gt(groupname_col = "sport") |>
   cols_label(test = "Test", description = "Description", source = "Source") |>
   tab_style(cell_text(font = "IBM Plex Mono", size = px(13)), cells_body(columns = test)) |>
-  opt_table_font(font = list(google_font("IBM Plex Sans"), default_fonts())) |>
-  tab_options(
-    table.width = pct(100), table.font.size = px(14), column_labels.font.weight = "bold",
-    row_group.font.weight = "bold", row_group.text_transform = "capitalize", row_group.background.color = "#eef3f9",
-    table.border.top.style = "hidden", table.background.color = "transparent"
-  )
+  gt_lactater() |>
+  tab_options(row_group.text_transform = "capitalize")
 ```
 
 A small helper analyses one test, with heart rate and RPE when they were recorded (the RPE of the three simulated

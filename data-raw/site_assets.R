@@ -1,10 +1,11 @@
 ## Writes the files the website offers for download, into pkgdown/assets (copied to the root of the site):
-## the recording sheet as PDF, an example test report and an example report of a series. Run from the package root
-## after changing any of them:
+## the recording sheet as PDF, an example test report and an example report of a series; and the first page of the
+## example report as an image for the README. Run from the package root after changing any of them, before knitting
+## the README:
 ##
 ##   Rscript data-raw/site_assets.R
 ##
-## Needs Google Chrome or Chromium, and the pagedown package for the PDF.
+## Needs Google Chrome or Chromium, and the pagedown, pdftools and png packages.
 
 pkgload::load_all(quiet = TRUE)
 if(isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))) {
@@ -29,6 +30,11 @@ report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
   simulated)") |>
   report_methods() |>
   report_save("pkgdown/assets/report-example.html", open = FALSE)
+
+## its first page as an image for the README gallery (needs pdftools and png)
+page <- tempfile(fileext = ".pdf")
+pagedown::chrome_print("pkgdown/assets/report-example.html", output = page, verbose = 0)
+png::writePNG(pdftools::pdf_render_page(page, 1, dpi = 110), "man/figures/readme/report-page.png")
 
 ## five tests of one cyclist; the test dates are not in the data, so they start on an example date
 series <- lactate_tests[lactate_tests$athlete == "cyclist_series", ]

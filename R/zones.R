@@ -206,12 +206,17 @@ autoplot.lactate_zones <- function(object, ...) {
     description = object$description,
     fill = zone_colours[[as.character(n)]]
   )
-  bands$middle <- (bands$from + bands$to) / 2
   bands$range <- c(
     paste0("< ", value(zones$bounds[1])),
     paste0(value(zones$bounds[-length(zones$bounds)]), "-", value(zones$bounds[-1])),
     paste0("> ", value(zones$bounds[length(zones$bounds)]))
   )
+  ## a zone beyond the test (zone 1 below the first stage of a swimmer) is cut to the plot, or left out when none of
+  ## it is in the plot, so it cannot stretch the axis
+  bands$from <- pmax(bands$from, limits[1])
+  bands$to <- pmin(bands$to, limits[2])
+  bands <- bands[bands$to > bands$from, ]
+  bands$middle <- (bands$from + bands$to) / 2
   ## a narrow band drops the unit from its range, so neighboring labels do not run into each other
   narrow <- (bands$to - bands$from) / diff(limits) < 0.14
   bands$range <- ifelse(narrow, bands$range, paste(bands$range, unit))
