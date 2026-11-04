@@ -143,9 +143,12 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   each test, the tests side by side, and whether the latest change is larger
   than the noise of the method. The latest test follows on the second page.
 * New `gt_lactater()` gives your own gt tables the look of lactater's.
-* New `recording_sheet()` copies a printable sheet and a CSV template into your
-  folder, to record every test the same way (the sheet is also on the website
-  as a PDF).
+* New `recording_sheet()` copies a printable sheet, a web form and a CSV
+  template into your folder, to record every test the same way (the sheet and
+  the form are also on the website). The form saves itself in the browser and
+  downloads an .xlsx (stages, recovery samples and the test details) or a CSV;
+  new `read_recording()` turns the file into the inputs of `lactate_threshold()`
+  and `test_report()`.
 
 ## Uncertainty, checks and zones
 

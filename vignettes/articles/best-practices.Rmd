@@ -312,8 +312,9 @@ tribble(
   practice_table()
 ```
 
-The [recording sheet](../step-test-sheet.pdf) has a place for all of this, and `recording_sheet()` copies it, with a
-CSV template in the columns lactater reads, into your folder. Give lactater the columns with `heart_rate_column`,
+The [recording sheet](../step-test-sheet.pdf) has a place for all of this; the [web form](../step-test-form.html) has the
+same fields to fill in during the test and downloads a file that `read_recording()` reads; and `recording_sheet()`
+copies both, with a CSV template in the columns lactater reads, into your folder. Give lactater the columns with `heart_rate_column`,
 `rpe_column` and `rpe_scale` (`"6-20"` or `"CR10"`). Here is a simulated test with heart rate and RPE (the RPE of the simulated tests in `lactate_tests` is simulated too):
 
 ```{r}

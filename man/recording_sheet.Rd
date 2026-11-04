@@ -9,19 +9,24 @@ recording_sheet(dir = ".", open = interactive())
 \arguments{
 \item{dir}{The folder to copy them into.}
 
-\item{open}{Whether to open the sheet in the browser.}
+\item{open}{Whether to open the form in the browser.}
 }
 \value{
-the paths of the sheet and the template, invisibly.
+the paths of the sheet, the form and the template, invisibly.
 }
 \description{
-Copies a printable recording sheet and a CSV template into a folder, so every test is recorded the same way and
-goes straight into \code{\link[=lactate_threshold]{lactate_threshold()}}. The sheet is an A4 web page (open it in a browser and print it) with the
-athlete, the 24 to 48 h before the test, the protocol, one row per stage for intensity, lactate, heart rate and RPE,
-and how the test ended, as \href{https://fmmattioni.github.io/lactater/articles/best-practices.html}{Best practices for a step test} suggests. The template has the columns
-lactater reads, with the resting sample as the first row.
+Copies a printable recording sheet, a web form and a CSV template into a folder, so every test is recorded the same
+way and goes straight into \code{\link[=lactate_threshold]{lactate_threshold()}}. The sheet is an A4 web page (open it in a browser and print it)
+with the athlete, the 24 to 48 h before the test, the protocol, one row per stage for intensity, lactate, heart rate
+and RPE, and how the test ended, as \href{https://fmmattioni.github.io/lactater/articles/best-practices.html}{Best practices for a step test} suggests. The form has the same fields to
+fill in during the test, saves itself in the browser, and downloads an \code{.xlsx} that \code{\link[=read_recording]{read_recording()}} reads, or a
+CSV of the stages; it works offline and is also \href{https://fmmattioni.github.io/lactater/step-test-form.html}{on the website}. The template has the columns lactater reads,
+with the resting sample as the first row.
 }
 \examples{
 files <- recording_sheet(tempfile(), open = FALSE)
 read.csv(files[["template"]])
+}
+\seealso{
+\code{\link[=read_recording]{read_recording()}} to read a test recorded with the form.
 }

@@ -58,7 +58,7 @@ is.
 | Count training | `training_load()` | time in each zone and the polarization index |
 | Predict a race | `predict_performance()`, `calibrate_performance()` | race time or time-trial power with a 95% range, from published equations or your own |
 | Report the test | `test_report()`, `report_start()` | a web page and PDF for the athlete or the coach |
-| Record a test | `recording_sheet()` | a printable sheet and a CSV template |
+| Record a test | the [web form](https://fmmattioni.github.io/lactater/step-test-form.html), `read_recording()`, `recording_sheet()` | a form that saves itself and downloads an .xlsx lactater reads; a printable sheet and a CSV template |
 | Analyze a sprint test | `vlamax()` | the maximal lactate accumulation rate (V&#775;La<sub>max</sub>) |
 | Practice | `lactate_tests`, `demo_data` | 15 real and simulated tests across sports and fitness levels |
 
@@ -223,8 +223,10 @@ report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
   report_save("ana-2026-11-03.html", pdf = TRUE)
 ```
 
-`recording_sheet()` gives you a printable sheet ([PDF](https://fmmattioni.github.io/lactater/step-test-sheet.pdf)) and
-a CSV template, to record every test the same way, and the
+To record every test the same way, the [web form](https://fmmattioni.github.io/lactater/step-test-form.html) takes the
+test on a laptop or tablet, saves itself in the browser and downloads an .xlsx that `read_recording()` turns into the
+inputs of `lactate_threshold()` and `test_report()`; `recording_sheet()` copies the form, a printable sheet
+([PDF](https://fmmattioni.github.io/lactater/step-test-sheet.pdf)) and a CSV template into your folder. The
 [cheatsheet](https://fmmattioni.github.io/lactater/lactater-cheatsheet.pdf) puts the whole package on two pages.
 
 ## More options

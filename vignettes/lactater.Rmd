@@ -30,7 +30,8 @@ to do, and the function that does it:
 site <- "https://fmmattioni.github.io/lactater/articles/"
 tasks <- tibble::tribble(
   ~step, ~task, ~functions, ~article,
-  "Before the test", "Record every test the same way", "`recording_sheet()`", "best-practices|Best practices",
+  "Before the test", "Record every test the same way", "The web form, `read_recording()`, `recording_sheet()`",
+  "best-practices|Best practices",
   "Analyze it", "Estimate every threshold", "`lactate_threshold()`", "methods|The methods and the evidence",
   "Analyze it", "See how the methods agree", "`autoplot()`", "",
   "Analyze it", "Check the data and the curve", "`lactate_checks()`, `lactate_diagnostics()`",

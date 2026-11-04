@@ -47,6 +47,7 @@ Suggests:
     miniUI,
     pagedown,
     pillar,
+    readxl,
     rhandsontable,
     rmarkdown,
     shiny,

@@ -1,7 +1,7 @@
 ## Writes the files the website offers for download, into pkgdown/assets (copied to the root of the site):
-## the recording sheet as PDF, an example test report and an example report of a series; and the first page of the
-## example report as an image for the README. Run from the package root after changing any of them, before knitting
-## the README:
+## the recording sheet as PDF, the recording form, an example test report and an example report of a series; and the
+## first page of the example report as an image for the README. Run from the package root after changing any of them,
+## before knitting the README:
 ##
 ##   Rscript data-raw/site_assets.R
 ##
@@ -13,6 +13,11 @@ if(isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback =
 }
 
 pagedown::chrome_print("inst/sheets/step-test-sheet.html", output = "pkgdown/assets/step-test-sheet.pdf", verbose = 0)
+
+## the recording form, with the analytics of the rest of the site (the copy in the package has none)
+form <- readLines("inst/sheets/step-test-form.html")
+analytics <- yaml::read_yaml("_pkgdown.yml")$template$includes$in_header
+writeLines(sub("<!-- analytics -->", analytics, form, fixed = TRUE), "pkgdown/assets/step-test-form.html")
 
 ## the default report, built step by step so the example shows a lab name and a logo
 results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, rpe_column = rpe, plot = FALSE)

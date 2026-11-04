@@ -8,6 +8,15 @@ figures:
 
 template:
   bootstrap: 5
+  includes:
+    # privacy-friendly analytics (no cookies); data-raw/site_assets.R adds the same lines to the recording form
+    in_header: |
+      <!-- Privacy-friendly analytics by Plausible -->
+      <script async src="https://plausible.io/js/pa-RB9C24aIDFzjUhqFRTXhQ.js"></script>
+      <script>
+        window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+        plausible.init()
+      </script>
   light-switch: true
   bslib:
     primary: "#183A53"
@@ -34,9 +43,12 @@ development:
 
 navbar:
   structure:
-    left: [intro, reference, articles, news]
+    left: [intro, reference, articles, record, news]
     right: [search, github, lightswitch]
   components:
+    record:
+      text: Record a test
+      href: step-test-form.html
     articles:
       text: Articles
       menu:
@@ -129,6 +141,7 @@ reference:
     writes the test protocol for you, so you only type in the lactate values.
   contents:
   - recording_sheet
+  - read_recording
   - run_data_input
 - title: Re-exported functions
   contents:

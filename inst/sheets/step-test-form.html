@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lactate step test: record a test</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<!-- analytics -->
+<style>
+  :root { --ink: #11181f; --muted: #5b6672; --line: #c9d0d8; --soft: #e6e9ee; --accent: #1f5fa8; --flag: #c4452f;
+          --paper: #ffffff; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; font-size: 15px; color: var(--ink);
+         background: var(--paper); line-height: 1.4; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 8px;
+           border-bottom: 1.5px solid var(--ink); }
+  h1 { margin: 0; font-size: 22px; font-weight: 600; }
+  .wordmark { font-family: "IBM Plex Mono", monospace; font-weight: 500; color: var(--ink); text-decoration: none; }
+  .lede { color: var(--muted); margin: 10px 0 0; }
+  h2 { margin: 28px 0 8px; font-size: 16px; font-weight: 600; }
+  .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
+  .fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 18px; }
+  label { display: flex; flex-direction: column; gap: 3px; font-size: 13px; color: var(--muted); }
+  input, select, textarea { font: inherit; font-size: 15px; color: var(--ink); background: transparent; border: 0;
+                            border-bottom: 1px solid var(--line); padding: 4px 2px; border-radius: 0; width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: none; border-bottom: 1.5px solid var(--accent); }
+  textarea { border: 1px solid var(--line); min-height: 90px; padding: 6px; resize: vertical; }
+  [aria-invalid="true"] { border-bottom: 1.5px solid var(--flag); color: var(--flag); }
+  table { width: 100%; border-collapse: collapse; }
+  .table-wrap { overflow-x: auto; }
+  #stages { min-width: 640px; }
+  #recovery { max-width: 420px; }
+  th { font-size: 13px; text-align: left; font-weight: 600; padding: 6px 4px; border-bottom: 1.5px solid var(--ink); }
+  td { border-bottom: 1px solid var(--line); padding: 2px 4px; }
+  td input { border-bottom: 0; }
+  td.stage { color: var(--muted); width: 56px; }
+  td.remove { width: 32px; text-align: right; }
+  .numeric input { text-align: right; font-variant-numeric: tabular-nums; }
+  button { font: inherit; font-size: 14px; color: var(--ink); background: transparent; border: 1px solid var(--line);
+           padding: 6px 12px; border-radius: 4px; cursor: pointer; }
+  button:hover { border-color: var(--ink); }
+  button.primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  button.quiet { border: 0; color: var(--muted); padding: 2px 6px; }
+  .row-actions { margin-top: 8px; }
+  .flags { color: var(--flag); font-size: 13px; margin: 6px 0 0; min-height: 1em; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 28px; padding-top: 16px;
+             border-top: 1px solid var(--soft); }
+  .status { color: var(--muted); font-size: 13px; margin-left: auto; }
+  pre { font-family: "IBM Plex Mono", monospace; font-size: 13px; background: #f4f6f8; padding: 12px; overflow-x: auto; }
+  footer { margin-top: 28px; color: var(--muted); font-size: 13px; }
+  @media print {
+    body { font-size: 11px; }
+    main { max-width: none; padding: 0; }
+    .actions, .row-actions, td.remove, .no-print { display: none; }
+    input, select, textarea { font-size: 11px; }
+    textarea { border: 0; min-height: 0; }
+    h2 { margin: 12px 0 4px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Lactate step test: record a test</h1>
+    <a class="wordmark" href="https://fmmattioni.github.io/lactater/">lactater</a>
+  </header>
+  <p class="lede">Fill it in during the test; it saves itself in this browser. Then download the file for lactater
+    (or Excel). Nothing leaves your computer.</p>
+
+  <h2>Athlete</h2>
+  <div class="fields">
+    <label>Name <input data-field="name" autocomplete="off"></label>
+    <label>Date <input data-field="date" type="date"></label>
+    <label>Time of day <input data-field="time_of_day" type="time"></label>
+    <label>Sport
+      <select data-field="sport">
+        <option value="cycling">Cycling</option><option value="running">Running</option>
+        <option value="rowing">Rowing</option><option value="swimming">Swimming</option>
+      </select>
+    </label>
+    <label>Sex
+      <select data-field="sex"><option value=""></option><option value="female">Female</option>
+        <option value="male">Male</option></select>
+    </label>
+    <label>Age (years) <input data-field="age" inputmode="decimal"></label>
+    <label>Body mass (kg) <input data-field="body_mass" inputmode="decimal"></label>
+  </div>
+
+  <h2>The 24 to 48 h before</h2>
+  <div class="fields">
+    <label>Last meal (time, what) <input data-field="last_meal"></label>
+    <label>Caffeine (mg, time) <input data-field="caffeine"></label>
+    <label>Training in the last 48 h <input data-field="training_48h"></label>
+    <label>Sleep, illness, other <input data-field="other"></label>
+  </div>
+
+  <h2>Protocol</h2>
+  <div class="fields">
+    <label>Ergometer <input data-field="ergometer"></label>
+    <label><span>Start (<span class="unit">W</span>)</span> <input data-field="start" inputmode="decimal"></label>
+    <label><span>Increment (<span class="unit">W</span>)</span> <input data-field="increment" inputmode="decimal"></label>
+    <label>Stage duration (min) <input data-field="stage_duration" inputmode="decimal"></label>
+    <label>Pause for sampling (s) <input data-field="pause" inputmode="decimal"></label>
+    <label>Treadmill grade (%) <input data-field="treadmill_grade" inputmode="decimal"></label>
+    <label>Sampling site
+      <select data-field="site"><option value=""></option><option>earlobe</option><option>fingertip</option>
+        <option>venous</option><option>other</option></select>
+    </label>
+    <label>Sample
+      <select data-field="sample"><option value="blood">Whole blood</option><option value="plasma">Plasma</option>
+        <option value="sweat">Sweat</option><option value="interstitial fluid">Interstitial fluid</option></select>
+    </label>
+    <label>Analyzer, calibrated at <input data-field="analyzer"></label>
+    <label>Room (&deg;C, % humidity) <input data-field="room"></label>
+    <label>RPE scale
+      <select data-field="rpe_scale"><option value="6-20">6-20</option><option value="CR10">CR10</option></select>
+    </label>
+    <label>Tester <input data-field="tester"></label>
+  </div>
+
+  <h2>Stages <span class="hint">sample in the last 30 s of each stage, heart rate and RPE in the same window</span></h2>
+  <div class="table-wrap"><table id="stages">
+    <thead><tr><th>Stage</th><th>Intensity (<span class="unit">W</span>)</th><th>Clock time</th>
+      <th>Lactate (mmol/L)</th><th>Heart rate (bpm)</th><th>RPE</th><th>Notes</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table></div>
+  <div class="row-actions"><button type="button" id="add-stage">Add stage</button></div>
+  <p class="flags" id="stage-flags" aria-live="polite"></p>
+
+  <h2>End of the test and recovery <span class="hint">recovery samples are for Stegmann's threshold</span></h2>
+  <div class="fields">
+    <label>Why it ended <input data-field="end_reason"></label>
+    <label>Time in the last stage (s) <input data-field="last_stage_s" inputmode="decimal"></label>
+    <label>Peak heart rate (bpm) <input data-field="peak_heart_rate" inputmode="decimal"></label>
+  </div>
+  <table id="recovery" style="margin-top: 12px">
+    <thead><tr><th>Minutes after the end</th><th>Lactate (mmol/L)</th><th></th></tr></thead>
+    <tbody></tbody>
+  </table>
+  <div class="row-actions"><button type="button" id="add-recovery">Add sample</button></div>
+
+  <h2>Notes</h2>
+  <textarea data-field="notes" aria-label="Notes"></textarea>
+
+  <div class="actions">
+    <button type="button" class="primary" id="download-xlsx">Download for lactater (.xlsx)</button>
+    <button type="button" id="download-csv">Stages only (.csv)</button>
+    <button type="button" id="print">Print</button>
+    <button type="button" class="quiet" id="new-test">New test</button>
+    <span class="status" id="status" aria-live="polite"></span>
+  </div>
+
+  <section class="no-print">
+    <h2>In R</h2>
+    <pre>library(lactater)
+test &lt;- read_recording("the-file.xlsx")
+results &lt;- lactate_threshold(
+  test$stages, intensity, lactate, heart_rate, rpe_column = rpe, rpe_scale = test$rpe_scale,
+  sport = test$sport, sample = test$sample, plot = FALSE
+)
+test_report(results, athlete = test$athlete, protocol = test$protocol)</pre>
+  </section>
+
+  <footer>The .xlsx has three sheets: <code>stages</code> (the columns lactater reads, with the resting sample in the
+    first row), <code>recovery</code> and <code>test</code>. "New test" keeps the protocol and the tester.</footer>
+</main>
+
+<script>
+// BEGIN builder: the files, without the page, so they can be tested on their own
+function csvStages(record) {
+  const value = (v) => (v === null || v === undefined ? "" : String(v));
+  const rows = record.stages.filter((s) => s.intensity !== null);
+  return ["intensity,lactate,heart_rate,rpe"]
+    .concat(rows.map((s) => [s.intensity, s.lactate, s.heart_rate, s.rpe].map(value).join(",")))
+    .join("\n") + "\n";
+}
+
+const TEST_FIELDS = ["name", "date", "time_of_day", "sport", "sex", "age", "body_mass", "last_meal", "caffeine",
+  "training_48h", "other", "ergometer", "start", "increment", "stage_duration", "pause", "treadmill_grade", "site",
+  "sample", "analyzer", "room", "rpe_scale", "tester", "end_reason", "last_stage_s", "peak_heart_rate", "notes"];
+
+function recordSheets(record) {
+  const stages = [["intensity", "lactate", "heart_rate", "rpe", "clock_time", "notes"]].concat(
+    record.stages.filter((s) => s.intensity !== null)
+      .map((s) => [s.intensity, s.lactate, s.heart_rate, s.rpe, s.clock, s.notes])
+  );
+  const recovery = [["time", "lactate"]].concat(
+    record.recovery.filter((r) => r.time !== null && r.lactate !== null).map((r) => [r.time, r.lactate])
+  );
+  const test = [["field", "value"]].concat(TEST_FIELDS.map((f) => [f, record.fields[f]]));
+  return [{ name: "stages", rows: stages }, { name: "recovery", rows: recovery }, { name: "test", rows: test }];
+}
+
+function xmlEscape(text) {
+  return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function sheetXml(rows) {
+  const cells = rows.map((row, i) => {
+    const r = i + 1;
+    const cs = row.map((v, j) => {
+      const ref = String.fromCharCode(65 + j) + r;
+      if (v === null || v === undefined || v === "") return "";
+      if (typeof v === "number" && isFinite(v)) return `<c r="${ref}"${i === 0 ? ' s="1"' : ""}><v>${v}</v></c>`;
+      return `<c r="${ref}" t="inlineStr"${i === 0 ? ' s="1"' : ""}><is><t xml:space="preserve">${xmlEscape(v)}</t></is></c>`;
+    }).join("");
+    return `<row r="${r}">${cs}</row>`;
+  }).join("");
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>' + cells +
+    "</sheetData></worksheet>";
+}
+
+// an .xlsx is a zip of a few XML files; stored (not compressed), so it needs no library
+function xlsxBytes(sheets) {
+  const ns = "http://schemas.openxmlformats.org";
+  const head = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  const files = [
+    ["[Content_Types].xml", head + `<Types xmlns="${ns}/package/2006/content-types">` +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>' +
+      '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>' +
+      sheets.map((s, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join("") +
+      "</Types>"],
+    ["_rels/.rels", head + `<Relationships xmlns="${ns}/package/2006/relationships">` +
+      `<Relationship Id="rId1" Type="${ns}/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>` +
+      "</Relationships>"],
+    ["xl/workbook.xml", head + `<workbook xmlns="${ns}/spreadsheetml/2006/main" xmlns:r="${ns}/officeDocument/2006/relationships"><sheets>` +
+      sheets.map((s, i) => `<sheet name="${xmlEscape(s.name)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join("") +
+      "</sheets></workbook>"],
+    ["xl/_rels/workbook.xml.rels", head + `<Relationships xmlns="${ns}/package/2006/relationships">` +
+      sheets.map((s, i) => `<Relationship Id="rId${i + 1}" Type="${ns}/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join("") +
+      `<Relationship Id="rId${sheets.length + 1}" Type="${ns}/officeDocument/2006/relationships/styles" Target="styles.xml"/>` +
+      "</Relationships>"],
+    ["xl/styles.xml", head + `<styleSheet xmlns="${ns}/spreadsheetml/2006/main">` +
+      '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts>' +
+      '<fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills>' +
+      '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>' +
+      '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>' +
+      '<cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>' +
+      '<xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs>' +
+      '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>']
+  ].concat(sheets.map((s, i) => [`xl/worksheets/sheet${i + 1}.xml`, sheetXml(s.rows)]));
+  return zipStored(files.map(([name, text]) => [name, new TextEncoder().encode(text)]));
+}
+
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(bytes) {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function zipStored(files) {
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  const now = new Date();
+  const time = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const date = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  for (const [name, data] of files) {
+    const nameBytes = new TextEncoder().encode(name);
+    const crc = crc32(data);
+    const local = new DataView(new ArrayBuffer(30));
+    [[0, 0x04034b50, 4], [4, 20, 2], [6, 0, 2], [8, 0, 2], [10, time, 2], [12, date, 2], [14, crc, 4],
+     [18, data.length, 4], [22, data.length, 4], [26, nameBytes.length, 2], [28, 0, 2]]
+      .forEach(([at, v, size]) => (size === 4 ? local.setUint32(at, v, true) : local.setUint16(at, v, true)));
+    parts.push(new Uint8Array(local.buffer), nameBytes, data);
+    const entry = new DataView(new ArrayBuffer(46));
+    [[0, 0x02014b50, 4], [4, 20, 2], [6, 20, 2], [8, 0, 2], [10, 0, 2], [12, time, 2], [14, date, 2], [16, crc, 4],
+     [20, data.length, 4], [24, data.length, 4], [28, nameBytes.length, 2], [30, 0, 2], [32, 0, 2], [34, 0, 2],
+     [36, 0, 2], [38, 0, 4], [42, offset, 4]]
+      .forEach(([at, v, size]) => (size === 4 ? entry.setUint32(at, v, true) : entry.setUint16(at, v, true)));
+    central.push(new Uint8Array(entry.buffer), nameBytes);
+    offset += 30 + nameBytes.length + data.length;
+  }
+  const centralSize = central.reduce((n, p) => n + p.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  [[0, 0x06054b50, 4], [4, 0, 2], [6, 0, 2], [8, files.length, 2], [10, files.length, 2], [12, centralSize, 4],
+   [16, offset, 4], [20, 0, 2]]
+    .forEach(([at, v, size]) => (size === 4 ? end.setUint32(at, v, true) : end.setUint16(at, v, true)));
+  const all = parts.concat(central, [new Uint8Array(end.buffer)]);
+  const out = new Uint8Array(all.reduce((n, p) => n + p.length, 0));
+  let at = 0;
+  for (const p of all) { out.set(p, at); at += p.length; }
+  return out;
+}
+// END builder
+</script>
+
+<script>
+const KEY = "lactater-recording-v1";
+const NUMERIC = ["age", "body_mass", "start", "increment", "stage_duration", "pause", "treadmill_grade",
+  "last_stage_s", "peak_heart_rate"];
+const KEEP = ["sport", "ergometer", "start", "increment", "stage_duration", "pause", "treadmill_grade", "site",
+  "sample", "analyzer", "room", "rpe_scale", "tester"];
+const UNITS = { cycling: "W", rowing: "W", running: "km/h", swimming: "m/s" };
+
+// a number from what was typed, with a comma or a point as the decimal mark; null when empty, NaN when not a number
+function toNumber(text) {
+  const t = String(text ?? "").trim().replace(",", ".");
+  return t === "" ? null : Number(t);
+}
+
+function blank(keep = {}) {
+  return {
+    fields: Object.assign({ sport: "cycling", sample: "blood", rpe_scale: "6-20" }, keep),
+    stages: [{ intensity: "0", clock: "", lactate: "", heart_rate: "", rpe: "", notes: "" }],
+    recovery: [1, 3, 5, 7, 10, 15].map((t) => ({ time: String(t), lactate: "" }))
+  };
+}
+
+let state;
+try { state = JSON.parse(localStorage.getItem(KEY)) || blank(); } catch (e) { state = blank(); }
+
+function save() {
+  try {
+    localStorage.setItem(KEY, JSON.stringify(state));
+    document.getElementById("status").textContent = "Saved in this browser";
+  } catch (e) {
+    document.getElementById("status").textContent = "This browser cannot save drafts: download the file";
+  }
+}
+
+function render() {
+  document.querySelectorAll("[data-field]").forEach((el) => { el.value = state.fields[el.dataset.field] ?? ""; });
+  const unit = UNITS[state.fields.sport] || "W";
+  document.querySelectorAll(".unit").forEach((el) => { el.textContent = unit; });
+  const body = document.querySelector("#stages tbody");
+  body.innerHTML = "";
+  state.stages.forEach((s, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="stage">${i === 0 ? "Rest" : i}</td>` +
+      ["intensity", "clock", "lactate", "heart_rate", "rpe", "notes"].map((k) =>
+        `<td class="${["clock", "notes"].includes(k) ? "" : "numeric"}"><input data-stage="${i}" data-key="${k}"` +
+        `${["clock", "notes"].includes(k) ? "" : ' inputmode="decimal"'} aria-label="${k} of ${i === 0 ? "rest" : "stage " + i}"></td>`
+      ).join("") +
+      `<td class="remove">${i === 0 ? "" : `<button type="button" class="quiet" data-remove-stage="${i}" aria-label="Remove stage ${i}">&times;</button>`}</td>`;
+    body.append(tr);
+  });
+  body.querySelectorAll("input").forEach((el) => { el.value = state.stages[el.dataset.stage][el.dataset.key]; });
+  const rec = document.querySelector("#recovery tbody");
+  rec.innerHTML = "";
+  state.recovery.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="numeric"><input data-recovery="${i}" data-key="time" inputmode="decimal" aria-label="minutes after the end"></td>` +
+      `<td class="numeric"><input data-recovery="${i}" data-key="lactate" inputmode="decimal" aria-label="lactate"></td>` +
+      `<td class="remove"><button type="button" class="quiet" data-remove-recovery="${i}" aria-label="Remove sample">&times;</button></td>`;
+    rec.append(tr);
+  });
+  rec.querySelectorAll("input").forEach((el) => { el.value = state.recovery[el.dataset.recovery][el.dataset.key]; });
+  check();
+}
+
+// flags values that are not numbers or not plausible, without blocking anything
+function check() {
+  const flags = [];
+  let previous = -Infinity;
+  const rpeMax = state.fields.rpe_scale === "CR10" ? 12 : 20;
+  const rpeMin = state.fields.rpe_scale === "CR10" ? 0 : 6;
+  document.querySelectorAll("[data-stage]").forEach((el) => {
+    const v = toNumber(el.value);
+    const k = el.dataset.key;
+    let bad = false;
+    if (k === "clock" || k === "notes" || v === null) bad = false;
+    else if (Number.isNaN(v)) bad = true;
+    else if (k === "intensity") { bad = v <= previous; previous = v; }
+    else if (k === "lactate") bad = v <= 0 || v > 30;
+    else if (k === "heart_rate") bad = v < 30 || v > 230;
+    else if (k === "rpe") bad = v < rpeMin || v > rpeMax;
+    el.setAttribute("aria-invalid", bad ? "true" : "false");
+    if (bad) flags.push(`${k.replace("_", " ")} of ${el.dataset.stage === "0" ? "rest" : "stage " + el.dataset.stage}`);
+  });
+  document.querySelectorAll("[data-field]").forEach((el) => {
+    const bad = NUMERIC.includes(el.dataset.field) && Number.isNaN(toNumber(el.value));
+    el.setAttribute("aria-invalid", bad ? "true" : "false");
+  });
+  document.getElementById("stage-flags").textContent =
+    flags.length ? "Check: " + flags.join(", ") + " (intensities rise, lactate 0-30 mmol/L, heart rate 30-230)." : "";
+}
+
+document.addEventListener("input", (e) => {
+  const el = e.target;
+  if (el.dataset.field) {
+    state.fields[el.dataset.field] = el.value;
+    if (el.dataset.field === "sport" || el.dataset.field === "rpe_scale") { save(); render(); return; }
+  } else if (el.dataset.stage) {
+    state.stages[el.dataset.stage][el.dataset.key] = el.value;
+  } else if (el.dataset.recovery) {
+    state.recovery[el.dataset.recovery][el.dataset.key] = el.value;
+  }
+  save();
+  check();
+});
+
+document.addEventListener("click", (e) => {
+  const el = e.target;
+  if (el.dataset.removeStage) { state.stages.splice(Number(el.dataset.removeStage), 1); save(); render(); }
+  if (el.dataset.removeRecovery) { state.recovery.splice(Number(el.dataset.removeRecovery), 1); save(); render(); }
+});
+
+document.getElementById("add-stage").addEventListener("click", () => {
+  // the next intensity from the protocol: the start, then the last stage plus the increment
+  const last = toNumber(state.stages[state.stages.length - 1].intensity);
+  const start = toNumber(state.fields.start);
+  const step = toNumber(state.fields.increment);
+  let next = "";
+  if (state.stages.length === 1 && start !== null && !Number.isNaN(start)) next = String(start);
+  else if (last !== null && !Number.isNaN(last) && step !== null && !Number.isNaN(step) && state.stages.length > 1)
+    next = String(Math.round((last + step) * 100) / 100);
+  state.stages.push({ intensity: next, clock: "", lactate: "", heart_rate: "", rpe: "", notes: "" });
+  save();
+  render();
+  const inputs = document.querySelectorAll(`[data-stage="${state.stages.length - 1}"]`);
+  (next ? inputs[2] : inputs[0]).focus();
+});
+
+document.getElementById("add-recovery").addEventListener("click", () => {
+  state.recovery.push({ time: "", lactate: "" });
+  save();
+  render();
+});
+
+// the record with numbers where numbers belong
+function record() {
+  const num = (v) => { const n = toNumber(v); return n === null || Number.isNaN(n) ? null : n; };
+  const fields = {};
+  TEST_FIELDS.forEach((f) => {
+    const v = state.fields[f] ?? "";
+    fields[f] = NUMERIC.includes(f) ? num(v) : (String(v).trim() || null);
+  });
+  return {
+    fields,
+    stages: state.stages.map((s) => ({ intensity: num(s.intensity), lactate: num(s.lactate),
+      heart_rate: num(s.heart_rate), rpe: num(s.rpe), clock: s.clock.trim() || null, notes: s.notes.trim() || null })),
+    recovery: state.recovery.map((r) => ({ time: num(r.time), lactate: num(r.lactate) }))
+  };
+}
+
+function fileName(extension) {
+  const slug = (t) => String(t || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const parts = ["lactate-test", slug(state.fields.name), slug(state.fields.date)].filter(Boolean);
+  return parts.join("-") + "." + extension;
+}
+
+function download(bytes, type, name) {
+  const url = URL.createObjectURL(new Blob([bytes], { type }));
+  const a = Object.assign(document.createElement("a"), { href: url, download: name });
+  document.body.append(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  document.getElementById("status").textContent = "Downloaded " + name;
+}
+
+document.getElementById("download-xlsx").addEventListener("click", () => {
+  download(xlsxBytes(recordSheets(record())),
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName("xlsx"));
+});
+document.getElementById("download-csv").addEventListener("click", () => {
+  download(csvStages(record()), "text/csv", fileName("csv"));
+});
+document.getElementById("print").addEventListener("click", () => window.print());
+document.getElementById("new-test").addEventListener("click", () => {
+  if (!window.confirm("Start a new test? The protocol and the tester are kept; download this test first.")) return;
+  const keep = {};
+  KEEP.forEach((f) => { if (state.fields[f]) keep[f] = state.fields[f]; });
+  state = blank(keep);
+  save();
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
