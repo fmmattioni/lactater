@@ -53,6 +53,8 @@
   .status { color: var(--muted); font-size: 13px; margin-left: auto; }
   pre { font-family: "IBM Plex Mono", monospace; font-size: 13px; background: #f4f6f8; padding: 12px; overflow-x: auto; }
   footer { margin-top: 28px; color: var(--muted); font-size: 13px; }
+  footer p { margin: 0 0 6px; }
+  footer a { color: var(--ink); }
   @media print {
     body { font-size: 11px; }
     main { max-width: none; padding: 0; }
@@ -169,9 +171,12 @@ results &lt;- lactate_threshold(
 test_report(results, athlete = test$athlete, protocol = test$protocol)</pre>
   </section>
 
-  <footer>The .xlsx has three sheets: <code>stages</code> (the columns lactater reads, with the resting sample in the
-    first row), <code>recovery</code> and <code>test</code>. "Start a new test" clears the athlete, the stages and the notes, and keeps the
-    protocol and the tester.</footer>
+  <footer>
+    <p>The .xlsx has three sheets: <code>stages</code> (the columns lactater reads, with the resting sample in the
+      first row), <code>recovery</code> and <code>test</code>. "Start a new test" clears the athlete, the stages and the
+      notes, and keeps the protocol and the tester.</p>
+    <p>Developed by <a href="https://fmattioni.me">Felipe Mattioni Maturana</a>.</p>
+  </footer>
 </main>
 
 <script>
