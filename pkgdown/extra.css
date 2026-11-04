@@ -32,6 +32,22 @@ pre, code, pre code {
   border-radius: 0.25rem;
 }
 
+/* V with a dot above, drawn: the web font has no combining dot (see extra.js) */
+.vdot {
+  position: relative;
+}
+.vdot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0.08em;
+  width: 0.15em;
+  height: 0.15em;
+  margin-left: -0.075em;
+  border-radius: 50%;
+  background: currentColor;
+}
+
 /* gt tables own the full width of the text column and never spill over its right edge */
 .template-article .gt_table,
 .template-home .gt_table {

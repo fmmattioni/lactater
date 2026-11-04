@@ -173,10 +173,13 @@ plot_overview <- function(object, info) {
     )
 
   table <- overview_table(rows, colours, sport, intervals = !is.null(rows$low)) + bands + lines
+  ## the table as wide as its columns (lactate, % peak, and heart rate, % HRmax, RPE and CI width when present), so
+  ## that two-word headers such as "Heart rate" keep apart
+  columns <- 2 + 2 * (!is.null(rows$heart_rate)) + (!is.null(rows$rpe)) + (!is.null(rows$low))
   design <- "AB\nCD"
   patchwork::wrap_plots(
     A = top, B = patchwork::plot_spacer(), C = dots, D = table, design = design,
-    widths = c(2, 1.35), heights = c(0.75, max(1.4, nrow(rows) / 7))
+    widths = c(2, 0.37 * columns), heights = c(0.75, max(1.4, nrow(rows) / 7))
   ) +
     patchwork::plot_annotation(
       title = sprintf(

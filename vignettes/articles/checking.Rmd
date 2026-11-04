@@ -191,7 +191,17 @@ autoplot(with_ci)
 ```
 
 Thresholds read off the fitted curve at a fixed concentration (OBLA) move little. Breakpoint methods (Log-log, LTP)
-move a lot, because a breakpoint between two stages can jump to the neighboring interval. The intervals do not
+move a lot, because a breakpoint between two stages can jump to the neighboring interval.
+
+An interval need not be centered on its threshold. It is the middle 95% of the replicates, not the threshold plus or
+minus a standard error, so it keeps the shape of their spread. Here Log-log is
+`r with_ci$intensity[with_ci$method == "Log-log"]` W with an interval of
+`r with_ci$intensity_low[with_ci$method == "Log-log"]` to `r with_ci$intensity_high[with_ci$method == "Log-log"]` W,
+because in some replicates its breakpoint jumps to the next stage up; LT<sub>ratio</sub>, at
+`r with_ci$intensity[with_ci$method == "LTratio"]` W, reaches down to
+`r with_ci$intensity_low[with_ci$method == "LTratio"]` W, because the lactate / intensity ratio is nearly flat around its
+minimum; OBLA 3.0 sits in the middle of its narrow interval. A lopsided interval says in which direction a threshold is
+fragile. The intervals do not
 include errors that are the same in every sample, such as analyzer bias or the sampling site, and this bootstrap has
 not been validated specifically for lactate thresholds; read the intervals as a lower bound of the uncertainty.
 

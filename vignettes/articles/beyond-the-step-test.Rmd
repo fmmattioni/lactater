@@ -14,7 +14,7 @@ if (plex) options(lactater.font = "IBM Plex Sans")
 
 V̇La<sub>max</sub> comes from its own test, a short all-out sprint, not from the step test:
 
-$$V̇La<sub>max</sub> = \frac{La_{peak} - La_{pre}}{t_{test} - t_{alactic}}$$
+$$\dot{V}\text{La}_{\text{max}} = \frac{\text{La}_{\text{peak}} - \text{La}_{\text{pre}}}{t_{\text{test}} - t_{\text{alactic}}}$$
 
 Take a lactate sample before the sprint and every minute for several minutes after it; the highest value is the
 peak. `vlamax()` does the arithmetic:

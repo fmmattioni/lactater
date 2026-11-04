@@ -26,3 +26,30 @@ document.addEventListener("DOMContentLoaded", () => {
     node.replaceWith(fragment);
   }
 });
+
+// Draws the dot of V̇ (V̇O2max, V̇Lamax): the web font has no combining dot above, so the browser takes it from
+// another font. Every V followed by U+0307, headings and tables included, becomes a span that extra.css dots.
+document.addEventListener("DOMContentLoaded", () => {
+  const skip = "code, pre, script, style, math";
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) =>
+      node.nodeValue.includes("V\u0307") && !node.parentElement.closest(skip)
+        ? NodeFilter.FILTER_ACCEPT
+        : NodeFilter.FILTER_REJECT,
+  });
+  const nodes = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode);
+  for (const node of nodes) {
+    const fragment = document.createDocumentFragment();
+    node.nodeValue.split("V\u0307").forEach((part, i) => {
+      if (i > 0) {
+        const v = document.createElement("span");
+        v.className = "vdot";
+        v.textContent = "V";
+        fragment.append(v);
+      }
+      if (part) fragment.append(part);
+    });
+    node.replaceWith(fragment);
+  }
+});
