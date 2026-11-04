@@ -25,6 +25,8 @@
   h1 { margin: 0; font-size: 22px; font-weight: 600; }
   .wordmark { font-family: "IBM Plex Mono", monospace; font-weight: 500; color: var(--ink); text-decoration: none; }
   .lede { color: var(--muted); margin: 10px 0 0; }
+  .current { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 14px; font-size: 14px; }
+  .current[hidden] { display: none; }
   h2 { margin: 28px 0 8px; font-size: 16px; font-weight: 600; }
   .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
   .fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px 18px; }
@@ -74,6 +76,8 @@
   </header>
   <p class="lede">Fill it in during the test; it saves itself in this browser. Then download the file for lactater
     (or Excel). Nothing leaves your computer.</p>
+  <p class="current no-print" id="current"><span id="current-text"></span>
+    <button type="button" id="new-test-top">Start a new test</button></p>
 
   <h2>Athlete</h2>
   <div class="fields">
@@ -154,7 +158,7 @@
     <button type="button" class="primary" id="download-xlsx">Download for lactater (.xlsx)</button>
     <button type="button" id="download-csv">Stages only (.csv)</button>
     <button type="button" id="print">Print</button>
-    <button type="button" class="quiet" id="new-test">New test</button>
+    <button type="button" id="new-test">Start a new test</button>
     <span class="status" id="status" aria-live="polite"></span>
   </div>
 
@@ -170,7 +174,8 @@ test_report(results, athlete = test$athlete, protocol = test$protocol)</pre>
   </section>
 
   <footer>The .xlsx has three sheets: <code>stages</code> (the columns lactater reads, with the resting sample in the
-    first row), <code>recovery</code> and <code>test</code>. "New test" keeps the protocol and the tester.</footer>
+    first row), <code>recovery</code> and <code>test</code>. "Start a new test" clears the athlete, the stages and the notes, and keeps the
+    protocol and the tester.</footer>
 </main>
 
 <script>
@@ -331,13 +336,36 @@ function blank(keep = {}) {
 let state;
 try { state = JSON.parse(localStorage.getItem(KEY)) || blank(); } catch (e) { state = blank(); }
 
-function save() {
+// changed = false when only the download state changes
+function save(changed = true) {
+  if (changed && state.downloaded) state.downloaded = "changed";
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
     document.getElementById("status").textContent = "Saved in this browser";
   } catch (e) {
     document.getElementById("status").textContent = "This browser cannot save drafts: download the file";
   }
+  current();
+}
+
+// something worth keeping: more than the protocol and the empty rest and recovery rows
+function hasContent() {
+  const filled = (v) => String(v ?? "").trim() !== "";
+  const { intensity, ...rest } = state.stages[0];
+  return Object.keys(state.fields).some((f) => !KEEP.includes(f) && filled(state.fields[f])) ||
+    state.stages.length > 1 || Object.values(rest).some(filled) || state.recovery.some((r) => filled(r.lactate));
+}
+
+// the line at the top: whose test this browser holds, and whether it is in a downloaded file
+function current() {
+  const f = state.fields;
+  const n = state.stages.length - 1;
+  const date = f.date ? new Date(f.date + "T00:00").toLocaleDateString(undefined,
+    { day: "numeric", month: "short", year: "numeric" }) : "";
+  const file = state.downloaded === true ? "downloaded" :
+    state.downloaded === "changed" ? "changed since the download" : "not downloaded yet";
+  document.getElementById("current-text").textContent = "Saved in this browser: " +
+    [String(f.name ?? "").trim() || "no name", date, `${n} stage${n === 1 ? "" : "s"}`, file].filter(Boolean).join(", ");
 }
 
 function render() {
@@ -368,6 +396,7 @@ function render() {
   });
   rec.querySelectorAll("input").forEach((el) => { el.value = state.recovery[el.dataset.recovery][el.dataset.key]; });
   check();
+  current();
 }
 
 // flags values that are not numbers or not plausible, without blocking anything
@@ -473,6 +502,8 @@ function download(bytes, type, name) {
 }
 
 document.getElementById("download-xlsx").addEventListener("click", () => {
+  state.downloaded = true;
+  save(false);
   download(xlsxBytes(recordSheets(record())),
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName("xlsx"));
 });
@@ -480,15 +511,25 @@ document.getElementById("download-csv").addEventListener("click", () => {
   download(csvStages(record()), "text/csv", fileName("csv"));
 });
 document.getElementById("print").addEventListener("click", () => window.print());
-document.getElementById("new-test").addEventListener("click", () => {
-  if (!window.confirm("Start a new test? The protocol and the tester are kept; download this test first.")) return;
+function newTest() {
+  const lost = state.downloaded === true ? "" : state.downloaded === "changed" ?
+    "The last changes are not in the downloaded file and will be lost.\n\n" :
+    "This test has not been downloaded and will be lost.\n\n";
+  if (hasContent() && !window.confirm(lost +
+    "Start a new test? The athlete, the stages and the notes are cleared; the protocol and the tester are kept.")) return;
   const keep = {};
   KEEP.forEach((f) => { if (state.fields[f]) keep[f] = state.fields[f]; });
   state = blank(keep);
   save();
   render();
-});
+  document.getElementById("current").hidden = true;
+  document.querySelector('[data-field="name"]').focus();
+}
+document.getElementById("new-test").addEventListener("click", newTest);
+document.getElementById("new-test-top").addEventListener("click", newTest);
 
+// the line at the top only when the page opens on a saved test, so the page does not jump while typing
+document.getElementById("current").hidden = !hasContent();
 render();
 </script>
 </body>
