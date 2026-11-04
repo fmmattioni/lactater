@@ -77,6 +77,9 @@ test_report <- function(x, file = "lactate-test-report.html", athlete = list(), 
 #'   zones of each test, test by test, and whether the latest change is larger than the noise of the method
 #'   ([compare_tests()]).
 #' * `report_zones()`: the zones chart and table, three or five zones.
+#' * `report_reference()`: for cycling, the percentile of the power at 3 mmol/L and at baseline + 1 mmol/L among people
+#'   of the same age and sex in Germany ([reference_percentiles()]), from the `age`, `sex` and `body_mass` given to
+#'   `report_header()`. For the general population, not for athletes.
 #' * `report_prediction()`: the predicted race performance, from the chosen thresholds when an equation takes them.
 #' * `report_checks()`: what to double-check in the data.
 #' * `report_test()`: the protocol and the measured stages.
@@ -186,6 +189,12 @@ report_progress <- function(report, cv = NULL) {
   if(is.null(report$series))
     stop("`report_progress()` needs a series: give `report_start()` a list of tests and their `dates`.", call. = FALSE)
   add_section(report, "progress", function(r) html_progress(r, cv))
+}
+
+#' @rdname report_start
+#' @export
+report_reference <- function(report) {
+  add_section(report, "reference", html_reference)
 }
 
 #' @rdname report_start
@@ -577,6 +586,57 @@ html_progress <- function(r, cv) {
     tags$p(class = "caption", paste(
       "A change is an increase or a decrease when its whole 90% interval, from the typical error of the method, lies",
       "on one side of zero, and unclear when the interval spans zero."
+    ))
+  )
+}
+
+#' @rdname report_internals
+html_reference <- function(r) {
+  details <- r$header$details
+  if(is.null(details$age) || is.null(details$sex)) {
+    stop("`report_reference()` needs the athlete's `age` and `sex` in `report_header()`.", call. = FALSE)
+  }
+  ## a warning about the protocol goes into the report, under the table
+  notes <- character()
+  table <- withCallingHandlers(
+    reference_percentiles(
+      r$x, age = as.numeric(details$age), sex = as.character(details$sex),
+      body_mass = if(!is.null(details$body_mass)) as.numeric(details$body_mass)
+    ),
+    warning = function(w) {
+      notes <<- c(notes, conditionMessage(w))
+      invokeRestart("muffleWarning")
+    }
+  )
+  reference <- attr(table, "lactater_reference")
+  ## one row per threshold: watts, and per kg beside them
+  percentile <- ifelse(is.na(table$percentile), table$standing, sprintf("%.0f (%s)", table$percentile, table$standing))
+  watts <- table$unit == "W"
+  shown <- data.frame(
+    threshold = ifelse(
+      table$method[watts] == "OBLA 3.0", "At 3 mmol/L (OBLA 3.0)", "At baseline + 1 mmol/L (Bsln + 1.0)"
+    ),
+    power = sprintf("%.0f W", table$value[watts]), percentile = percentile[watts]
+  )
+  if(!all(watts)) {
+    shown$per_kg <- sprintf("%.2f W/kg", table$value[!watts])
+    shown$percentile_per_kg <- percentile[!watts]
+  }
+  out <- gt::gt(shown) |>
+    gt::cols_align("right", columns = -"threshold") |>
+    gt::cols_label(.list = list(
+      threshold = "", power = "Power", percentile = "Percentile", per_kg = "Per kg", percentile_per_kg = "Percentile"
+    )[names(shown)])
+  htmltools::tagList(
+    htmltools::tags$h2("Compared with the population"),
+    html_table(out),
+    htmltools::tags$p(class = "caption", paste(
+      sprintf(
+        "Percentiles of %s aged %s in Germany (Fiedler et al., 2025), tested on a cycle ergometer from 25 W with 25 W",
+        if(reference$sex == "female") "women" else "men", format(reference$age)
+      ),
+      "more every 2 min. A different protocol shifts the comparison, and these are values of the general population,",
+      "not of athletes.", paste(notes, collapse = " ")
     ))
   )
 }

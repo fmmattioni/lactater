@@ -200,6 +200,12 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   the noise of the method around the first test (`view = "thresholds"`). `day`
   takes dates, which then name the tests. A list of tests can be spliced in with
   `!!!`.
+* New `reference_percentiles()`: the percentile of the power at 3 mmol/L and at
+  baseline + 1 mmol/L, in W and W/kg, among people of the same sex and age in
+  Germany (14-64 years), from the reference values of Fiedler et al. (2025),
+  whose thresholds were computed with lactater. For the general population, not
+  athletes; it warns when the steps or the fitted curve differ from the
+  reference tests. `report_reference()` adds it to a report.
 * New `curve_shape()`: did the curve only shift, or change its shape? Both
   tests are fitted with one exponential shape moved by a shift, and with a
   shape each; an F test and AICc compare the two, and the shift comes with a

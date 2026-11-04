@@ -42,6 +42,8 @@ tasks <- tibble::tribble(
   "performance|Predicting performance",
   "Use it", "Compare two tests, or follow a series", "`compare_tests()`, `curve_shape()`, `lactate_trend()`",
   "compare|Comparing tests",
+  "Use it", "Compare with the population of the same age and sex", "`reference_percentiles()`",
+  "compare|Comparing tests",
   "Share it", "Report the test to an athlete or a coach", "`test_report()`", "",
   "Share it", "A table for a paper", "`lactate_report()`", ""
 )

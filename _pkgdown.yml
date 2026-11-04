@@ -105,8 +105,8 @@ reference:
   desc: >
     Turn two thresholds of your choice into training zones and count the training time in them; compare two tests
     of one athlete (is the change real, how far did the curve move, did it shift or change shape), follow a series
-    of tests, compare athletes per kg or % of peak, and predict race performance, from published equations or one
-    you calibrate on your own athletes.
+    of tests, compare athletes per kg or % of peak or with the population of their age and sex, and predict race
+    performance, from published equations or one you calibrate on your own athletes.
   contents:
   - lactate_zones
   - training_load
@@ -117,6 +117,7 @@ reference:
   - calibrate_performance
   - lactate_trend
   - relative_thresholds
+  - reference_percentiles
 - title: Beyond the step test
   desc: >
     The maximal lactate accumulation rate from a sprint test.

@@ -10,3 +10,11 @@ The dataset `lactate_tests` includes data from two sources, used under the Creat
 
 Only stage-level intensity, lactate and heart rate, sex and body mass were kept; names, birth dates and
 test dates were removed. See data-raw/lactate_tests.R.
+
+The reference percentiles used by `reference_percentiles()` are the supplementary data of the following article,
+used under the same licence (CC BY 4.0); they are stored as published, by sex and age (see
+data-raw/reference_percentiles.R):
+
+* Fiedler J, Thron M, Altmann S, Haertel S, Barsch F, Schlenker L, Krug S, Boes K, Woll A. Reference standards
+  for power at the lactate threshold 2 for cycle ergometry throughout the lifespan in Germany. Journal of Sports
+  Sciences 2025;43(16):1654-1664. doi:10.1080/02640414.2025.2517913.

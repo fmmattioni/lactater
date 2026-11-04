@@ -43,6 +43,7 @@ evidence behind it is.
 | Compare two tests | `compare_tests()`, `curve_shift()`, `curve_shape()` | each change against the noise of the method, and how far and how the curve moved |
 | Follow a series of tests | `lactate_trend()` | the curves and zones of up to five tests, and a trend for longer series |
 | Compare athletes | `relative_thresholds()` | thresholds per kg and as a percentage of peak intensity and heart rate |
+| Compare with the population | `reference_percentiles()` | the percentile of power at 3 mmol/L and at baseline + 1 mmol/L among German adults of the same age and sex (cycling, general population) |
 | Count training | `training_load()` | time in each zone and the polarization index |
 | Predict a race | `predict_performance()`, `calibrate_performance()` | race time or time-trial power with a 95% range, from published equations or your own |
 | Report the test | `test_report()`, `report_start()` | a web page and PDF for the athlete or the coach |

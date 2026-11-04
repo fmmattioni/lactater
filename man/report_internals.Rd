@@ -14,6 +14,7 @@
 \alias{html_figure}
 \alias{html_plot}
 \alias{html_progress}
+\alias{html_reference}
 \alias{html_zones}
 \alias{html_prediction}
 \alias{html_checks}
@@ -44,6 +45,8 @@ html_figure(zones)
 html_plot(plot, caption, height = 3.5)
 
 html_progress(r, cv)
+
+html_reference(r)
 
 html_zones(zones, sport)
 

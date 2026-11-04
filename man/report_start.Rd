@@ -6,6 +6,7 @@
 \alias{report_summary}
 \alias{report_zones}
 \alias{report_progress}
+\alias{report_reference}
 \alias{report_prediction}
 \alias{report_checks}
 \alias{report_test}
@@ -24,6 +25,8 @@ report_summary(report)
 report_zones(report, model = 5, chart = TRUE)
 
 report_progress(report, cv = NULL)
+
+report_reference(report)
 
 report_prediction(report)
 
@@ -103,6 +106,9 @@ lactate, heart rate, RPE, percentage of peak and, with \code{body_mass}, per kg.
 zones of each test, test by test, and whether the latest change is larger than the noise of the method
 (\code{\link[=compare_tests]{compare_tests()}}).
 \item \code{report_zones()}: the zones chart and table, three or five zones.
+\item \code{report_reference()}: for cycling, the percentile of the power at 3 mmol/L and at baseline + 1 mmol/L among people
+of the same age and sex in Germany (\code{\link[=reference_percentiles]{reference_percentiles()}}), from the \code{age}, \code{sex} and \code{body_mass} given to
+\code{report_header()}. For the general population, not for athletes.
 \item \code{report_prediction()}: the predicted race performance, from the chosen thresholds when an equation takes them.
 \item \code{report_checks()}: what to double-check in the data.
 \item \code{report_test()}: the protocol and the measured stages.

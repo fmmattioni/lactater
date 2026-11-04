@@ -149,10 +149,36 @@ relative_thresholds(after, body_mass = body_mass) |>
 A fixed lactate concentration falls at a similar percentage of peak power in trained and untrained people ([Maassen &
 Busse, 1989](https://doi.org/10.1007/BF00637384)), so a percentage of peak does not rank fitness on its own.
 
+### Against the population
+
+For people who are not athletes, such as clients, patients and students, `reference_percentiles()` places the power
+at 3 mmol/L and at 1 mmol/L above the resting lactate on the percentiles of the German population of the same age and
+sex: 5,190 people aged 14 to 64 from two national health surveys, whose thresholds were computed with lactater
+([Fiedler et al., 2025](https://doi.org/10.1080/02640414.2025.2517913)). It gives the percentile and the standing in plain words, such as "top 25%". Here the
+demo test, for a man of 31 and 72 kg:
+
+```{r}
+demo <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
+reference_percentiles(demo, age = 31, sex = "male", body_mass = 72)
+```
+
+The reference tests started at 25 W and added 25 W every 2 min, with earlobe blood. Percentiles only transfer between
+tests run the same way: shorter stages put the thresholds at higher intensities ([Bentley et al.,
+2007](https://doi.org/10.2165/00007256-200737070-00002)), so the 3-min stages of `demo_data` make this man look a little weaker than he would on the reference
+protocol. Trained cyclists land above the 97.5th percentile, so use these values for the general population, not to rank
+athletes. `report_reference()` adds this comparison to a test report.
+
 ## References
+
+Bentley DJ, Newell J, Bishop D. Incremental exercise test design and analysis: implications for performance
+diagnostics in endurance athletes. Sports Med. 2007;37(7):575-86. [doi:10.2165/00007256-200737070-00002](https://doi.org/10.2165/00007256-200737070-00002)
 
 Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid are they? Sports Med. 2009;39(6):469-90.
 [doi:10.2165/00007256-200939060-00003](https://doi.org/10.2165/00007256-200939060-00003)
+
+Fiedler J, Thron M, Altmann S, Härtel S, Barsch F, Schlenker L, Krug S, Bös K, Woll A. Reference standards for power
+at the lactate threshold 2 for cycle ergometry throughout the lifespan in Germany. J Sports Sci. 2025;43(16):1654-64.
+[doi:10.1080/02640414.2025.2517913](https://doi.org/10.1080/02640414.2025.2517913)
 
 Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive
 value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
