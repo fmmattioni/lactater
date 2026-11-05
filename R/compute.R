@@ -37,12 +37,15 @@ compute_thresholds <- function(data, settings, method) {
   )
 }
 
-#' Bootstrap confidence intervals
+#' Bootstrap intervals
 #'
-#' Residual bootstrap around the user-selected curve: each replicate keeps the fitted values and
-#' adds residuals resampled with replacement, after scaling each residual by `1 / sqrt(1 - leverage)`
-#' and centering them (Davison & Hinkley, 1997, Example 6.8). Every method is then run again on the
-#' replicate. The interval is the percentile interval of the replicate intensities. For internal use only.
+#' Wild bootstrap around the user-selected curve: each replicate keeps the fitted values and adds to each stage its
+#' own residual, scaled by `1 / sqrt(1 - leverage)` and widened by `qt(level) / qnorm(level)` for the n - p degrees of
+#' freedom of the curve, with a random sign (Rademacher weights; Wu, 1986; Davidson & Flachaire, 2008). Residuals never
+#' move between stages, because the error of a lactate sample grows with its concentration. The widening brought the
+#' coverage of 95% intervals from 75-93% to 84-97% in `data-raw/bootstrap_coverage.R`. A resting sample outside the
+#' fit gets the residual size of the first stage. Every method is then run again on the replicate. The interval is the
+#' percentile interval of the replicate intensities. For internal use only.
 #'
 #' @inheritParams compute_thresholds
 #' @param curve The user-selected curve fitted to the original data.
@@ -60,12 +63,16 @@ bootstrap_intervals <- function(data, settings, method, curve, n_rows, n_boot, l
     return(NULL)
   }
   residuals <- (curve$points$lactate - fitted) / sqrt(1 - curve$leverage)
-  residuals <- residuals - mean(residuals)
+  ## the noise is estimated from n - p residuals: widen it as a t quantile would a normal one
+  df <- length(residuals) - length(curve$coefficients)
+  residuals <- residuals * stats::qt(1 - (1 - level) / 2, df) / stats::qnorm(1 - (1 - level) / 2)
+  sign <- function(n) sample(c(-1, 1), n, replace = TRUE)
 
   replicates <- vapply(seq_len(n_boot), function(b) {
     replicate_data <- data
-    replicate_data$lactate[in_fit] <- fitted + sample(residuals, sum(in_fit), replace = TRUE)
-    replicate_data$lactate[!in_fit] <- data$lactate[!in_fit] + sample(residuals, sum(!in_fit), replace = TRUE)
+    replicate_data$lactate[in_fit] <- fitted + residuals * sign(sum(in_fit))
+    ## shortcut: the resting sample has no residual of its own; the first stage's is the nearest in concentration
+    replicate_data$lactate[!in_fit] <- data$lactate[!in_fit] + abs(residuals[1]) * sign(sum(!in_fit))
     ## a lactate value cannot be negative
     replicate_data$lactate <- pmax(replicate_data$lactate, 0.05)
     tryCatch(

@@ -59,7 +59,8 @@ Default to all of them (\code{Stegmann} only when \code{recovery} is given).}
 \item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate
 thresholds.
 Please, note that a few lactate thresholds have default methods for this and cannot be changed.
-Options are \verb{3rd degree polynomial}, \verb{4th degree polynomial}, or \code{B-spline}. See \code{Details}.}
+Options are \verb{3rd degree polynomial}, \verb{4th degree polynomial}, or \code{B-spline} (a natural cubic regression spline with 4
+degrees of freedom, built on a B-spline basis; with 6 stages it nearly passes through every point). See \code{Details}.}
 
 \item{include_baseline}{A boolean to indicate whether to include the resting (baseline) sample in the fitted
 curve (used by OBLA, Bsln+, LTratio, IAT and Stegmann). The resting sample is the row with intensity 0; in the fit
@@ -149,7 +150,8 @@ include that stage, and each segment is fitted by its own straight line (Beaver 
 chose the division by eye; lactater takes the division with "the lowest residuals sum of squares"
 (Jamnick et al., 2018), trying every stage, with at least three stages per line (so at least five stages).
 The exercise intensity where the two lines cross is considered as Log-log; it is \code{NA} when they cross
-outside the measured stages.
+outside the measured stages. Beaver et al. plotted log lactate against log oxygen uptake; lactater uses the log of
+the exercise intensity, so the threshold is an intensity, not an oxygen uptake.
 Caution: this method might require a double-check via a visual inspection, depending in some cases.
 }
 
@@ -168,6 +170,12 @@ and 1.5 mmol/L above baseline (resting) values is considered (Berg et al., 1990;
 curve is usually fitted using a
 3rd order polynomial regression curve,
 but the user can define another method (4th degree polynomial or B-spline).
+
+The baseline is a single sample: the resting sample when there is one, otherwise the first stage. Studies differ
+here: Heuberger et al. (2018) used the mean of the measurements before lactate rose, and Jamnick et al. (2018) wrote
+only "baseline value(s)". One sample carries the analyzer error, about 0.1 mmol/L at low concentrations
+(Bonaventura et al., 2015): on \code{demo_data}, a baseline 0.1 mmol/L lower or higher moves Bsln + 0.5 from 83 W to 77
+or 88 W. \code{\link[=lactate_diagnostics]{lactate_diagnostics()}} shows how much each threshold rests on the baseline sample.
 }
 
 \subsection{Dmax}{
@@ -249,14 +257,21 @@ using a B-spline regression curve. LTratio is then defined as the lowest value o
 ratio, which attempts to describe the onset of the lactate increase (Dickhuth et al., 1999).
 }
 
-\subsection{Confidence intervals}{
+\subsection{Bootstrap intervals}{
 
-With \code{ci = TRUE}, each threshold gets a percentile bootstrap interval. Each replicate keeps the curve fitted to
-the data and adds residuals resampled with replacement (scaled by their leverage and centered; Davison &
-Hinkley, 1997), then every method is run again. The interval shows how much a threshold moves with this much
-scatter around the curve; it does not cover errors that are the same in every sample (analyzer bias, sampling
-site). This approach has not been validated specifically for lactate thresholds. Call \code{set.seed()} first to make
-the intervals reproducible.
+With \code{ci = TRUE}, each threshold gets a percentile bootstrap interval for the noise of the samples. Each replicate
+keeps the curve fitted to the data and gives every stage its own residual with a random sign (a wild bootstrap; Wu,
+1986; Davidson & Flachaire, 2008), because the error of a lactate sample grows with its concentration; the
+residuals are scaled for their leverage and widened as a t quantile is over a normal one, for the few degrees of
+freedom a step test leaves. Every method is then run again, and the bounds are rounded outward.
+
+In a simulation of 150 tests of 8 stages from a known curve, with an analyzer error of 0.1 mmol/L plus 4\%, the 95\%
+intervals held the true threshold in 93\% of tests for Bsln + 1.0, 94\% for Exp-Dmax and 84\% for OBLA 4.0; with a
+constant error of 0.25 mmol/L, in 93\%, 97\% and 91\% (\code{data-raw/bootstrap_coverage.R}). OBLA falls short because a
+3rd degree polynomial cannot follow the curve exactly (here 1.5 W too low on average), an error the interval does
+not include. Nor does it include errors that are the same in every sample (analyzer bias, sampling site), or the
+day-to-day variation of the athlete, which is larger (about 3.5-4\% of the intensity; Heuberger et al., 2018; see
+\code{\link[=compare_tests]{compare_tests()}}). Call \code{set.seed()} first to make the intervals reproducible.
 }
 
 \subsection{IAT}{
@@ -308,6 +323,9 @@ intensities during endurance training. European Journal of Applied Physiology an
 Skinner JS, Mclellan TH. The Transition from Aerobic to Anaerobic Metabolism. Research Quarterly for Exercise and
 Sport. 1980;51(1):234–48.
 
+Bonaventura JM, Sharpe K, Knight E, Fuller KL, Tanner RK, Gore CJ. Reliability and accuracy of six hand-held blood
+lactate analysers. Journal of Sports Science and Medicine. 2015;14:203-214.
+
 Berg A, Jakob E, Lehmann M, Dickhuth HH, Huber G, Keul J. Current aspects of modern ergometry. Pneumologie.
 1990;44(1):2–13.
 
@@ -331,7 +349,11 @@ Jamnick NA, Botella J, Pyne DB, Bishop DJ. Manipulating graded exercise test var
 lactate
 threshold and VO2peak. PLOS ONE. 2018;13(7):e0199794.
 
-Davison AC, Hinkley DV. Bootstrap Methods and Their Application. Cambridge University Press; 1997.
+Davidson R, Flachaire E. The wild bootstrap, tamed at last. Journal of Econometrics. 2008;146(1):162-169.
+doi:10.1016/j.jeconom.2008.08.003
+
+Wu CFJ. Jackknife, bootstrap and other resampling methods in regression analysis. The Annals of Statistics.
+1986;14(4):1261-1295. doi:10.1214/aos/1176350142
 
 Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive
 value

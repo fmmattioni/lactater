@@ -2,7 +2,7 @@
 % Please edit documentation in R/compute.R
 \name{bootstrap_intervals}
 \alias{bootstrap_intervals}
-\title{Bootstrap confidence intervals}
+\title{Bootstrap intervals}
 \usage{
 bootstrap_intervals(data, settings, method, curve, n_rows, n_boot, level)
 }
@@ -25,9 +25,12 @@ bootstrap_intervals(data, settings, method, curve, n_rows, n_boot, level)
 a matrix with one row per threshold and the columns \code{low} and \code{high}.
 }
 \description{
-Residual bootstrap around the user-selected curve: each replicate keeps the fitted values and
-adds residuals resampled with replacement, after scaling each residual by \code{1 / sqrt(1 - leverage)}
-and centering them (Davison & Hinkley, 1997, Example 6.8). Every method is then run again on the
-replicate. The interval is the percentile interval of the replicate intensities. For internal use only.
+Wild bootstrap around the user-selected curve: each replicate keeps the fitted values and adds to each stage its
+own residual, scaled by \code{1 / sqrt(1 - leverage)} and widened by \code{qt(level) / qnorm(level)} for the n - p degrees of
+freedom of the curve, with a random sign (Rademacher weights; Wu, 1986; Davidson & Flachaire, 2008). Residuals never
+move between stages, because the error of a lactate sample grows with its concentration. The widening brought the
+coverage of 95\% intervals from 75-93\% to 84-97\% in \code{data-raw/bootstrap_coverage.R}. A resting sample outside the
+fit gets the residual size of the first stage. Every method is then run again on the replicate. The interval is the
+percentile interval of the replicate intensities. For internal use only.
 }
 \keyword{internal}
