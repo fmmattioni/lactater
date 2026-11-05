@@ -1,5 +1,5 @@
 test_that("every test in lactate_tests can be analysed", {
-  expect_equal(length(unique(lactate_tests$test)), 15)
+  expect_equal(length(unique(lactate_tests$test)), 16)
   expect_false(any(c("name", "DOB", "test_date") %in% names(lactate_tests)))
   for(name in unique(lactate_tests$test)) {
     one <- lactate_tests[lactate_tests$test == name, ]

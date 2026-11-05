@@ -1,4 +1,4 @@
-## Builds `lactate_tests`: real step tests from two openly licensed datasets, plus three simulated tests
+## Builds `lactate_tests`: real step tests from two openly licensed datasets, plus four simulated tests
 ## for scenarios no open dataset covers. Run from the package root:
 ##
 ##   Rscript data-raw/lactate_tests.R <tcd_data_dir> <heuberger_xlsx>
@@ -122,7 +122,14 @@ simulated <- rbind(
   ## the same client stopped early, before the second turn point
   simulate("submaximal", "cycling", "M", 82, "Simulated submaximal test, stopped at about 3 mmol/L",
            intensity = c(0, seq(50, 250, by = 25)), rest = 0.9, at_lt = 2.5, lt_share = 0.65,
-           peak_lactate = 9.0, hr_rest = 98, hr_peak = 186, seed = 2)
+           peak_lactate = 9.0, hr_rest = 98, hr_peak = 186, seed = 2),
+  ## a recreational runner on the protocol of Roecker et al. (1998): treadmill at 2% grade, from 6 km/h, +2 km/h every
+  ## 3 min; their 427 runners rested at 1.3 mmol/L and peaked at 8.3 mmol/L and 187 bpm. IAT near 11.5 km/h, which
+  ## their equations put at about 47 min for 10 km and 4 h for the marathon
+  simulate("running_recreational", "running", "M", 76,
+           "Simulated recreational male runner, treadmill at 2% grade, 3-min stages of +2 km/h",
+           intensity = c(0, seq(6, 16, by = 2)), rest = 1.2, at_lt = 3.0, lt_share = 0.68,
+           peak_lactate = 8.5, hr_rest = 80, hr_peak = 187, seed = 7)
 )
 simulated <- simulated[!(simulated$test == "submaximal" & simulated$intensity > 175), ]
 

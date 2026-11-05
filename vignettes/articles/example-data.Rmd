@@ -1,5 +1,5 @@
 ---
-title: "Fifteen tests, four sports: the example data"
+title: "Sixteen tests, four sports: the example data"
 ---
 
 ```{r, include = FALSE}
@@ -10,9 +10,9 @@ plex <- requireNamespace("systemfonts", quietly = TRUE) &&
 if (plex) options(lactater.font = "IBM Plex Sans")
 ```
 
-`lactate_tests` holds 15 incremental step tests, one row per stage, so you can try every part of lactater on data
+`lactate_tests` holds 16 incremental step tests, one row per stage, so you can try every part of lactater on data
 that looks like what you will collect. Twelve are real tests from two open datasets (Trinity College Dublin, and
-[Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846); both CC BY 4.0); three are simulated where no open data exists. This article walks through
+[Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846); both CC BY 4.0); four are simulated where no open data exists. This article walks through
 them: what each sport looks like, and the cases that need care.
 
 ```{r, message = FALSE}
@@ -29,7 +29,7 @@ lactate_tests |>
   tab_options(row_group.text_transform = "capitalize")
 ```
 
-A small helper analyses one test, with heart rate and RPE when they were recorded (the RPE of the three simulated
+A small helper analyses one test, with heart rate and RPE when they were recorded (the RPE of the four simulated
 tests is simulated too):
 
 ```{r}
@@ -113,6 +113,10 @@ running |>
   select(method, intensity, pace, lactate, heart_rate)
 autoplot(running, "LTP2")
 ```
+
+`running_recreational` is a simulated recreational runner tested on the protocol of [Roecker et al.
+(1998)](https://doi.org/10.1097/00005768-199810000-00014) (2% grade, +2 km/h every 3 min from 6 km/h), so
+`predict_performance()` applies their race-time equations as published.
 
 ## Rowing: power and the 500 m split
 

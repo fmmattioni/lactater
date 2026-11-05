@@ -65,7 +65,7 @@ old |>
 * `lactate_zones()` (three or five zones) and `training_load()`: time in zone and intensity distribution.
 * `compare_tests()`, `curve_shift()`, `curve_shape()`, `lactate_trend()` and `relative_thresholds()` to compare tests
   and athletes.
-* `lactate_tests`: 15 real and simulated tests across sports and fitness levels.
+* `lactate_tests`: 16 real and simulated tests across sports and fitness levels.
 * Rowing, grouped analysis (`.by`), and `vlamax()`.
 
 See the [news](../news/index.html) for the full list.

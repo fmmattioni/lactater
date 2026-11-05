@@ -49,7 +49,7 @@ evidence behind it is.
 | Report the test | `test_report()`, `report_start()` | a web page and PDF for the athlete or the coach |
 | Record a test | the [web form](https://fmmattioni.github.io/lactater/step-test-form.html), `read_recording()`, `recording_sheet()` | a form that saves itself and downloads an .xlsx lactater reads; a printable sheet and a CSV template |
 | Analyze a sprint test | `vlamax()` | the maximal lactate accumulation rate (V̇La<sub>max</sub>) |
-| Practice | `lactate_tests`, `demo_data` | 15 real and simulated tests across sports and fitness levels |
+| Practice | `lactate_tests`, `demo_data` | 16 real and simulated tests across sports and fitness levels |
 
 ## The charts
 
@@ -395,7 +395,7 @@ puts the whole package on two pages.
   race times from a step test, how sure they are, and your own equation.
 - [The example
   data](https://fmmattioni.github.io/lactater/articles/example-data.html):
-  15 tests across sports.
+  16 tests across sports.
 
 **lactater** 1.0 fixed several calculations of earlier versions; see
 [what

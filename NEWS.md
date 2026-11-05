@@ -246,12 +246,12 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 
 ## Example data
 
-* New `lactate_tests`: 15 step tests in long format across cycling, running,
+* New `lactate_tests`: 16 step tests in long format across cycling, running,
   rowing and swimming, from elite to untrained, including one cyclist tested six
   times over five years, an early lactate dip, a test without a resting sample,
   5-min steps and a submaximal test. Twelve are real (Trinity College Dublin
   open data and Heuberger et al. 2018, both CC BY 4.0, credited in
-  `?lactate_tests` and `COPYRIGHTS`); three are simulated from published
+  `?lactate_tests` and `COPYRIGHTS`); four are simulated from published
   protocols and values where no open data exists, with a simulated RPE.
 * `demo_data` gains a simulated RPE column, by the same rule.
 

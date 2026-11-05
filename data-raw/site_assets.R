@@ -40,14 +40,16 @@ page <- tempfile(fileext = ".pdf")
 pagedown::chrome_print("pkgdown/assets/report-example.html", output = page, verbose = 0)
 png::writePNG(pdftools::pdf_render_page(page, 1, dpi = 110), "man/figures/readme/report-page.png")
 
-## a runner: speed and pace, and race times
-running <- lactate_tests[lactate_tests$test == "running", ]
-runner <- lactate_threshold(running, intensity, lactate, heart_rate, sport = "running", plot = FALSE)
+## a recreational runner, tested as in Roecker et al. (1998), so their race-time equations apply: speed and pace, and
+## race times
+running <- lactate_tests[lactate_tests$test == "running_recreational", ]
+runner <- lactate_threshold(running, intensity, lactate, heart_rate, rpe_column = rpe, sport = "running",
+                            plot = FALSE)
 test_report(
   runner, "pkgdown/assets/report-running-example.html",
-  athlete = list(name = "Trained runner (example)", sex = "male", body_mass = 62), lt1 = "LTP1", lt2 = "LTP2",
-  protocol = "Treadmill at 0% grade, 3-min stages from 12 km/h, lactate sampled at 2 min, YSI analyser (Trinity
-  College Dublin data in lactate_tests)", open = FALSE
+  athlete = list(name = "Recreational runner (example)", sex = "male", body_mass = 76), lt1 = "LTP1", lt2 = "LTP2",
+  protocol = "Treadmill at 2% grade, 3-min stages of +2 km/h from 6 km/h, earlobe capillary blood (simulated test
+  in lactate_tests, on the protocol of Roecker et al. 1998)", open = FALSE
 )
 
 ## five tests of one cyclist; the test dates are not in the data, so they start on an example date

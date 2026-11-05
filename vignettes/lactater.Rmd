@@ -162,7 +162,7 @@ example](https://fmmattioni.github.io/lactater/report-series-example.html)).
 
 ## Many tests at once
 
-Use `.by` with the columns that identify each test. `lactate_tests` holds 15 tests across sports and fitness levels;
+Use `.by` with the columns that identify each test. `lactate_tests` holds 16 tests across sports and fitness levels;
 here, the six tests of one cyclist:
 
 ```{r}
@@ -187,6 +187,6 @@ lactate_tests |>
   shift or change shape, and trends.
 * [Predicting performance](https://fmmattioni.github.io/lactater/articles/performance.html): race times from a step
   test, how sure they are, and your own equation.
-* [The example data](https://fmmattioni.github.io/lactater/articles/example-data.html): 15 tests across sports.
+* [The example data](https://fmmattioni.github.io/lactater/articles/example-data.html): 16 tests across sports.
 * [V̇La<sub>max</sub>](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html): the maximal lactate accumulation
   rate from a sprint test.

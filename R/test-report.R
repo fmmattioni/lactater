@@ -659,10 +659,11 @@ html_zones <- function(zones, sport) {
     domain = ifelse(duplicated(zones$domain), "", tools::toTitleCase(zones$domain)),
     zone = zones$zone,
     description = ifelse(zones$description == "VO2max", "V&#775;O<sub>2max</sub>", zones$description),
-    intensity = paste(span(zones$intensity_from, zones$intensity_to, intensity_digits(sport)), unit)
+    ## the units in the column labels, so a range fits on one line
+    intensity = span(zones$intensity_from, zones$intensity_to, intensity_digits(sport))
   )
   if("pace_from" %in% names(zones)) {
-    table$pace <- span(zones$pace_to, zones$pace_from, 0, function(v) format_pace(v, sport))
+    table$pace <- span(zones$pace_to, zones$pace_from, 0, function(v) sub(" .*", "", format_pace(v, sport)))
   }
   if("heart_rate_from" %in% names(zones)) table$heart_rate <- span(zones$heart_rate_from, zones$heart_rate_to, 0)
   if("rpe_from" %in% names(zones)) table$rpe <- span(zones$rpe_from, zones$rpe_to, 0)
@@ -673,11 +674,12 @@ html_zones <- function(zones, sport) {
     gt::fmt_markdown(columns = "description") |>
     gt::cols_align("right", columns = numeric) |>
     gt::tab_style(gt::cell_text(weight = 600), gt::cells_body(columns = "zone")) |>
+    gt::tab_style(gt::cell_text(whitespace = "nowrap"), gt::cells_body()) |>
     gt::tab_style(gt::cell_text(color = "#5b6672"), gt::cells_body(columns = "domain")) |>
     gt::tab_style(gt::cell_borders(sides = "top", color = "#9aa3ad"), gt::cells_body(rows = rule)) |>
     gt::cols_label(.list = c(
-      list(domain = "Domain", zone = "", description = "", intensity = "Intensity"),
-      if(!is.null(table$pace)) list(pace = "Pace"),
+      list(domain = "Domain", zone = "", description = "", intensity = sprintf("Intensity (%s)", unit)),
+      if(!is.null(table$pace)) list(pace = paste0("Pace (min", sub("^\\S+ ", "", format_pace(0, sport)), ")")),
       if(!is.null(table$heart_rate)) list(heart_rate = "Heart rate (bpm)"),
       if(!is.null(table$rpe)) list(rpe = "RPE"),
       list(lactate = gt::html("Lactate (mmol&middot;L<sup>&minus;1</sup>)"))

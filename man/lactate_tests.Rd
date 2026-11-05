@@ -9,7 +9,7 @@ A tibble with one row per stage and 13 columns:
 \describe{
 \item{test}{the test: \code{cycling_elite}, \code{cycling_female}, \code{cycling_early_dip}, \code{cycling_series_1} to
 \code{cycling_series_6}, \code{running}, \code{rowing}, \code{cycling_5min_no_rest}, \code{swimming}, \code{untrained},
-\code{submaximal}.}
+\code{submaximal}, \code{running_recreational}.}
 \item{athlete}{the athlete; the six \code{cycling_series} tests share \code{cyclist_series}.}
 \item{sport}{\code{cycling}, \code{running}, \code{rowing}, or \code{swimming}, as in \code{lactate_threshold(sport = )}.}
 \item{sex}{\code{M} or \code{F}.}
@@ -37,7 +37,7 @@ Data: figshare, \doi{10.6084/m9.figshare.7240571}. License CC BY 4.0.
 lactate_tests
 }
 \description{
-Fifteen incremental step tests in long format, one row per stage, to try every part of lactater on
+Sixteen incremental step tests in long format, one row per stage, to try every part of lactater on
 real data: cycling, running, rowing and swimming; elite, trained and untrained athletes; one athlete
 tested six times over five years; and the cases that need care (an early lactate dip, no resting
 sample, 5-min steps, a submaximal test). Analyze one test with \code{subset()}, or several tests of one
@@ -47,9 +47,11 @@ sport with \code{.by = test}.
 Twelve tests are real: eleven from the Trinity College Dublin graded exercise test data (3-min stages,
 lactate sampled at 2 min, YSI analyser; running on a treadmill at 0\% grade; rowing with 1 min of rest
 between stages) and one from Heuberger et al. (2018) (5-min steps from 175 W). Names, birth dates and
-test dates were removed. Three tests are simulated, where no open data exists: a swimmer's 7 x 200 m
-step test (+0.05 m/s per step; Pelarigo et al., 2017), and an untrained client tested to exhaustion and
-stopped early (25 W steps; untrained men peaked near 250 W in Messonnier et al., 2013). Their lactate
+test dates were removed. Four tests are simulated, where no open data exists: a swimmer's 7 x 200 m
+step test (+0.05 m/s per step; Pelarigo et al., 2017), an untrained client tested to exhaustion and
+stopped early (25 W steps; untrained men peaked near 250 W in Messonnier et al., 2013), and a recreational runner
+on the protocol of Roecker et al. (1998) (treadmill at 2\% grade, +2 km/h every 3 min from 6 km/h), so that
+their race-time equations apply as published. Their lactate
 rises exponentially through about 2.5 mmol/L near the first threshold, with analyser scatter of 3\% from
 2 mmol/L and 5\% below (Bonaventura et al., 2015). Their simulated RPE rises with lactate, from about 11 at
 2 mmol/L to 14 at 4 mmol/L (close to the cohort means at the first rise in lactate and at 4 mmol/L of Scherr et
@@ -69,6 +71,9 @@ threshold in trained and untrained men. Journal of Applied Physiology. 2013;114(
 
 Pelarigo JG, Machado L, Fernandes RJ, Greco CC, Vilas-Boas JP. Oxygen uptake kinetics and energy system's
 contribution around maximal lactate steady state swimming intensity. PLOS ONE. 2017;12(2):e0167263.
+
+Roecker K, Schotte O, Niess AM, Horstmann T, Dickhuth HH. Predicting competition performance in long-distance
+running by means of a treadmill test. Medicine & Science in Sports & Exercise. 1998;30(10):1552-1557.
 
 Scherr J, Wolfarth B, Christle JW, Pressler A, Wagenpfeil S, Halle M. Associations between Borg's rating of
 perceived exertion and physiological measures of exercise intensity. European Journal of Applied Physiology.
