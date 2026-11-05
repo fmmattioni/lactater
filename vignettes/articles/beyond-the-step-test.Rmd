@@ -19,23 +19,24 @@ tests.
 
 The MLSS is the highest constant intensity at which blood lactate stays steady. The idea comes from German sports
 medicine in the 1970s. Mader et al. (1976) had proposed that the transition from aerobic to partly anaerobic
-metabolism lies at about 4 mmol/L, and to test it, Heck and co-workers had athletes run for about 30 min at several
-constant speeds near that point, sampling lactate every 5 min, and took the highest speed at which lactate stayed
-steady. They called it "maximales Laktatgleichgewicht" in 1982 and maximal lactate steady state in 1985, defined as the
-workload at which lactate rises by no more than 1 mmol/L "during the last 20 min of a constant load exercise" ([Heck et
-al., 1985](https://doi.org/10.1055/s-2008-1025824)). In those runs it lay at about 4 mmol/L on average, as Mader had
-predicted. Heck himself stresses that it is the highest steady state of blood lactate, which need not be that of
-metabolism as a whole ([Heck & Wackerhage, 2024](https://doi.org/10.1186/s13102-024-00827-3)), a point the studies
-below return to.
+metabolism lies at about 4 mmol/L. To test it, Heck and co-workers had men of varying fitness run on a treadmill at
+several constant speeds near that point, each run a 3-min warm-up and 25 min at the speed, with earlobe lactate every
+5 min, and took the highest speed at which lactate stayed steady. They called it "maximales Laktatgleichgewicht" in
+1982 ([Heck & Wackerhage, 2024](https://doi.org/10.1186/s13102-024-00827-3)), and in English, in 1985, the maximal
+lactate steady state: the speed at which lactate does not rise by "any more than 1 mmol/l during the last 20 min". In
+their 16 men it lay at 4.0 mmol/L on average, as Mader had predicted, but from 3.1 to 5.5 mmol/L between
+athletes ([Heck et al., 1985](https://doi.org/10.1055/s-2008-1025824)). Heck himself stresses that it is the highest
+steady state of blood lactate, which need not be that of metabolism as a whole (Heck & Wackerhage, 2024), a point the
+studies below return to.
 
 ### Measuring it
 
-The test has changed little since. Bouts of at least 30 min at different intensities are done on separate days, with
-lactate sampled at least at minutes 10 and 30, and a bout counts as steady when lactate rises by no more than 1 mmol/L
-between them ([Beneke, 2003](https://doi.org/10.1007/s00421-002-0783-1)). The MLSS then lies between the highest steady
-bout and the next one up, so the closer the bouts, the more precise the result. `lactate_mlss()` applies this rule to
-a table of bouts, one row per sample, and, given the result of a step test of the same athlete, it also tells how far
-each threshold lies from the MLSS:
+The test has changed little since. Comparing the criteria in use on 26 men, [Beneke
+(2003)](https://doi.org/10.1007/s00421-002-0783-1) recommended constant-load bouts of at least 30 min, on separate
+days, with a rise of no more than 1.0 mmol/L after the 10th minute. The MLSS then lies between the highest steady bout
+and the next one up, so the closer the bouts, the more precise the result. `lactate_mlss()` applies this rule to a
+table of bouts, one row per sample, with lactate sampled at or around minutes 10 and 30, and, given the result of a
+step test of the same athlete, it also tells how far each threshold lies from the MLSS:
 
 ```{r mlss, fig.height = 4.2}
 bouts <- data.frame(
@@ -61,9 +62,10 @@ they found the same power (223 and 226 W), and both matched in oxygen uptake the
 and the deoxyhemoglobin breakpoint of a ramp test, even though those two came at a higher power in the ramp (262 and
 273 W). [Mattioni Maturana et al. (2016)](https://doi.org/10.1139/apnm-2016-0248), in contrast, found the MLSS of 13
 healthy young adults (233 W) 17 to 20 W below CP, whether CP came from five time-to-exhaustion trials or from a 3-min
-all-out test, with wide limits of agreement among all three. In a second study, 13 young cyclists asked to ride 30 min
-at the highest power they thought sustainable chose 233 W, which matched their MLSS within 20 W either way, while CP
-overestimated it by 20 W ([Mattioni Maturana et al., 2017](https://doi.org/10.1016/j.jsams.2016.11.023)).
+all-out test, and the two CP estimates agreed poorly with each other (limits of agreement -39 to 31 W). Asked to ride
+30 min at the highest power they thought sustainable, the same participants chose 233 W, which matched their MLSS
+within 20 W either way, while CP overestimated it by 20 W ([Mattioni Maturana et al.,
+2017](https://doi.org/10.1016/j.jsams.2016.11.023)).
 
 Much of this disagreement comes from how each is determined. [Iannetta et al.
 (2022)](https://doi.org/10.1249/MSS.0000000000002831) compared several CP models and several windows for the lactate

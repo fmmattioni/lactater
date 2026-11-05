@@ -29,7 +29,9 @@ Wild bootstrap around the user-selected curve: each replicate keeps the fitted v
 own residual, scaled by \code{1 / sqrt(1 - leverage)} and widened by \code{qt(level) / qnorm(level)} for the n - p degrees of
 freedom of the curve, with a random sign (Rademacher weights; Wu, 1986; Davidson & Flachaire, 2008). Residuals never
 move between stages, because the error of a lactate sample grows with its concentration. The widening brought the
-coverage of 95\% intervals from 75-93\% to 84-97\% in \code{data-raw/bootstrap_coverage.R}. A resting sample outside the
+coverage of 95\% intervals from 75-93\% to 84-97\% in \code{data-raw/bootstrap_coverage.R}. Davidson & Flachaire (2008) used
+residuals divided by \code{1 - leverage} (HC3), which they found made little difference; in that simulation it gave
+intervals two to three times too wide for Bsln+ (coverage 95-99\%). A resting sample outside the
 fit gets the residual size of the first stage. Every method is then run again on the replicate. The interval is the
 percentile interval of the replicate intensities. For internal use only.
 }
