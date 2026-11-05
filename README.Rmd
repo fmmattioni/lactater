@@ -249,7 +249,7 @@ inputs of `lactate_threshold()` and `test_report()`; `recording_sheet()` copies 
 * [The methods and the evidence](https://fmmattioni.github.io/lactater/articles/methods.html): how each method is
   defined, and what the studies say about it.
 * [Checking the analysis](https://fmmattioni.github.io/lactater/articles/checking.html): the checks, the diagnostics
-  panel by panel, and confidence intervals.
+  panel by panel, and bootstrap intervals.
 * [Training zones](https://fmmattioni.github.io/lactater/articles/zones.html) and
   [training load](https://fmmattioni.github.io/lactater/articles/training-load.html): from LT1 and LT2 to zones, and
   time in each.
@@ -258,6 +258,8 @@ inputs of `lactate_threshold()` and `test_report()`; `recording_sheet()` copies 
 * [Predicting performance](https://fmmattioni.github.io/lactater/articles/performance.html): race times from a step
   test, how sure they are, and your own equation.
 * [The example data](https://fmmattioni.github.io/lactater/articles/example-data.html): 16 tests across sports.
+* [Beyond the step test](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html): the maximal lactate
+  steady state from constant-load bouts, and V&#775;La<sub>max</sub> from a sprint test.
 
 **lactater** 1.0 fixed several calculations of earlier versions; see [what
 changed](https://fmmattioni.github.io/lactater/articles/whats-new.html).

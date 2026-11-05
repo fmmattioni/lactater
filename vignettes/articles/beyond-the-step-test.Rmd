@@ -1,5 +1,5 @@
 ---
-title: "VLamax: the maximal lactate accumulation rate"
+title: "Beyond the step test: MLSS and VLamax"
 ---
 
 ```{r, include = FALSE}
@@ -9,6 +9,39 @@ plex <- requireNamespace("systemfonts", quietly = TRUE) &&
   isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
 if (plex) options(lactater.font = "IBM Plex Sans")
 ```
+
+Two tests answer what a step test cannot. Constant-load bouts give the maximal lactate steady state (MLSS), which the
+second threshold tries to estimate, and a short sprint gives the maximal lactate accumulation rate (V̇La<sub>max</sub>).
+
+## The maximal lactate steady state (MLSS)
+
+The MLSS is the highest constant intensity at which blood lactate stays steady. Measure it with bouts of at least 30
+min at different intensities, on separate days, sampling lactate at least at minutes 10 and 30: a bout is steady when
+lactate rises by no more than 1 mmol/L from minute 10 to the end ([Beneke,
+2003](https://doi.org/10.1007/s00421-002-0783-1)). The MLSS lies between the highest steady bout and the next bout up,
+so bouts closer together pin it down better.
+
+`lactate_mlss()` reads the bouts, one row per sample, and with the result of the step test it gives how far each
+threshold lies from the MLSS:
+
+```{r mlss, fig.height = 4.2}
+bouts <- data.frame(
+  intensity = rep(c(130, 140, 150), each = 4),
+  time = rep(c(5, 10, 20, 30), 3),
+  lactate = c(2.4, 2.6, 2.7, 2.8, 3.1, 3.4, 3.8, 4.1, 3.9, 4.5, 5.4, 6.3)
+)
+step_test <- lactate_threshold(demo_data, intensity, lactate, plot = FALSE)
+mlss <- lactate_mlss(bouts, step_test)
+mlss
+autoplot(mlss)
+```
+
+`mlss$thresholds` lists the gap of every threshold. In published studies the gap of a method ranged from about 2 to 49
+W, depending on the protocol and the athletes (see [The methods and the evidence](methods.html#what-the-evidence-says)),
+so the gaps over a group of your own athletes are the best answer to which threshold estimates the MLSS with your
+protocol. Whether the MLSS is the boundary between the heavy and severe domains is debated: the critical power lies
+12 W above it on average, with wide limits of agreement ([Micheli et al., 2025](https://doi.org/10.7717/peerj.19060);
+[Jones et al., 2019](https://doi.org/10.14814/phy2.14098)).
 
 ## The maximal lactate accumulation rate (V̇La<sub>max</sub>)
 
@@ -58,8 +91,14 @@ not only lost endurance (see `curve_shape()`).
 
 ## References
 
+Beneke R. Methodological aspects of maximal lactate steady state - implications for performance testing. Eur J Appl
+Physiol. 2003;89(1):95-9. [doi:10.1007/s00421-002-0783-1](https://doi.org/10.1007/s00421-002-0783-1)
+
 Clark B, Macdermid PW. V̇La<sub>max</sub> correlates strongly with glycolytic performance. Res Q Exerc Sport. 2025:1-8.
 [doi:10.1080/02701367.2025.2481176](https://doi.org/10.1080/02701367.2025.2481176)
+
+Jones AM, Burnley M, Black MI, Poole DC, Vanhatalo A. The maximal metabolic steady state: redefining the 'gold
+standard'. Physiol Rep. 2019;7(10):e14098. [doi:10.14814/phy2.14098](https://doi.org/10.14814/phy2.14098)
 
 Langley J, Haase R, Nitzsche N, Porter M. Methodological approaches in testing maximal lactate accumulation rate -
 vLamax: a systematic review. J Sci Cycling. 2025;14(1):9. [doi:10.28985/1425.jsc.09](https://doi.org/10.28985/1425.jsc.09)
@@ -70,6 +109,10 @@ Physiol Rep. 2024;12(10):e16086. [doi:10.14814/phy2.16086](https://doi.org/10.14
 
 Meixner B, Leo P, Sperlich B. Maximal glycolytic flux modulates metabolic thresholds independent of maximal oxygen
 uptake. Eur J Appl Physiol. 2026;126(9):4903-18. [doi:10.1007/s00421-026-06270-1](https://doi.org/10.1007/s00421-026-06270-1)
+
+Micheli L, Lucertini F, Grossi T, Pogliaghi S, Keir DA, Ferri Marini C. Analysis of the factors influencing the
+proximity and agreement between critical power and maximal lactate steady state: a systematic review and
+meta-analyses. PeerJ. 2025;13:e19060. [doi:10.7717/peerj.19060](https://doi.org/10.7717/peerj.19060)
 
 Quittmann OJ. Maximal lactate accumulation rate (ċLa<sub>max</sub>): current evidence and future directions for exercise testing
 and training. Eur J Appl Physiol. 2026;126(1):1-36. [doi:10.1007/s00421-025-06022-7](https://doi.org/10.1007/s00421-025-06022-7)

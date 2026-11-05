@@ -22,7 +22,8 @@
 #'   `lactate_10`, `lactate_30`, `rise`, `minutes` (the last sample), and `steady`), the `samples`, and, with `x`,
 #'   `thresholds` (a
 #'   tibble with `method`, `intensity`, and the `gap` to the MLSS in intensity units and in %, positive when the
-#'   threshold lies above it). Plot it with [autoplot()].
+#'   threshold lies above it). Plot it with [autoplot()]; the article [Beyond the step
+#'   test](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html) shows it.
 #'
 #' @references
 #' Beneke R. Methodological aspects of maximal lactate steady state - implications for performance testing. European
@@ -50,7 +51,8 @@
 #' mlss <- lactate_mlss(bouts, results)
 #' mlss
 #' mlss$thresholds
-#' autoplot(mlss)
+#' ## the plot is short and wide: see it in the article Beyond the step test
+#' if(interactive()) autoplot(mlss)
 lactate_mlss <- function(bouts, x = NULL, rise = 1) {
   if(!is.data.frame(bouts) || !all(c("intensity", "time", "lactate") %in% names(bouts)))
     stop("`bouts` must be a data frame with the columns `intensity`, `time` (min) and `lactate`.", call. = FALSE)
@@ -163,7 +165,7 @@ autoplot.lactate_mlss <- function(object, ...) {
     ggplot2::labs(
       title = if(is.na(object$mlss)) "No steady bout" else sprintf("MLSS at %g%s", object$mlss, unit),
       subtitle = sprintf(
-        "Green: steady bouts, where lactate rose by %g mmol/L or less from minute 10 to 30 (shaded); gray: not steady",
+        "Steady bouts in green: lactate rose by %g mmol/L or less from minute 10 to 30 (shaded)",
         object$rise
       ),
       x = "Minute of the bout", y = "Blood lactate (mmol/L)"

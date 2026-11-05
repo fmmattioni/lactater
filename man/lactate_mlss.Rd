@@ -27,7 +27,7 @@ lowest bout above it, which was not steady, or \code{NA}), \code{bouts} (a tibbl
 \code{lactate_10}, \code{lactate_30}, \code{rise}, \code{minutes} (the last sample), and \code{steady}), the \code{samples}, and, with \code{x},
 \code{thresholds} (a
 tibble with \code{method}, \code{intensity}, and the \code{gap} to the MLSS in intensity units and in \%, positive when the
-threshold lies above it). Plot it with \code{\link[=autoplot]{autoplot()}}.
+threshold lies above it). Plot it with \code{\link[=autoplot]{autoplot()}}; the article \href{https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html}{Beyond the step test} shows it.
 }
 \description{
 Finds the maximal lactate steady state (MLSS) from two or more constant-load bouts of at least 30 min on separate
@@ -53,7 +53,8 @@ results <- lactate_threshold(demo_data, intensity, lactate, plot = FALSE)
 mlss <- lactate_mlss(bouts, results)
 mlss
 mlss$thresholds
-autoplot(mlss)
+## the plot is short and wide: see it in the article Beyond the step test
+if(interactive()) autoplot(mlss)
 }
 \references{
 Beneke R. Methodological aspects of maximal lactate steady state - implications for performance testing. European

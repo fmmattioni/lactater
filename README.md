@@ -383,7 +383,7 @@ puts the whole package on two pages.
   how each method is defined, and what the studies say about it.
 - [Checking the
   analysis](https://fmmattioni.github.io/lactater/articles/checking.html):
-  the checks, the diagnostics panel by panel, and confidence intervals.
+  the checks, the diagnostics panel by panel, and bootstrap intervals.
 - [Training
   zones](https://fmmattioni.github.io/lactater/articles/zones.html) and
   [training
@@ -399,6 +399,10 @@ puts the whole package on two pages.
 - [The example
   data](https://fmmattioni.github.io/lactater/articles/example-data.html):
   16 tests across sports.
+- [Beyond the step
+  test](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html):
+  the maximal lactate steady state from constant-load bouts, and
+  V̇La<sub>max</sub> from a sprint test.
 
 **lactater** 1.0 fixed several calculations of earlier versions; see
 [what

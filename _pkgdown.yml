@@ -73,7 +73,7 @@ navbar:
         href: articles/compare.html
       - text: Predicting performance
         href: articles/performance.html
-      - text: "VLamax: the maximal lactate accumulation rate"
+      - text: "Beyond the step test: MLSS and VLamax"
         href: articles/beyond-the-step-test.html
       - text: -------
       - text: What's new in lactater 1.0

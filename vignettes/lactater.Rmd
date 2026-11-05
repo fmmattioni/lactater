@@ -188,5 +188,5 @@ lactate_tests |>
 * [Predicting performance](https://fmmattioni.github.io/lactater/articles/performance.html): race times from a step
   test, how sure they are, and your own equation.
 * [The example data](https://fmmattioni.github.io/lactater/articles/example-data.html): 16 tests across sports.
-* [V̇La<sub>max</sub>](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html): the maximal lactate accumulation
-  rate from a sprint test.
+* [Beyond the step test](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html): the maximal lactate steady
+  state from constant-load bouts, and the maximal lactate accumulation rate (V̇La<sub>max</sub>) from a sprint test.
