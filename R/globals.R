@@ -3,5 +3,5 @@ globalVariables(c(
   "change", "column", "cooks_distance", "day", "fill", "fitted", "from", "group", "half", "heart_rate", "high",
   "hjust", "intensity", "intensity_after", "intensity_before", "label", "label_at", "lactate", "line", "low", "method",
   "outside", "prediction_error", "ratio", "residual", "row", "shade", "share", "stage", "test", "text", "threshold",
-  "to", "value", "value_at", "x", "y", "zone"
+  "time", "to", "value", "value_at", "x", "y", "zone"
 ))
