@@ -6,8 +6,12 @@ method_cv <- c(
   "Bsln + 0.5" = 3.7, "Bsln + 1.0" = 3.4, "Bsln + 1.5" = 3.4
 )
 
-## the coefficient of variation of each method: the user's `cv` (one number or a named vector) over the defaults
+## the coefficient of variation of each method: the user's `cv` (one number, a named vector, or the result of
+## lactate_reliability()) over the defaults
 method_cvs <- function(cv, methods) {
+  if(is.data.frame(cv) && all(c("method", "cv") %in% names(cv))) {
+    cv <- stats::setNames(cv$cv, cv$method)[!is.na(cv$cv)]
+  }
   if(!is.null(cv) && (!is.numeric(cv) || anyNA(cv) || any(cv <= 0) || (length(cv) > 1 && is.null(names(cv)))))
     stop("`cv` must be one positive number or a named vector of them.", call. = FALSE)
   if(length(cv) == 1 && is.null(names(cv))) {
@@ -15,6 +19,77 @@ method_cvs <- function(cv, methods) {
   } else {
     replace(method_cv, names(cv), cv)
   }
+}
+
+#' Test-retest reliability of each threshold, from your own repeated tests
+#'
+#' The typical error of each threshold, from athletes who did the same test two or more times while their fitness did
+#' not change (e.g. a few days apart): the residual standard deviation of a two-way analysis of athletes and tests,
+#' which leaves out the mean change from one test to the next (Hopkins, 2000). It is given in intensity units and as a
+#' coefficient of variation, `100 * (exp(s) - 1)`, with `s` the typical error of the log intensities. Pass the result
+#' to `compare_tests(cv = )` so that its verdicts use the noise of your own protocol, analyzer and athletes rather than
+#' the published values of trained male cyclists.
+#'
+#' A typical error from few athletes is itself uncertain: with 10 athletes and 2 tests (9 degrees of freedom) its 90%
+#' confidence interval spans 0.73 to 1.65 times its value (from the chi-square distribution of a variance).
+#'
+#' @param x The result of [lactate_threshold()] with `.by`, one group per athlete and test (e.g.
+#'   `.by = c("athlete", "test")`).
+#' @param athlete,test The columns of `x` that name the athlete and the test (e.g. the test number or date). Tests are
+#'   matched by their order within each athlete: first, second, and so on.
+#'
+#' @return a tibble with one row per method: `method`, `n_athletes` (with two or more tests), `n_tests`,
+#'   `typical_error` (intensity units) and `cv` (%). Methods with fewer than two such athletes get `NA`.
+#'
+#' @references
+#' Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.
+#'
+#' @export
+#'
+#' @examples
+#' ## the same athlete tested twice, a few days apart (simulated here as small changes in lactate)
+#' set.seed(1)
+#' repeats <- do.call(rbind, lapply(1:4, function(a) do.call(rbind, lapply(1:2, function(t) {
+#'   transform(demo_data, athlete = a, test = t, intensity = intensity * (0.9 + 0.05 * a),
+#'             lactate = lactate * exp(rnorm(nrow(demo_data), 0, 0.05)))
+#' }))))
+#' results <- lactate_threshold(repeats, intensity, lactate, method = c("OBLA", "Dmax"), plot = FALSE,
+#'                              .by = c("athlete", "test"))
+#' reliability <- lactate_reliability(results, "athlete", "test")
+#' reliability
+lactate_reliability <- function(x, athlete, test) {
+  if(!is.data.frame(x) || !all(c(athlete, test, "method", "intensity") %in% names(x)) ||
+       length(athlete) != 1 || length(test) != 1)
+    stop("`x` must be the result of `lactate_threshold(.by = )`, and `athlete` and `test` two of its columns.",
+         call. = FALSE)
+  rows <- lapply(unique(as.character(x$method)), function(m) {
+    d <- x[as.character(x$method) == m & !is.na(x$intensity) & x$intensity > 0, ]
+    who <- as.character(d[[athlete]])
+    keep <- who %in% who[duplicated(who)]
+    d <- d[keep, ]
+    who <- who[keep]
+    sorted <- order(who, d[[test]])
+    d <- d[sorted, ]
+    who <- who[sorted]
+    ## the first, second, ... test of each athlete, so dates work as well as test numbers
+    when <- factor(stats::ave(seq_along(who), who, FUN = seq_along))
+    who <- factor(who)
+    ## a two-way fit of athletes and tests (one term each), leaving the residual: the typical error
+    error <- function(y) {
+      model <- if(nlevels(when) > 1) stats::lm(y ~ who + when) else stats::lm(y ~ who)
+      if(model$df.residual > 0) summary(model)$sigma else NA_real_
+    }
+    enough <- nlevels(who) >= 2
+    data.frame(
+      method = m, n_athletes = nlevels(who), n_tests = nrow(d),
+      typical_error = if(enough) error(d$intensity) else NA_real_,
+      cv = if(enough) 100 * (exp(error(log(d$intensity))) - 1) else NA_real_
+    )
+  })
+  out <- tibble::as_tibble(do.call(rbind, rows))
+  out$typical_error <- round(out$typical_error, 2)
+  out$cv <- round(out$cv, 2)
+  out
 }
 
 #' Compare two lactate tests
@@ -37,7 +112,8 @@ method_cvs <- function(cv, methods) {
 #'
 #' @param before,after The results of [lactate_threshold()] for the two tests, with the same sport.
 #' @param cv The test-retest coefficient of variation (%) of each method: one number for all methods, or a
-#' named vector (e.g. `c("LTP2" = 3)`) that adds to or replaces the defaults.
+#' named vector (e.g. `c("LTP2" = 3)`) that adds to or replaces the defaults, or the result of [lactate_reliability()]
+#' for your own tests.
 #' @param swc The smallest worthwhile change, in % of the intensity before. Default to `0`.
 #' @param level The probability of the interval. Default to `0.9`.
 #'
@@ -129,10 +205,18 @@ comparison_notes <- function(before, after) {
   b <- describe(before)
   a <- describe(after)
   unit <- intensity_unit(before$settings$sport)
+  known <- function(x) if(is.null(x)) NA else x
+  ## the second test against the first, where both were given a stage length, site or grade
+  differs <- protocol_differences(
+    after$settings, known(before$settings$stage_duration), known(before$settings$site), known(before$settings$grade)
+  )
   c(
     if(b$first != a$first || b$step != a$step) {
       sprintf("The protocol differs (first stage %s vs %s %s, step %s vs %s %s): thresholds depend on the protocol.",
               format(b$first), format(a$first), unit, format(b$step), format(a$step), unit)
+    },
+    if(length(differs) > 0) {
+      sprintf("The second test had %s: thresholds depend on the protocol.", paste(differs, collapse = "; "))
     },
     if(b$rest != a$rest) "Only one test has a resting sample, which Bsln+ uses as its baseline.",
     if(b$sample != a$sample) sprintf("The sample type differs (%s vs %s).", b$sample, a$sample),

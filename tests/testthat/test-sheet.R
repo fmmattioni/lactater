@@ -19,6 +19,8 @@ test_that("a test recorded with the form is read back whole, and goes into the a
     test$athlete, list(name = "Ana Silva & <Co>", date = "2026-11-04", sex = "female", age = 27, body_mass = 61.5)
   )
   expect_equal(test$stage_duration, 3)
+  expect_equal(test$site, "earlobe")
+  expect_null(test$grade)
   expect_equal(
     test$protocol, "Lode Excalibur, 3-min stages of +25 W from 50 W, earlobe whole blood, Biosen C-Line, 08:45"
   )
@@ -26,9 +28,10 @@ test_that("a test recorded with the form is read back whole, and goes into the a
   results <- lactate_threshold(
     test$stages, intensity, lactate, heart_rate, rpe_column = rpe, rpe_scale = test$rpe_scale, sport = test$sport,
     sample = test$sample, method = c("OBLA", "Stegmann"), recovery = test$recovery,
-    stage_duration = test$stage_duration, plot = FALSE
+    stage_duration = test$stage_duration, site = test$site, grade = test$grade, plot = FALSE
   )
   expect_false(is.na(results$intensity[results$method == "Stegmann"]))
+  expect_equal(attr(results, "lactater")$settings$site, "earlobe")
 })
 
 test_that("a CSV gives the stages and the defaults, and wrong files stop", {

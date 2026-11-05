@@ -56,8 +56,9 @@ that error nor the mean of the thresholds per distance, so the error is derived 
 Expect an individual error of about +/- 10\% of race speed in running and +/- 25 W in cycling with the published
 equations. A warning is given when the steps of the test differ from those of the source study (a different step
 changes the threshold: Coen et al., 2001; Kuipers et al., 2003), and when a threshold lies outside the range of
-the source sample. Stage duration, treadmill grade and the blood sample cannot be read from the data: compare them
-with the protocol in the printed header. A recent race is a better predictor of the next one than any step test
+the source sample. Stage duration, sampling site and treadmill grade are checked too when the test was analyzed with
+\code{stage_duration}, \code{site} and \code{grade} (see \code{\link[=lactate_threshold]{lactate_threshold()}}); otherwise compare them with the protocol in the
+printed header. A recent race is a better predictor of the next one than any step test
 (Vickers & Vertosick, 2016).
 }
 \examples{

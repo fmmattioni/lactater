@@ -46,8 +46,8 @@ recording_sheet <- function(dir = ".", open = interactive()) {
 #' * `recovery`: the recovery samples (`time`, in minutes, and `lactate`) for the Stegmann threshold, or `NULL`;
 #' * `athlete`: `name`, `date`, `sex`, `age` and `body_mass`, as recorded, for `test_report(athlete = )` or
 #'   [report_header()];
-#' * `sport`, `sample`, `rpe_scale` and `stage_duration` (min), for [lactate_threshold()]: `"cycling"`, `"blood"` and
-#'   `"6-20"` when not recorded, and `stage_duration` `NULL`;
+#' * `sport`, `sample`, `rpe_scale`, `stage_duration` (min), `site` and `grade` (%), for [lactate_threshold()]:
+#'   `"cycling"`, `"blood"` and `"6-20"` when not recorded, and `NULL` for the others;
 #' * `protocol`: the protocol in one line, for `test_report(protocol = )`, or `NULL`;
 #' * `details`: every field of the form, as text.
 #' @seealso [recording_sheet()] for the form.
@@ -97,7 +97,8 @@ read_recording <- function(file) {
     stages = stages, recovery = recovery, athlete = athlete[!vapply(athlete, is.null, logical(1))], sport = sport,
     sample = if(!is.null(fields$sample)) fields$sample else "blood",
     rpe_scale = if(!is.null(fields$rpe_scale)) fields$rpe_scale else "6-20",
-    stage_duration = number(fields$stage_duration), protocol = recording_protocol(fields, sport), details = fields
+    stage_duration = number(fields$stage_duration), site = fields$site, grade = number(fields$treadmill_grade),
+    protocol = recording_protocol(fields, sport), details = fields
   )
 }
 

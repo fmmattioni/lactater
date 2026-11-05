@@ -64,8 +64,13 @@
 #' @param recovery The lactate samples taken after the end of the test, for `Stegmann`: a data frame with the
 #' columns `time` (minutes after the end of exercise) and `lactate`. Sample until lactate has fallen back below
 #' its end-of-exercise value; Stegmann et al. (1981) sampled at 1, 2, 5 and 10 min.
-#' @param stage_duration The duration of each stage, in minutes. `Stegmann` needs it to put the recovery minutes on
-#' the intensity axis.
+#' @param stage_duration The duration of each stage, in minutes, or `NULL`. `Stegmann` needs it to put the recovery
+#' minutes on the intensity axis, and [predict_performance()], [reference_percentiles()] and [compare_tests()] check it
+#' against their protocols (a different stage length moves the thresholds).
+#' @param site Where the blood was sampled: `"earlobe"`, `"fingertip"`, `"venous"`, `"other"`, or `NULL` (not
+#' recorded). It does not change the calculations; [predict_performance()], [reference_percentiles()] and
+#' [compare_tests()] check it against their protocols.
+#' @param grade The treadmill grade (%) of a running test, or `NULL`. Checked like `site`.
 #'
 #' @return a `lactate_thresholds` tibble (plot it with [autoplot()] or [plot()]) with the following columns:
 #' \item{method_category}{the category of the lactate threshold method.}
@@ -321,6 +326,8 @@ lactate_threshold <- function(
   ltp_breakpoints = 2,
   recovery = NULL,
   stage_duration = NULL,
+  site = NULL,
+  grade = NULL,
   max_intensity = NULL,
   sample = c("blood", "plasma", "sweat", "interstitial fluid"),
   ci = FALSE,
@@ -374,6 +381,14 @@ lactate_threshold <- function(
     stop("`max_intensity` must be `NULL` or a single number.", call. = FALSE)
   sample <- match.arg(arg = sample)
   rpe_scale <- match.arg(arg = rpe_scale)
+  if(!is.null(stage_duration) &&
+       (!is.numeric(stage_duration) || length(stage_duration) != 1 || is.na(stage_duration) || stage_duration <= 0))
+    stop("`stage_duration` must be `NULL` or a single positive number of minutes.", call. = FALSE)
+  sites <- c("earlobe", "fingertip", "venous", "other")
+  if(!is.null(site) && (!is.character(site) || length(site) != 1 || !site %in% sites))
+    stop(sprintf("`site` must be `NULL` or one of: %s.", paste(sites, collapse = ", ")), call. = FALSE)
+  if(!is.null(grade) && (!is.numeric(grade) || length(grade) != 1 || is.na(grade)))
+    stop("`grade` must be `NULL` or a single number (%).", call. = FALSE)
   if(!is.logical(ci) || length(ci) != 1 || is.na(ci))
     stop("`ci` must be `TRUE` or `FALSE`.", call. = FALSE)
   bad_n_boot <- !is.numeric(n_boot) || length(n_boot) != 1 || n_boot < 20
@@ -401,7 +416,7 @@ lactate_threshold <- function(
       moddmax_rise = moddmax_rise, ltp_fix_first_slope = ltp_fix_first_slope, dmax_methods = dmax_methods,
       fixed = fixed, baseline_plus = baseline_plus, iat_rise = iat_rise, ltp_breakpoints = ltp_breakpoints,
       max_intensity = max_intensity, sample = sample, ci = ci, n_boot = n_boot, ci_level = ci_level,
-      rpe_scale = rpe_scale
+      rpe_scale = rpe_scale, stage_duration = stage_duration, site = site, grade = grade
     ))
     if(restrainer_given) arguments$loglog_restrainer <- loglog_restrainer
     return(lactate_threshold_by(.data, .by, arguments))
@@ -435,7 +450,9 @@ lactate_threshold <- function(
     rpe_scale = rpe_scale,
     ci_level = ci_level,
     recovery = recovery,
-    stage_duration = stage_duration
+    stage_duration = stage_duration,
+    site = site,
+    grade = grade
   )
   computed <- compute_thresholds(data, settings, method)
   curve <- computed$curve

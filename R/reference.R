@@ -13,8 +13,9 @@
 #'
 #' * **The protocol.** Percentiles transfer only between tests run the same way. Shorter stages put the thresholds at
 #'   higher intensities (Bentley et al., 2007), so a test with 3-min stages looks a little weaker against these 2-min
-#'   norms. A warning is given when the steps of the test are not 25 W or it has no resting sample; the stage length
-#'   is yours to check.
+#'   norms. A warning is given when the steps of the test are not 25 W, it has no resting sample, or the
+#'   `stage_duration` or `site` given to [lactate_threshold()] are not 2 min and earlobe; without them, the stage length
+#'   and the sampling site are yours to check.
 #' * **The population.** These are values of the general population, not of athletes: most trained cyclists land
 #'   above the 97.5th percentile.
 #' * **The precision.** The percentile is interpolated between the nine published percentiles, from the 2.5th to the
@@ -70,6 +71,11 @@ reference_percentiles <- function(x, age, sex, body_mass = NULL) {
       call. = FALSE
     )
   }
+  differs <- protocol_differences(info$settings, stage_minutes = 2, site = "earlobe")
+  if(length(differs) > 0) warning(sprintf(
+    "This test differs from the reference tests (%s): the thresholds, and so the percentiles, may shift.",
+    paste(differs, collapse = "; ")
+  ), call. = FALSE)
 
   ## computed as in the reference: a 3rd degree polynomial with the resting sample (Fiedler et al., 2025)
   settings <- utils::modifyList(info$settings, list(

@@ -73,3 +73,10 @@ test_that("a report can compare the athlete with the population", {
   expect_match(html, "W/kg", fixed = TRUE)
   expect_error(report_save(report_reference(report_start(demo)), tempfile(fileext = ".html"), open = FALSE), "age")
 })
+
+test_that("a stage length or site other than the reference tests' warns", {
+  three_min <- lactate_threshold(demo_data, intensity, lactate, stage_duration = 3, site = "fingertip", plot = FALSE)
+  expect_warning(reference_percentiles(three_min, 31, "male"), "3-min stages, not 2; fingertip sample, not earlobe")
+  two_min <- lactate_threshold(demo_data, intensity, lactate, stage_duration = 2, site = "earlobe", plot = FALSE)
+  expect_warning(reference_percentiles(two_min, 31, "male"), NA)
+})

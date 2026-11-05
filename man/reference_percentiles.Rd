@@ -36,8 +36,9 @@ the result with three limits in mind:
 \itemize{
 \item \strong{The protocol.} Percentiles transfer only between tests run the same way. Shorter stages put the thresholds at
 higher intensities (Bentley et al., 2007), so a test with 3-min stages looks a little weaker against these 2-min
-norms. A warning is given when the steps of the test are not 25 W or it has no resting sample; the stage length
-is yours to check.
+norms. A warning is given when the steps of the test are not 25 W, it has no resting sample, or the
+\code{stage_duration} or \code{site} given to \code{\link[=lactate_threshold]{lactate_threshold()}} are not 2 min and earlobe; without them, the stage length
+and the sampling site are yours to check.
 \item \strong{The population.} These are values of the general population, not of athletes: most trained cyclists land
 above the 97.5th percentile.
 \item \strong{The precision.} The percentile is interpolated between the nine published percentiles, from the 2.5th to the

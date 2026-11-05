@@ -117,12 +117,13 @@ reference:
   desc: >
     Turn two thresholds of your choice into training zones and count the training time in them; compare two tests
     of one athlete (is the change real, how far did the curve move, did it shift or change shape), follow a series
-    of tests, compare athletes per kg or % of peak or with the population of their age and sex, and predict race
+    of tests, measure the test-retest noise of your own protocol, compare athletes per kg or % of peak or with the population of their age and sex, and predict race
     performance, from published equations or one you calibrate on your own athletes.
   contents:
   - lactate_zones
   - training_load
   - compare_tests
+  - lactate_reliability
   - curve_shift
   - curve_shape
   - predict_performance
@@ -132,8 +133,10 @@ reference:
   - reference_percentiles
 - title: Beyond the step test
   desc: >
-    The maximal lactate accumulation rate from a sprint test.
+    The maximal lactate steady state from constant-load bouts, to check which threshold estimates it in your
+    athletes, and the maximal lactate accumulation rate from a sprint test.
   contents:
+  - lactate_mlss
   - vlamax
 - title: Record a test
   desc: >

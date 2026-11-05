@@ -13,7 +13,8 @@ compare_tests(before, after, cv = NULL, swc = 0, level = 0.9)
 \item{before, after}{The results of \code{\link[=lactate_threshold]{lactate_threshold()}} for the two tests, with the same sport.}
 
 \item{cv}{The test-retest coefficient of variation (\%) of each method: one number for all methods, or a
-named vector (e.g. \code{c("LTP2" = 3)}) that adds to or replaces the defaults.}
+named vector (e.g. \code{c("LTP2" = 3)}) that adds to or replaces the defaults, or the result of \code{\link[=lactate_reliability]{lactate_reliability()}}
+for your own tests.}
 
 \item{swc}{The smallest worthwhile change, in \% of the intensity before. Default to \code{0}.}
 

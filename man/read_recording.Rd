@@ -17,8 +17,8 @@ a list with
 \item \code{recovery}: the recovery samples (\code{time}, in minutes, and \code{lactate}) for the Stegmann threshold, or \code{NULL};
 \item \code{athlete}: \code{name}, \code{date}, \code{sex}, \code{age} and \code{body_mass}, as recorded, for \code{test_report(athlete = )} or
 \code{\link[=report_header]{report_header()}};
-\item \code{sport}, \code{sample}, \code{rpe_scale} and \code{stage_duration} (min), for \code{\link[=lactate_threshold]{lactate_threshold()}}: \code{"cycling"}, \code{"blood"} and
-\code{"6-20"} when not recorded, and \code{stage_duration} \code{NULL};
+\item \code{sport}, \code{sample}, \code{rpe_scale}, \code{stage_duration} (min), \code{site} and \code{grade} (\%), for \code{\link[=lactate_threshold]{lactate_threshold()}}:
+\code{"cycling"}, \code{"blood"} and \code{"6-20"} when not recorded, and \code{NULL} for the others;
 \item \code{protocol}: the protocol in one line, for \code{test_report(protocol = )}, or \code{NULL};
 \item \code{details}: every field of the form, as text.
 }

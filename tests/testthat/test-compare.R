@@ -25,6 +25,10 @@ test_that("compare_tests notes a different protocol and a fall in peak lactate",
   other_protocol <- transform(demo_data, intensity = ifelse(intensity > 0, intensity + 10, 0))
   expect_match(attr(compare_tests(before, run(other_protocol)), "notes"), "protocol differs", all = FALSE)
   expect_null(attr(compare_tests(before, before), "notes"))
+  ## a stage length or site recorded for both tests, and different
+  notes <- attr(compare_tests(run(demo_data, stage_duration = 3), run(demo_data, stage_duration = 4)), "notes")
+  expect_match(notes, "The second test had 4-min stages, not 3", all = FALSE)
+  expect_null(attr(compare_tests(run(demo_data, site = "earlobe"), run(demo_data)), "notes"))
 })
 
 test_that("curve_shift finds the intensity gained at each lactate", {

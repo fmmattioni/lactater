@@ -23,6 +23,7 @@ running_equations <- local({
     n = n, mean = NA_real_, sd = NA_real_,
     low = c(10, 10, 10, 10, 12.6), high = c(20, 20, 20, 20, 18.4),
     step_low = c(2, 2, 2, 2, 1), step_high = 2,
+    stage_minutes = c(3, 3, 3, 3, 4), site = c(rep("earlobe", 4), "fingertip"), grade = c(2, 2, 2, 2, NA),
     source = c(rep("Roecker et al. 1998", 4), "Sjodin & Jacobs 1981"),
     protocol = c(rep(paste(
       "427 competitive runners (88 women); treadmill at 2% grade, 3-min stages, +2 km/h, earlobe hemolyzed",
@@ -48,7 +49,7 @@ cycling_equations <- data.frame(
   sd = c(30.2778, 33.7327, 26.5078, 34.0113, 24.6354, 29.9073),
   low = c(258.333, 243.191, 256.83, 249.057, 209.046, 218.621),
   high = c(375, 394.286, 366.708, 377.555, 323.332, 376.066),
-  step_low = 25, step_high = 25,
+  step_low = 25, step_high = 25, stage_minutes = 5, site = "venous", grade = NA_real_,
   source = "Heuberger et al. 2018 (refitted)",
   protocol = paste(
     "48 well-trained male cyclists; 5-min stages, +25 W from 175 W, venous blood (Lactate Pro 2);",
@@ -84,8 +85,9 @@ cycling_equations <- data.frame(
 #' Expect an individual error of about +/- 10% of race speed in running and +/- 25 W in cycling with the published
 #' equations. A warning is given when the steps of the test differ from those of the source study (a different step
 #' changes the threshold: Coen et al., 2001; Kuipers et al., 2003), and when a threshold lies outside the range of
-#' the source sample. Stage duration, treadmill grade and the blood sample cannot be read from the data: compare them
-#' with the protocol in the printed header. A recent race is a better predictor of the next one than any step test
+#' the source sample. Stage duration, sampling site and treadmill grade are checked too when the test was analyzed with
+#' `stage_duration`, `site` and `grade` (see [lactate_threshold()]); otherwise compare them with the protocol in the
+#' printed header. A recent race is a better predictor of the next one than any step test
 #' (Vickers & Vertosick, 2016).
 #'
 #' @param x The result of [lactate_threshold()].
@@ -170,6 +172,13 @@ predict_performance <- function(x, method = NULL, equation = NULL) {
     warning(sprintf(
       "The steps of this test (+%s %s) differ from those of %s (+%s %s): the thresholds, and so %s",
       format(step), unit, source, paste(expected, collapse = " to "), unit, "the prediction, may shift."
+    ), call. = FALSE)
+  }
+  for(k in which(!duplicated(equations$source))) {
+    differs <- protocol_differences(info$settings, equations$stage_minutes[k], equations$site[k], equations$grade[k])
+    if(length(differs) > 0) warning(sprintf(
+      "This test differs from the protocol of %s (%s): the thresholds, and so the prediction, may shift.",
+      equations$source[k], paste(differs, collapse = "; ")
     ), call. = FALSE)
   }
   outside <- threshold < equations$low | threshold > equations$high
@@ -287,11 +296,28 @@ calibrate_performance <- function(data, threshold, performance, method, sport = 
     intercept = unname(stats::coef(fit)[1]), slope = unname(stats::coef(fit)[2]), sigma = summary(fit)$sigma,
     n = length(x), mean = mean(x), sd = stats::sd(x), low = min(x), high = max(x),
     r = stats::cor(x, y), loo_error = sqrt(mean(press^2)), step_low = NA_real_, step_high = NA_real_,
+    stage_minutes = NA_real_, site = NA_character_, grade = NA_real_,
     source = "Your calibration", protocol = if(is.null(protocol)) "your own tests and races" else protocol
   )
   attr(out, "lactater_calibration") <- data.frame(threshold = x, intensity = y)
   class(out) <- c("lactate_calibration", class(out))
   out
+}
+
+## how the protocol of a test differs from a reference protocol, where both are known: stage length (min), sampling
+## site and treadmill grade (%); `settings` are those of lactate_threshold(), `NA` marks a reference value not known
+protocol_differences <- function(settings, stage_minutes = NA, site = NA, grade = NA) {
+  c(
+    if(!is.null(settings$stage_duration) && !is.na(stage_minutes) && settings$stage_duration != stage_minutes) {
+      sprintf("%s-min stages, not %s", format(settings$stage_duration), format(stage_minutes))
+    },
+    if(!is.null(settings$site) && !is.na(site) && settings$site != site) {
+      sprintf("%s sample, not %s", settings$site, site)
+    },
+    if(!is.null(settings$grade) && !is.na(grade) && settings$grade != grade) {
+      sprintf("%s%% grade, not %s%%", format(settings$grade), format(grade))
+    }
+  )
 }
 
 ## mean race intensity from a race time over a distance, and back

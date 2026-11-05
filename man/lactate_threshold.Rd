@@ -27,6 +27,8 @@ lactate_threshold(
   ltp_breakpoints = 2,
   recovery = NULL,
   stage_duration = NULL,
+  site = NULL,
+  grade = NULL,
   max_intensity = NULL,
   sample = c("blood", "plasma", "sweat", "interstitial fluid"),
   ci = FALSE,
@@ -107,8 +109,15 @@ or \code{1} for a submaximal test that stopped before the second turn point (LTP
 columns \code{time} (minutes after the end of exercise) and \code{lactate}. Sample until lactate has fallen back below
 its end-of-exercise value; Stegmann et al. (1981) sampled at 1, 2, 5 and 10 min.}
 
-\item{stage_duration}{The duration of each stage, in minutes. \code{Stegmann} needs it to put the recovery minutes on
-the intensity axis.}
+\item{stage_duration}{The duration of each stage, in minutes, or \code{NULL}. \code{Stegmann} needs it to put the recovery
+minutes on the intensity axis, and \code{\link[=predict_performance]{predict_performance()}}, \code{\link[=reference_percentiles]{reference_percentiles()}} and \code{\link[=compare_tests]{compare_tests()}} check it
+against their protocols (a different stage length moves the thresholds).}
+
+\item{site}{Where the blood was sampled: \code{"earlobe"}, \code{"fingertip"}, \code{"venous"}, \code{"other"}, or \code{NULL} (not
+recorded). It does not change the calculations; \code{\link[=predict_performance]{predict_performance()}}, \code{\link[=reference_percentiles]{reference_percentiles()}} and
+\code{\link[=compare_tests]{compare_tests()}} check it against their protocols.}
+
+\item{grade}{The treadmill grade (\%) of a running test, or \code{NULL}. Checked like \code{site}.}
 
 \item{max_intensity}{Stages above this intensity are left out of every method (e.g. an incomplete last
 stage, or a last stage where lactate plateaus). Default to \code{NULL} (keep all stages).}

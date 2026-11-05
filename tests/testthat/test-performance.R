@@ -78,3 +78,26 @@ test_that("calibrate_performance fits your own equation and predict_performance 
   cycling <- calibrate_performance(data.frame(t = 1:5 * 10 + 200, p = 1:5 * 9 + 180), "t", "p", "LTP2", "cycling")
   expect_error(predict_performance(running, equation = cycling), "another sport")
 })
+
+test_that("the stage length, sampling site and grade of the test are checked against the source protocol", {
+  run <- lactate_tests[lactate_tests$test == "running_recreational", ]
+  warnings <- function(...) {
+    found <- character()
+    withCallingHandlers(
+      predict_performance(lactate_threshold(run, intensity, lactate, sport = "running", plot = FALSE, ...), "IAT"),
+      warning = function(w) {
+        found <<- c(found, conditionMessage(w))
+        invokeRestart("muffleWarning")
+      }
+    )
+    found
+  }
+  ## the protocol of Roecker et al. (1998): 3-min stages, earlobe, 2% grade
+  expect_false(any(grepl("protocol of", warnings(stage_duration = 3, site = "earlobe", grade = 2))))
+  differs <- warnings(stage_duration = 5, site = "venous", grade = 1)
+  expect_match(differs, "5-min stages, not 3; venous sample, not earlobe; 1% grade, not 2%", all = FALSE, fixed = TRUE)
+  ## unknown settings are not checked
+  expect_false(any(grepl("protocol of", warnings())))
+  expect_error(lactate_threshold(run, intensity, lactate, site = "toe", plot = FALSE), "site")
+  expect_error(lactate_threshold(run, intensity, lactate, stage_duration = -3, plot = FALSE), "stage_duration")
+})
