@@ -203,16 +203,17 @@ because in some replicates its breakpoint jumps to the next stage up; LT<sub>rat
 `r with_ci$intensity[with_ci$method == "LTratio"]` W, reaches down to
 `r with_ci$intensity_low[with_ci$method == "LTratio"]` W, because the lactate / intensity ratio is nearly flat around its
 minimum; OBLA 3.0 sits in the middle of its narrow interval. A lopsided interval says in which direction a threshold is
-fragile. The intervals do not
-include errors that are the same in every sample, such as analyzer bias or the sampling site, nor the day-to-day
-variation of the athlete, which is larger (see `compare_tests()`).
+fragile. The intervals cover the scatter of the samples only: not errors that are the same in every sample, such as
+analyzer bias or the sampling site, nor the day-to-day variation of the athlete, which is larger (see
+`compare_tests()`).
 
-How often does a 95% interval hold the true threshold? In a simulation of 150 tests of 8 stages from a known curve
-(`data-raw/bootstrap_coverage.R` in the package source), with an analyzer error of 0.1 mmol/L plus 4%, it did in 93% of
-tests for Bsln + 1.0, 94% for Exp-D<sub>max</sub> and 84% for OBLA 4.0, and with a constant error of 0.25 mmol/L in 93%,
-97% and 91%. OBLA falls short because a 3rd degree polynomial cannot follow the true curve exactly, an error of about
-1.5 W the interval does not include. Resampling the residuals between stages, as an ordinary residual bootstrap does,
-held it in only 67% of tests for OBLA 4.0 and 81% for Exp-D<sub>max</sub> with the error that grows with lactate.
+How often, then, does a 95% interval hold the true threshold? A simulation of 150 tests of 8 stages from a known curve
+(`data-raw/bootstrap_coverage.R` in the package source) answers it. With an analyzer error of 0.1 mmol/L plus 4%, the
+interval held the true threshold in 93% of tests for Bsln + 1.0, 94% for Exp-D<sub>max</sub> and 84% for OBLA 4.0; with a
+constant error of 0.25 mmol/L, in 93%, 97% and 91%. OBLA falls short because a 3rd degree polynomial cannot follow the
+true curve exactly, and the interval does not include that error of about 1.5 W. An ordinary residual bootstrap, which
+moves the residuals between stages, did worse: 67% for OBLA 4.0 and 81% for Exp-D<sub>max</sub> with the error that grows
+with lactate.
 
 ## The simulation of normality tests
 

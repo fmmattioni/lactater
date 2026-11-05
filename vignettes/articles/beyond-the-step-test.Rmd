@@ -10,28 +10,32 @@ plex <- requireNamespace("systemfonts", quietly = TRUE) &&
 if (plex) options(lactater.font = "IBM Plex Sans")
 ```
 
-Two tests answer what a step test cannot. Constant-load bouts give the maximal lactate steady state (MLSS), which the
-second threshold tries to estimate, and a short sprint gives the maximal lactate accumulation rate (V̇La<sub>max</sub>).
+A step test estimates two things it cannot measure directly. Its second threshold is meant to find the maximal
+lactate steady state (MLSS), which only constant-load bouts can confirm, and where its curve lies depends partly on
+the maximal lactate accumulation rate (V̇La<sub>max</sub>), which comes from a short sprint. This article covers both
+tests.
 
 ## The maximal lactate steady state (MLSS)
 
-The MLSS is the highest constant intensity at which blood lactate stays steady. It comes from German sports medicine.
-Mader et al. (1976) had proposed that the transition from aerobic to partly
-anaerobic metabolism lies at about 4 mmol/L, and to test it Heck and co-workers ran athletes for about 30 min at
-several constant speeds near that point, sampling lactate every 5 min. They called the highest steady speed
-"maximales Laktatgleichgewicht" in 1982, and maximal lactate steady state in 1985: the workload at which lactate rises by
-no more than 1 mmol/L "during the last 20 min of a constant load exercise" ([Heck et al.,
-1985](https://doi.org/10.1055/s-2008-1025824); [Heck & Wackerhage, 2024](https://doi.org/10.1186/s13102-024-00827-3)).
-In these runs it lay at about 4 mmol/L on average, confirming Mader et al. Strictly, it is the highest steady state of blood lactate,
-not necessarily of metabolism as a whole (Heck & Wackerhage, 2024).
+The MLSS is the highest constant intensity at which blood lactate stays steady. The idea comes from German sports
+medicine in the 1970s. Mader et al. (1976) had proposed that the transition from aerobic to partly anaerobic
+metabolism lies at about 4 mmol/L, and to test it, Heck and co-workers had athletes run for about 30 min at several
+constant speeds near that point, sampling lactate every 5 min, and took the highest speed at which lactate stayed
+steady. They called it "maximales Laktatgleichgewicht" in 1982 and maximal lactate steady state in 1985, defined as the
+workload at which lactate rises by no more than 1 mmol/L "during the last 20 min of a constant load exercise" ([Heck et
+al., 1985](https://doi.org/10.1055/s-2008-1025824)). In those runs it lay at about 4 mmol/L on average, as Mader had
+predicted. Heck himself stresses that it is the highest steady state of blood lactate, which need not be that of
+metabolism as a whole ([Heck & Wackerhage, 2024](https://doi.org/10.1186/s13102-024-00827-3)), a point the studies
+below return to.
 
-Measure it the same way today: bouts of at least 30 min at different intensities, on separate days, with lactate
-sampled at least at minutes 10 and 30; a bout is steady when lactate rises by no more than 1 mmol/L from minute 10 to
-the end ([Beneke, 2003](https://doi.org/10.1007/s00421-002-0783-1)). The MLSS lies between the highest steady bout and
-the next bout up, so bouts closer together pin it down better.
+### Measuring it
 
-`lactate_mlss()` reads the bouts, one row per sample, and with the result of the step test it gives how far each
-threshold lies from the MLSS:
+The test has changed little since. Bouts of at least 30 min at different intensities are done on separate days, with
+lactate sampled at least at minutes 10 and 30, and a bout counts as steady when lactate rises by no more than 1 mmol/L
+between them ([Beneke, 2003](https://doi.org/10.1007/s00421-002-0783-1)). The MLSS then lies between the highest steady
+bout and the next one up, so the closer the bouts, the more precise the result. `lactate_mlss()` applies this rule to
+a table of bouts, one row per sample, and, given the result of a step test of the same athlete, it also tells how far
+each threshold lies from the MLSS:
 
 ```{r mlss, fig.height = 4.2}
 bouts <- data.frame(
@@ -45,37 +49,37 @@ mlss
 autoplot(mlss)
 ```
 
-`mlss$thresholds` lists the gap of every threshold. In published studies the gap of a method ranged from about 2 to 49
-W, depending on the protocol and the athletes (see [The methods and the evidence](methods.html#what-the-evidence-says)),
-so the gaps over a group of your own athletes are the best answer to which threshold estimates the MLSS with your
-protocol.
+Which threshold lands closest depends on the protocol and the athletes: in the studies reviewed in [The methods and the
+evidence](methods.html#what-the-evidence-says), the gap of a method ranged from about 2 to 49 W. Collected over a group
+of your own athletes, the gaps in `mlss$thresholds` answer the question for your protocol.
 
-### MLSS, critical power and the maximal metabolic steady state
+### The MLSS and the critical power
 
-Whether the MLSS is the boundary between the heavy and severe domains, and how it relates to the critical power (CP),
-has been studied directly:
+Whether the MLSS marks the boundary between the heavy and the severe domains has mostly been tested against the
+critical power (CP). When [Keir et al. (2015)](https://doi.org/10.1249/MSS.0000000000000613) measured both in 12 men,
+they found the same power (223 and 226 W), and both matched in oxygen uptake the respiratory compensation point (RCP)
+and the deoxyhemoglobin breakpoint of a ramp test, even though those two came at a higher power in the ramp (262 and
+273 W). [Mattioni Maturana et al. (2016)](https://doi.org/10.1139/apnm-2016-0248), in contrast, found the MLSS of 13
+healthy young adults (233 W) 17 to 20 W below CP, whether CP came from five time-to-exhaustion trials or from a 3-min
+all-out test, with wide limits of agreement among all three. In a second study, 13 young cyclists asked to ride 30 min
+at the highest power they thought sustainable chose 233 W, which matched their MLSS within 20 W either way, while CP
+overestimated it by 20 W ([Mattioni Maturana et al., 2017](https://doi.org/10.1016/j.jsams.2016.11.023)).
 
-* In 12 men, CP, the MLSS, the respiratory compensation point (RCP) and the deoxyhemoglobin breakpoint of a ramp test
-  occurred at the same oxygen uptake (about 3.3 L/min). CP (226 W) and the MLSS (223 W) did not differ in power, while
-  the RCP (262 W) and the breakpoint (273 W) from the ramp were higher ([Keir et al.,
-  2015](https://doi.org/10.1249/MSS.0000000000000613)).
-* In 13 healthy young adults (peak oxygen uptake 60 mL/kg/min), the MLSS (233 W) was below CP from five time-to-exhaustion trials (253 W) and from a
-  3-min all-out test (250 W), with wide limits of agreement between all three ([Mattioni Maturana et al.,
-  2016](https://doi.org/10.1139/apnm-2016-0248)). In 13 young cyclists, the highest power they chose as sustainable
-  for 30 min (233 W) matched the MLSS (limits of agreement -20 to +20 W), while CP overestimated it by 20 W ([Mattioni
-  Maturana et al., 2017](https://doi.org/10.1016/j.jsams.2016.11.023)).
-* In 10 men, the differences between CP and the MLSS were reconciled by how each is determined. Against the highest
-  steady oxygen uptake, a criterion window from minute 15 or 20 to minute 30 gave the most accurate MLSS, and CP
-  depended on its model ([Iannetta et al., 2022](https://doi.org/10.1249/MSS.0000000000002831)). `lactate_mlss(from =
-  20)` measures the rise from minute 20 instead of minute 10.
-* Across 10 studies, CP lay 12 W above the MLSS on average, with 95% limits of agreement from -19 to 44 W ([Micheli
-  et al., 2025](https://doi.org/10.7717/peerj.19060)); [Jones et al. (2019)](https://doi.org/10.14814/phy2.14098) argue
-  that CP, not the MLSS as usually measured, marks the maximal metabolic steady state.
+Much of this disagreement comes from how each is determined. [Iannetta et al.
+(2022)](https://doi.org/10.1249/MSS.0000000000002831) compared several CP models and several windows for the lactate
+rise with the highest steady oxygen uptake of 10 men: with the best of each, and the rise judged from minute 15 or 20
+rather than minute 10, CP and the MLSS both came within a few watts of it on average, although every method still
+missed it in some participants. `lactate_mlss(from = 20)` uses such a later window. Across 10 studies, CP lay 12 W above the MLSS on average, with 95% limits of agreement from -19 to 44 W
+([Micheli et al., 2025](https://doi.org/10.7717/peerj.19060)), and [Jones et al.
+(2019)](https://doi.org/10.14814/phy2.14098) argue that CP, rather than the MLSS as usually measured, marks the maximal
+metabolic steady state.
 
-With a ramp test and gas exchange instead of constant-load bouts, an equation from the RCP (W/kg), peak oxygen uptake
-and body mass predicted the MLSS within 5 W (standard error) in 29 new participants ([Iannetta et al.,
-2018](https://doi.org/10.1016/j.jsams.2018.05.004)). [Keir et al. (2022)](https://doi.org/10.1007/s40279-021-01581-z)
-explain how to find the RCP and the first threshold from gas exchange, with an online app.
+Where several 30-min bouts are not practical, a ramp test with gas exchange offers a shortcut. [Iannetta et al.
+(2018)](https://doi.org/10.1016/j.jsams.2018.05.004) built an equation in 60 people from the RCP (in W/kg), the peak
+oxygen uptake and body mass, and it predicted the MLSS of 29 new participants with a standard error of 5 W. The RCP has
+to be found first: [Keir et al. (2022)](https://doi.org/10.1007/s40279-021-01581-z) explain how to identify it and the
+first threshold from gas exchange, and their [Exercise Thresholds App](https://www.exercisethresholds.com/) does it on
+your own data.
 
 ## The maximal lactate accumulation rate (V̇La<sub>max</sub>)
 
