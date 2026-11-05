@@ -25,23 +25,24 @@ test), \code{time} (minutes from the start of the bout) and \code{lactate} (mmol
 a \code{lactate_mlss} list with \code{mlss} (the highest steady bout, \code{NA} when none was steady), \code{next_bout} (the
 lowest bout above it, which was not steady, or \code{NA}), \code{bouts} (a tibble with one row per bout: \code{intensity},
 \code{lactate_10}, \code{lactate_30}, \code{rise}, \code{minutes} (the last sample), and \code{steady}), the \code{samples}, and, with \code{x},
-\code{thresholds} (a
-tibble with \code{method}, \code{intensity}, and the \code{gap} to the MLSS in intensity units and in \%, positive when the
-threshold lies above it). Plot it with \code{\link[=autoplot]{autoplot()}}; the article \href{https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html}{Beyond the step test} shows it.
+\code{thresholds} (a tibble with \code{method}, \code{intensity}, and the \code{gap} to the MLSS in intensity units and in \%, positive
+when the threshold lies above it). Plot it with \code{\link[=autoplot]{autoplot()}}; the article \href{https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html}{Beyond the step test} shows it.
 }
 \description{
 Finds the maximal lactate steady state (MLSS) from two or more constant-load bouts of at least 30 min on separate
 days: a bout is steady when blood lactate rises by no more than 1.0 mmol/L from minute 10 to minute 30, and the MLSS
-is the highest steady bout (Beneke, 2003). With the result of \code{\link[=lactate_threshold]{lactate_threshold()}} for a step test of the same
+is the highest steady bout. This is the criterion of Heck et al. (1985), who introduced the test and the term, and of
+Beneke (2003). Against the highest steady oxygen uptake, a window from minute 15 or 20 to minute 30 was more accurate
+(Iannetta et al., 2022). With the result of \code{\link[=lactate_threshold]{lactate_threshold()}} for a step test of the same
 athlete, it also gives how far each threshold lies from the MLSS, your own check of which threshold estimates it.
 }
 \details{
 The lactate at minutes 10 and 30 is interpolated linearly between the samples, so sample at or around both. A bout
 that ended before minute 30 (exhaustion) is not steady. The true MLSS lies between the highest steady bout and the
-next bout up, so bouts closer together (e.g. 5\% apart) pin it down better. Thresholds against a measured MLSS land
-from about 40 W below to 40 W above it on average, depending on the method and the protocol (Hauser et al., 2014;
-Ploszczyca et al., 2020), and whether the MLSS marks the boundary between the heavy and severe domains is debated
-(Jones et al., 2019).
+next bout up, so bouts closer together pin it down better. Thresholds against a measured MLSS land from about 40 W
+below to 40 W above it on average, depending on the method and the protocol (Hauser et al., 2014; Ploszczyca et al.,
+2020). Whether the MLSS or the critical power marks the boundary between the heavy and severe domains is debated
+(Keir et al., 2015; Mattioni Maturana et al., 2016; Jones et al., 2019).
 }
 \examples{
 bouts <- data.frame(
@@ -63,8 +64,23 @@ Journal of Applied Physiology. 2003;89(1):95-99. doi:10.1007/s00421-002-0783-1
 Hauser T, Adam J, Schulz H. Comparison of selected lactate threshold parameters with maximal lactate steady state in
 cycling. International Journal of Sports Medicine. 2014;35(6):517-521.
 
+Heck H, Mader A, Hess G, Mücke S, Müller R, Hollmann W. Justification of the 4-mmol/l lactate threshold.
+International Journal of Sports Medicine. 1985;6(3):117-130. doi:10.1055/s-2008-1025824
+
+Iannetta D, Ingram CP, Keir DA, Murias JM. Methodological reconciliation of CP and MLSS and their agreement with the
+maximal metabolic steady state. Medicine & Science in Sports & Exercise. 2022;54(4):622-632.
+doi:10.1249/MSS.0000000000002831
+
 Jones AM, Burnley M, Black MI, Poole DC, Vanhatalo A. The maximal metabolic steady state: redefining the 'gold
 standard'. Physiological Reports. 2019;7(10):e14098.
+
+Keir DA, Fontana FY, Robertson TC, Murias JM, Paterson DH, Kowalchuk JM, Pogliaghi S. Exercise intensity thresholds:
+identifying the boundaries of sustainable performance. Medicine & Science in Sports & Exercise. 2015;47(9):1932-1940.
+doi:10.1249/MSS.0000000000000613
+
+Mattioni Maturana F, Keir DA, McLay KM, Murias JM. Can measures of critical power precisely estimate the maximal
+metabolic steady-state? Applied Physiology, Nutrition, and Metabolism. 2016;41(11):1197-1203.
+doi:10.1139/apnm-2016-0248
 
 Ploszczyca K, Jazic D, Piotrowicz Z, Chalimoniuk M, Langfort J, Czuba M. Comparison of maximal lactate steady state
 with anaerobic threshold determined by various methods based on graded exercise test with 3-minute stages in elite

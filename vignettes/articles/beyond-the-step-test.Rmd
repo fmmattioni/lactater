@@ -15,11 +15,20 @@ second threshold tries to estimate, and a short sprint gives the maximal lactate
 
 ## The maximal lactate steady state (MLSS)
 
-The MLSS is the highest constant intensity at which blood lactate stays steady. Measure it with bouts of at least 30
-min at different intensities, on separate days, sampling lactate at least at minutes 10 and 30: a bout is steady when
-lactate rises by no more than 1 mmol/L from minute 10 to the end ([Beneke,
-2003](https://doi.org/10.1007/s00421-002-0783-1)). The MLSS lies between the highest steady bout and the next bout up,
-so bouts closer together pin it down better.
+The MLSS is the highest constant intensity at which blood lactate stays steady. It comes from German sports medicine.
+Mader et al. (1976) had proposed that the transition from aerobic to partly
+anaerobic metabolism lies at about 4 mmol/L, and to test it Heck and co-workers ran athletes for about 30 min at
+several constant speeds near that point, sampling lactate every 5 min. They called the highest steady speed
+"maximales Laktatgleichgewicht" in 1982, and maximal lactate steady state in 1985: the workload at which lactate rises by
+no more than 1 mmol/L "during the last 20 min of a constant load exercise" ([Heck et al.,
+1985](https://doi.org/10.1055/s-2008-1025824); [Heck & Wackerhage, 2024](https://doi.org/10.1186/s13102-024-00827-3)).
+In these runs it lay at about 4 mmol/L on average, confirming Mader et al. Strictly, it is the highest steady state of blood lactate,
+not necessarily of metabolism as a whole (Heck & Wackerhage, 2024).
+
+Measure it the same way today: bouts of at least 30 min at different intensities, on separate days, with lactate
+sampled at least at minutes 10 and 30; a bout is steady when lactate rises by no more than 1 mmol/L from minute 10 to
+the end ([Beneke, 2003](https://doi.org/10.1007/s00421-002-0783-1)). The MLSS lies between the highest steady bout and
+the next bout up, so bouts closer together pin it down better.
 
 `lactate_mlss()` reads the bouts, one row per sample, and with the result of the step test it gives how far each
 threshold lies from the MLSS:
@@ -39,9 +48,33 @@ autoplot(mlss)
 `mlss$thresholds` lists the gap of every threshold. In published studies the gap of a method ranged from about 2 to 49
 W, depending on the protocol and the athletes (see [The methods and the evidence](methods.html#what-the-evidence-says)),
 so the gaps over a group of your own athletes are the best answer to which threshold estimates the MLSS with your
-protocol. Whether the MLSS is the boundary between the heavy and severe domains is debated: the critical power lies
-12 W above it on average, with wide limits of agreement ([Micheli et al., 2025](https://doi.org/10.7717/peerj.19060);
-[Jones et al., 2019](https://doi.org/10.14814/phy2.14098)).
+protocol.
+
+### MLSS, critical power and the maximal metabolic steady state
+
+Whether the MLSS is the boundary between the heavy and severe domains, and how it relates to the critical power (CP),
+has been studied directly:
+
+* In 12 men, CP, the MLSS, the respiratory compensation point (RCP) and the deoxyhemoglobin breakpoint of a ramp test
+  occurred at the same oxygen uptake (about 3.3 L/min). CP (226 W) and the MLSS (223 W) did not differ in power, while
+  the RCP (262 W) and the breakpoint (273 W) from the ramp were higher ([Keir et al.,
+  2015](https://doi.org/10.1249/MSS.0000000000000613)).
+* In 13 healthy young adults (peak oxygen uptake 60 mL/kg/min), the MLSS (233 W) was below CP from five time-to-exhaustion trials (253 W) and from a
+  3-min all-out test (250 W), with wide limits of agreement between all three ([Mattioni Maturana et al.,
+  2016](https://doi.org/10.1139/apnm-2016-0248)). In 13 young cyclists, the highest power they chose as sustainable
+  for 30 min (233 W) matched the MLSS (limits of agreement -20 to +20 W), while CP overestimated it by 20 W ([Mattioni
+  Maturana et al., 2017](https://doi.org/10.1016/j.jsams.2016.11.023)).
+* In 10 men, the differences between CP and the MLSS were reconciled by how each is determined. Against the highest
+  steady oxygen uptake, a criterion window from minute 15 or 20 to minute 30 gave the most accurate MLSS, and CP
+  depended on its model ([Iannetta et al., 2022](https://doi.org/10.1249/MSS.0000000000002831)).
+* Across 10 studies, CP lay 12 W above the MLSS on average, with 95% limits of agreement from -19 to 44 W ([Micheli
+  et al., 2025](https://doi.org/10.7717/peerj.19060)); [Jones et al. (2019)](https://doi.org/10.14814/phy2.14098) argue
+  that CP, not the MLSS as usually measured, marks the maximal metabolic steady state.
+
+With a ramp test and gas exchange instead of constant-load bouts, an equation from the RCP (W/kg), peak oxygen uptake
+and body mass predicted the MLSS within 5 W (standard error) in 29 new participants ([Iannetta et al.,
+2018](https://doi.org/10.1016/j.jsams.2018.05.004)). [Keir et al. (2022)](https://doi.org/10.1007/s40279-021-01581-z)
+explain how to find the RCP and the first threshold from gas exchange, with an online app.
 
 ## The maximal lactate accumulation rate (V̇La<sub>max</sub>)
 
@@ -97,11 +130,44 @@ Physiol. 2003;89(1):95-9. [doi:10.1007/s00421-002-0783-1](https://doi.org/10.100
 Clark B, Macdermid PW. V̇La<sub>max</sub> correlates strongly with glycolytic performance. Res Q Exerc Sport. 2025:1-8.
 [doi:10.1080/02701367.2025.2481176](https://doi.org/10.1080/02701367.2025.2481176)
 
+Heck H, Mader A, Hess G, Mücke S, Müller R, Hollmann W. Justification of the 4-mmol/l lactate threshold. Int J
+Sports Med. 1985;6(3):117-30. [doi:10.1055/s-2008-1025824](https://doi.org/10.1055/s-2008-1025824)
+
+Heck H, Wackerhage H. The origin of the maximal lactate steady state (MLSS). BMC Sports Sci Med Rehabil.
+2024;16:36. [doi:10.1186/s13102-024-00827-3](https://doi.org/10.1186/s13102-024-00827-3)
+
+Iannetta D, Fontana FY, Maturana FM, Inglis EC, Pogliaghi S, Keir DA, Murias JM. An equation to predict the maximal
+lactate steady state from ramp-incremental exercise test data in cycling. J Sci Med Sport. 2018;21(12):1274-80.
+[doi:10.1016/j.jsams.2018.05.004](https://doi.org/10.1016/j.jsams.2018.05.004)
+
+Iannetta D, Ingram CP, Keir DA, Murias JM. Methodological reconciliation of CP and MLSS and their agreement with the
+maximal metabolic steady state. Med Sci Sports Exerc. 2022;54(4):622-32.
+[doi:10.1249/MSS.0000000000002831](https://doi.org/10.1249/MSS.0000000000002831)
+
 Jones AM, Burnley M, Black MI, Poole DC, Vanhatalo A. The maximal metabolic steady state: redefining the 'gold
 standard'. Physiol Rep. 2019;7(10):e14098. [doi:10.14814/phy2.14098](https://doi.org/10.14814/phy2.14098)
 
+Keir DA, Fontana FY, Robertson TC, Murias JM, Paterson DH, Kowalchuk JM, Pogliaghi S. Exercise intensity thresholds:
+identifying the boundaries of sustainable performance. Med Sci Sports Exerc. 2015;47(9):1932-40.
+[doi:10.1249/MSS.0000000000000613](https://doi.org/10.1249/MSS.0000000000000613)
+
+Keir DA, Iannetta D, Mattioni Maturana F, Kowalchuk JM, Murias JM. Identification of non-invasive exercise thresholds:
+methods, strategies, and an online app. Sports Med. 2022;52:237-55.
+[doi:10.1007/s40279-021-01581-z](https://doi.org/10.1007/s40279-021-01581-z)
+
 Langley J, Haase R, Nitzsche N, Porter M. Methodological approaches in testing maximal lactate accumulation rate -
 vLamax: a systematic review. J Sci Cycling. 2025;14(1):9. [doi:10.28985/1425.jsc.09](https://doi.org/10.28985/1425.jsc.09)
+
+Mader A, et al. Zur Beurteilung der sportartspezifischen Ausdauerleistungsfähigkeit im Labor. Sportarzt Sportmed.
+1976;27(4):80-8.
+
+Mattioni Maturana F, Keir DA, McLay KM, Murias JM. Can measures of critical power precisely estimate the maximal
+metabolic steady-state? Appl Physiol Nutr Metab. 2016;41(11):1197-203.
+[doi:10.1139/apnm-2016-0248](https://doi.org/10.1139/apnm-2016-0248)
+
+Mattioni Maturana F, Keir DA, McLay KM, Murias JM. Critical power testing or self-selected cycling: which one is the
+best predictor of maximal metabolic steady-state? J Sci Med Sport. 2017;20(8):795-9.
+[doi:10.1016/j.jsams.2016.11.023](https://doi.org/10.1016/j.jsams.2016.11.023)
 
 Meixner B, Nusser V, Koehler K, Sablain M, Boone J, Sperlich B. Reliability of power output, maximal rate of capillary
 blood lactate accumulation, and phosphagen contribution time following 15-s sprint cycling in amateur cyclists.
