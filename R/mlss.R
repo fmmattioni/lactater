@@ -4,10 +4,11 @@
 #' days: a bout is steady when blood lactate rises by no more than 1.0 mmol/L from minute 10 to minute 30, and the MLSS
 #' is the highest steady bout. This is the criterion of Heck et al. (1985), who introduced the test and the term, and of
 #' Beneke (2003). Against the highest steady oxygen uptake, a window from minute 15 or 20 to minute 30 was more accurate
-#' (Iannetta et al., 2022). With the result of [lactate_threshold()] for a step test of the same
+#' (Iannetta et al., 2022); set it with `from`. With the result of [lactate_threshold()] for a step test of the same
 #' athlete, it also gives how far each threshold lies from the MLSS, your own check of which threshold estimates it.
 #'
-#' The lactate at minutes 10 and 30 is interpolated linearly between the samples, so sample at or around both. A bout
+#' The lactate at minute `from` and at minute 30 is interpolated linearly between the samples, so sample at or around
+#' both. A bout
 #' that ended before minute 30 (exhaustion) is not steady. The true MLSS lies between the highest steady bout and the
 #' next bout up, so bouts closer together pin it down better. Thresholds against a measured MLSS land from about 40 W
 #' below to 40 W above it on average, depending on the method and the protocol (Hauser et al., 2014; Ploszczyca et al.,
@@ -17,11 +18,14 @@
 #' @param bouts A data frame with one row per sample: `intensity` (the load of the bout, in the unit of the step
 #'   test), `time` (minutes from the start of the bout) and `lactate` (mmol/L).
 #' @param x The result of [lactate_threshold()] for a step test of the same athlete, or `NULL`.
-#' @param rise The largest rise in lactate (mmol/L) from minute 10 to minute 30 of a steady bout. Default to `1`.
+#' @param rise The largest rise in lactate (mmol/L) from minute `from` to minute 30 of a steady bout. Default to `1`.
+#' @param from The minute the rise is measured from, to minute 30. Default to `10` (Heck et al., 1985; Beneke, 2003);
+#'   `15` or `20` agreed best with the highest steady oxygen uptake in Iannetta et al. (2022).
 #'
 #' @return a `lactate_mlss` list with `mlss` (the highest steady bout, `NA` when none was steady), `next_bout` (the
 #'   lowest bout above it, which was not steady, or `NA`), `bouts` (a tibble with one row per bout: `intensity`,
-#'   `lactate_10`, `lactate_30`, `rise`, `minutes` (the last sample), and `steady`), the `samples`, and, with `x`,
+#'   `lactate_from` (at minute `from`), `lactate_30`, `rise`, `minutes` (the last sample), and `steady`), the `samples`,
+#'   `rise` and `from`, and, with `x`,
 #'   `thresholds` (a tibble with `method`, `intensity`, and the `gap` to the MLSS in intensity units and in %, positive
 #'   when the threshold lies above it). Plot it with [autoplot()]; the article [Beyond the step
 #'   test](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html) shows it.
@@ -69,11 +73,13 @@
 #' mlss$thresholds
 #' ## the plot is short and wide: see it in the article Beyond the step test
 #' if(interactive()) autoplot(mlss)
-lactate_mlss <- function(bouts, x = NULL, rise = 1) {
+lactate_mlss <- function(bouts, x = NULL, rise = 1, from = 10) {
   if(!is.data.frame(bouts) || !all(c("intensity", "time", "lactate") %in% names(bouts)))
     stop("`bouts` must be a data frame with the columns `intensity`, `time` (min) and `lactate`.", call. = FALSE)
   if(!is.numeric(rise) || length(rise) != 1 || is.na(rise) || rise <= 0)
     stop("`rise` must be a single positive number (mmol/L).", call. = FALSE)
+  if(!is.numeric(from) || length(from) != 1 || is.na(from) || from < 0 || from >= 30)
+    stop("`from` must be a single minute from 0 to below 30.", call. = FALSE)
   bouts <- data.frame(
     intensity = as.numeric(bouts[["intensity"]]), time = as.numeric(bouts[["time"]]),
     lactate = as.numeric(bouts[["lactate"]])
@@ -89,15 +95,15 @@ lactate_mlss <- function(bouts, x = NULL, rise = 1) {
       stats::approx(bout$time, bout$lactate, minute, ties = mean)$y
     }
     data.frame(
-      intensity = bout$intensity[1], lactate_10 = at(10), lactate_30 = at(30), minutes = max(bout$time)
+      intensity = bout$intensity[1], lactate_from = at(from), lactate_30 = at(30), minutes = max(bout$time)
     )
   })
   out <- tibble::as_tibble(do.call(rbind, rows))
-  out$rise <- out$lactate_30 - out$lactate_10
+  out$rise <- out$lactate_30 - out$lactate_from
   out$steady <- !is.na(out$rise) & out$rise <= rise + 1e-9 & out$minutes >= 30
   ## rounded for show only, after the verdict
-  out[c("lactate_10", "lactate_30", "rise")] <- lapply(out[c("lactate_10", "lactate_30", "rise")], round, 2)
-  out <- out[order(out$intensity), c("intensity", "lactate_10", "lactate_30", "rise", "minutes", "steady")]
+  out[c("lactate_from", "lactate_30", "rise")] <- lapply(out[c("lactate_from", "lactate_30", "rise")], round, 2)
+  out <- out[order(out$intensity), c("intensity", "lactate_from", "lactate_30", "rise", "minutes", "steady")]
 
   mlss <- if(any(out$steady)) max(out$intensity[out$steady]) else NA_real_
   above <- out$intensity[out$intensity > if(is.na(mlss)) -Inf else mlss]
@@ -107,7 +113,7 @@ lactate_mlss <- function(bouts, x = NULL, rise = 1) {
 
   result <- list(
     mlss = mlss, next_bout = if(length(above) > 0) min(above) else NA_real_, bouts = out, samples = bouts, rise = rise,
-    sport = NULL
+    from = from, sport = NULL
   )
   if(!is.null(x)) {
     info <- lactater_info(x)
@@ -134,8 +140,8 @@ lactate_mlss <- function(bouts, x = NULL, rise = 1) {
 #' @export
 print.lactate_mlss <- function(x, ...) {
   unit <- if(is.null(x$sport)) "" else paste0(" ", intensity_unit(x$sport))
-  cat(sprintf("%d constant-load bout%s, steady when lactate rose by %g mmol/L or less from minute 10 to 30.\n",
-              nrow(x$bouts), if(nrow(x$bouts) == 1) "" else "s", x$rise))
+  cat(sprintf("%d constant-load bout%s, steady when lactate rose by %g mmol/L or less from minute %g to 30.\n",
+              nrow(x$bouts), if(nrow(x$bouts) == 1) "" else "s", x$rise, x$from))
   cat(if(is.na(x$mlss)) {
     "No bout was steady: the MLSS lies below the lowest bout.\n"
   } else if(is.na(x$next_bout)) {
@@ -171,7 +177,8 @@ autoplot.lactate_mlss <- function(object, ...) {
 
   ggplot2::ggplot(samples, ggplot2::aes(time, lactate, group = intensity)) +
     ## the window that decides the bout
-    ggplot2::annotate("rect", xmin = 10, xmax = 30, ymin = -Inf, ymax = Inf, fill = colours[["faint"]], alpha = 0.2) +
+    ggplot2::annotate("rect", xmin = object$from, xmax = 30, ymin = -Inf, ymax = Inf, fill = colours[["faint"]],
+                      alpha = 0.2) +
     ggplot2::geom_line(colour = ink(samples$steady), linewidth = 0.8) +
     ggplot2::geom_point(shape = 21, size = 2.2, stroke = 0.7, fill = colours[["paper"]], colour = ink(samples$steady)) +
     ggplot2::geom_text(
@@ -181,8 +188,8 @@ autoplot.lactate_mlss <- function(object, ...) {
     ggplot2::labs(
       title = if(is.na(object$mlss)) "No steady bout" else sprintf("MLSS at %g%s", object$mlss, unit),
       subtitle = sprintf(
-        "Steady bouts in green: lactate rose by %g mmol/L or less from minute 10 to 30 (shaded)",
-        object$rise
+        "Steady bouts in green: lactate rose by %g mmol/L or less from minute %g to 30 (shaded)",
+        object$rise, object$from
       ),
       x = "Minute of the bout", y = "Blood lactate (mmol/L)"
     ) +

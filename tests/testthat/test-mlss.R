@@ -21,7 +21,7 @@ test_that("the MLSS is the highest bout where lactate rose by 1 mmol/L or less f
 test_that("minutes 10 and 30 are interpolated, and a bout that stopped early is not steady", {
   sparse <- data.frame(intensity = 200, time = c(5, 15, 25, 35), lactate = c(2, 3, 3.4, 3.8))
   out <- lactate_mlss(sparse)$bouts
-  expect_equal(c(out$lactate_10, out$lactate_30), c(2.5, 3.6))
+  expect_equal(c(out$lactate_from, out$lactate_30), c(2.5, 3.6))
   early <- data.frame(intensity = 230, time = c(10, 20, 24), lactate = c(3, 3.2, 3.3))
   stopped <- rbind(bouts[bouts$intensity < 240, ], early)
   mlss <- lactate_mlss(stopped)
@@ -54,4 +54,16 @@ test_that("bouts far outside the step test warn about their unit", {
                       lactate = c(2, 2.2, 2.4, 3, 3.6, 4.4))
   expect_warning(lactate_mlss(in_ms, runner), "same unit")
   expect_warning(lactate_mlss(transform(in_ms, intensity = intensity * 3.6), runner), NA)
+})
+
+test_that("`from` sets the minute the rise is measured from (Iannetta et al., 2022)", {
+  ## 240 W rose 1.6 mmol/L from minute 10, but only 0.8 from minute 20
+  late <- lactate_mlss(bouts, from = 20)
+  expect_equal(late$bouts$rise, c(0.2, 0.4, 0.8))
+  expect_equal(c(late$mlss, late$next_bout), c(240, NA))
+  expect_output(print(late), "from minute 20 to 30")
+  sparse <- data.frame(intensity = 200, time = c(5, 15, 25, 35), lactate = c(2, 3, 3.4, 3.8))
+  expect_equal(lactate_mlss(sparse, from = 20)$bouts$lactate_from, 3.2)
+  expect_error(lactate_mlss(bouts, from = 30), "`from`")
+  expect_s3_class(autoplot(late), "ggplot")
 })

@@ -5,7 +5,7 @@
 \alias{autoplot.lactate_mlss}
 \title{Maximal lactate steady state from constant-load bouts}
 \usage{
-lactate_mlss(bouts, x = NULL, rise = 1)
+lactate_mlss(bouts, x = NULL, rise = 1, from = 10)
 
 \method{autoplot}{lactate_mlss}(object, ...)
 }
@@ -15,7 +15,10 @@ test), \code{time} (minutes from the start of the bout) and \code{lactate} (mmol
 
 \item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}} for a step test of the same athlete, or \code{NULL}.}
 
-\item{rise}{The largest rise in lactate (mmol/L) from minute 10 to minute 30 of a steady bout. Default to \code{1}.}
+\item{rise}{The largest rise in lactate (mmol/L) from minute \code{from} to minute 30 of a steady bout. Default to \code{1}.}
+
+\item{from}{The minute the rise is measured from, to minute 30. Default to \code{10} (Heck et al., 1985; Beneke, 2003);
+\code{15} or \code{20} agreed best with the highest steady oxygen uptake in Iannetta et al. (2022).}
 
 \item{object}{The result of \code{\link[=lactate_mlss]{lactate_mlss()}}.}
 
@@ -24,7 +27,8 @@ test), \code{time} (minutes from the start of the bout) and \code{lactate} (mmol
 \value{
 a \code{lactate_mlss} list with \code{mlss} (the highest steady bout, \code{NA} when none was steady), \code{next_bout} (the
 lowest bout above it, which was not steady, or \code{NA}), \code{bouts} (a tibble with one row per bout: \code{intensity},
-\code{lactate_10}, \code{lactate_30}, \code{rise}, \code{minutes} (the last sample), and \code{steady}), the \code{samples}, and, with \code{x},
+\code{lactate_from} (at minute \code{from}), \code{lactate_30}, \code{rise}, \code{minutes} (the last sample), and \code{steady}), the \code{samples},
+\code{rise} and \code{from}, and, with \code{x},
 \code{thresholds} (a tibble with \code{method}, \code{intensity}, and the \code{gap} to the MLSS in intensity units and in \%, positive
 when the threshold lies above it). Plot it with \code{\link[=autoplot]{autoplot()}}; the article \href{https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html}{Beyond the step test} shows it.
 }
@@ -33,11 +37,12 @@ Finds the maximal lactate steady state (MLSS) from two or more constant-load bou
 days: a bout is steady when blood lactate rises by no more than 1.0 mmol/L from minute 10 to minute 30, and the MLSS
 is the highest steady bout. This is the criterion of Heck et al. (1985), who introduced the test and the term, and of
 Beneke (2003). Against the highest steady oxygen uptake, a window from minute 15 or 20 to minute 30 was more accurate
-(Iannetta et al., 2022). With the result of \code{\link[=lactate_threshold]{lactate_threshold()}} for a step test of the same
+(Iannetta et al., 2022); set it with \code{from}. With the result of \code{\link[=lactate_threshold]{lactate_threshold()}} for a step test of the same
 athlete, it also gives how far each threshold lies from the MLSS, your own check of which threshold estimates it.
 }
 \details{
-The lactate at minutes 10 and 30 is interpolated linearly between the samples, so sample at or around both. A bout
+The lactate at minute \code{from} and at minute 30 is interpolated linearly between the samples, so sample at or around
+both. A bout
 that ended before minute 30 (exhaustion) is not steady. The true MLSS lies between the highest steady bout and the
 next bout up, so bouts closer together pin it down better. Thresholds against a measured MLSS land from about 40 W
 below to 40 W above it on average, depending on the method and the protocol (Hauser et al., 2014; Ploszczyca et al.,
