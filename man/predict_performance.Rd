@@ -25,7 +25,7 @@ published ones.}
 a \code{lactate_performance} tibble with one row per estimate: \code{event}, \code{method}, \code{threshold}, the predicted
 mean race \code{intensity} (speed or power, in the unit of the sport) with its 95\% range (\code{intensity_low},
 \code{intensity_high}), for races over a distance the \code{time} with its range (\code{time_low}, \code{time_high}), and the \code{source}.
-Plot it with \code{\link[=autoplot]{autoplot()}}.
+Plot it with \code{\link[=autoplot]{autoplot()}}; the article \href{https://fmmattioni.github.io/lactater/articles/performance.html}{Predicting performance} shows it.
 }
 \description{
 Estimates race times in running and time-trial power in cycling from the thresholds of a step test, with a 95\%
@@ -69,7 +69,8 @@ runner <- data.frame(
 results <- lactate_threshold(runner, intensity, lactate, sport = "running", plot = FALSE)
 prediction <- predict_performance(results)
 prediction
-autoplot(prediction)
+## the plot is short and wide: see it in the article Predicting performance
+if(interactive()) autoplot(prediction)
 }
 \references{
 Coen B, Urhausen A, Kindermann W. Individual anaerobic threshold: methodological aspects of its assessment in

@@ -98,7 +98,8 @@ cycling_equations <- data.frame(
 #' @return a `lactate_performance` tibble with one row per estimate: `event`, `method`, `threshold`, the predicted
 #' mean race `intensity` (speed or power, in the unit of the sport) with its 95% range (`intensity_low`,
 #' `intensity_high`), for races over a distance the `time` with its range (`time_low`, `time_high`), and the `source`.
-#' Plot it with [autoplot()].
+#' Plot it with [autoplot()]; the article [Predicting
+#' performance](https://fmmattioni.github.io/lactater/articles/performance.html) shows it.
 #'
 #' @references
 #' Coen B, Urhausen A, Kindermann W. Individual anaerobic threshold: methodological aspects of its assessment in
@@ -129,7 +130,8 @@ cycling_equations <- data.frame(
 #' results <- lactate_threshold(runner, intensity, lactate, sport = "running", plot = FALSE)
 #' prediction <- predict_performance(results)
 #' prediction
-#' autoplot(prediction)
+#' ## the plot is short and wide: see it in the article Predicting performance
+#' if(interactive()) autoplot(prediction)
 predict_performance <- function(x, method = NULL, equation = NULL) {
   info <- lactater_info(x)
   sport <- info$settings$sport
