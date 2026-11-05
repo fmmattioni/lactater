@@ -71,8 +71,8 @@ test_report <- function(x, file = "lactate-test-report.html", athlete = list(), 
 #'
 #' * `report_header()`: who was tested and where. The athlete's name, the date, any other details you name (`sex`,
 #'   `age`, `club`, `tester`...), your lab or institution, and its logo.
-#' * `report_summary()`: the answer: LT1 and LT2 as the title, what they mean, and LT1, LT2 and the peak with their
-#'   lactate, heart rate, RPE, percentage of peak and, with `body_mass`, per kg.
+#' * `report_summary()`: the answer: what LT1 and LT2 mean, and LT1, LT2 and the peak with their lactate, heart rate,
+#'   RPE, percentage of peak and, with `body_mass`, per kg.
 #' * `report_progress()`: for a series, how LT1 and LT2 changed since the first test, every lactate curve with the
 #'   zones of each test, test by test, and whether the latest change is larger than the noise of the method
 #'   ([compare_tests()]).
@@ -159,8 +159,10 @@ report_header <- function(report, name = NULL, date = NULL, ..., lab = NULL, log
 #' @export
 report_summary <- function(report) {
   add_section(report, "summary", function(r) {
+    labels <- r$series$labels
     htmltools::tagList(
-      htmltools::tags$h2(class = "claim", html_title(r)),
+      ## LT1 and LT2 are in the stats below; a series only needs to say which test this is
+      if(!is.null(labels)) htmltools::tags$h2(sprintf("The latest test (%s)", labels[length(labels)])),
       htmltools::tags$p(class = "lede", htmltools::HTML(html_lede(r))),
       html_stats(r)
     )
@@ -379,14 +381,6 @@ html_method <- function(zones, boundary) {
 }
 
 #' @rdname report_internals
-html_title <- function(r) {
-  lt <- attr(r$three, "lactater_zones")$lt
-  sport <- r$info$settings$sport
-  title <- sprintf("LT1 at %s, LT2 at %s", intensity_text(lt[1], sport), intensity_text(lt[2], sport))
-  if(is.null(r$series)) title else paste("In the latest test:", title)
-}
-
-#' @rdname report_internals
 html_lede <- function(r) {
   stages <- r$info$data[r$info$data$intensity > 0, ]
   sport <- r$info$settings$sport
@@ -470,7 +464,7 @@ html_figure <- function(zones) {
       "The lactate curve of the test, with the zones in the colors of their domain: green moderate, yellow heavy,",
       "red severe.", if(panel) "Below it, the heart rate of the stages, read at LT1 and LT2."
     ),
-    height = if(panel) 5.2 else 3.5
+    height = if(panel) 5.8 else 3.5
   )
 }
 
@@ -584,7 +578,7 @@ html_progress <- function(r, cv) {
         "and below them the five training zones of each test, with LT1 and LT2 at their boundaries; dashed lines: 2",
         "and 4 mmol/L."
       ),
-      height = if(with_hr) 3.6 + 0.3 * n + 1 else 4 + 0.3 * n
+      height = if(with_hr) 4.6 + 0.3 * n else 4 + 0.3 * n
     ),
     tags$h2("Test by test"),
     html_table(by_test),

@@ -30,9 +30,10 @@ test_that("test_report writes one self-contained page with every section", {
   expect_match(html, "<title>Lactate step test, Ana &lt;test&gt;</title>", fixed = TRUE)
   expect_match(html, "the report of test_report()", fixed = TRUE)
   expect_match(html, "Below it, the heart rate of the stages, read at LT1 and LT2.", fixed = TRUE)
-  ## the title states the two thresholds
+  ## LT1 and LT2 are in the stats, not repeated in a title above them
   zones <- attr(lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax"), "lactater_zones")$lt
-  expect_match(html, sprintf("<h2 class=\"claim\">LT1 at %.0f W, LT2 at %.0f W</h2>", zones[1], zones[2]), fixed = TRUE)
+  expect_match(html, sprintf("<p class=\"stat-value\">%.0f W</p>", zones[2]), fixed = TRUE)
+  expect_false(grepl("class=\"claim\"", html, fixed = TRUE))
   expect_match(html, "<h1>Ana &lt;test&gt;</h1>", fixed = TRUE)
   ## the family of the Dmax methods carries its subscript in the table of every method
   expect_false(grepl(">[[:space:]]*Dmax[[:space:]]*<", html))
@@ -92,7 +93,8 @@ test_that("a series report shows the progress, then the latest test, and checks 
   expect_match(html, "3, 10 Jan 2026 to 10 May 2026", fixed = TRUE)
   expect_match(html, "<h2 class=\"claim\">Since the first test: LT1 +", fixed = TRUE)
   expect_match(html, "The latest test against the one before (10 Mar 2026)", fixed = TRUE)
-  expect_lt(regexpr("Since the first test", html), regexpr("In the latest test:", html))
+  latest <- regexpr("<h2>The latest test (10 May 2026)</h2>", html, fixed = TRUE)
+  expect_gt(latest, regexpr("Since the first test", html))
   ## one chart: the curves and zones of every test
   expect_equal(lengths(regmatches(html, gregexpr("data:image/png;base64", html))), 1)
   ## the names of the list as dates, or days

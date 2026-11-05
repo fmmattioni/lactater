@@ -73,7 +73,7 @@ on the pair. Report the pair you used, and keep it between tests of the same ath
 Zone 1 is the moderate domain, zone 2 the heavy domain, and zone 3 the severe domain, as in the three-zone model of
 [Hofmann & Tschakert (2017)](https://doi.org/10.3389/fphys.2017.00337):
 
-```{r}
+```{r, fig.height = 7}
 zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax")
 zones
 autoplot(zones)
@@ -98,7 +98,7 @@ The five-zone scale used in endurance sports ([Seiler, 2010](https://doi.org/10.
 3 between LT1 and LT2, and zones 4 and 5 above LT2, as the training of 11 Olympic and world champions was described
 ([Tønnessen et al., 2014](https://doi.org/10.1371/journal.pone.0101796)). `model = 5` builds these zones from your two thresholds:
 
-```{r}
+```{r, fig.height = 7}
 five <- lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax", model = 5)
 five
 autoplot(five)

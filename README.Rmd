@@ -81,7 +81,7 @@ results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, rpe_colu
 gallery(autoplot(results), "overview", height = 7)
 gallery(autoplot(results, method = "ModDmax"), "method")
 five <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax", model = 5)
-gallery(autoplot(five), "zones", height = 6.4)
+gallery(autoplot(five), "zones", height = 7)
 gallery(autoplot(lactate_diagnostics(results)), "diagnostics", width = 9, height = 10)
 
 series <- filter(lactate_tests, athlete == "cyclist_series")
@@ -90,7 +90,7 @@ days <- c(0, 163, 1107, 1865, 2046)
 tests <- lapply(days, analyse)
 ## the test dates are not in the data: an example start date
 trend <- lactate_trend(!!!tests, day = as.Date("2019-01-14") + days)
-gallery(autoplot(trend, lt1 = "Bsln + 0.5", lt2 = "ModDmax"), "series", height = 8.4)
+gallery(autoplot(trend, lt1 = "Bsln + 0.5", lt2 = "ModDmax"), "series", height = 9.1)
 gallery(autoplot(compare_tests(analyse(0), analyse(58))), "compare")
 gallery(autoplot(curve_shape(analyse(0), analyse(2046))), "shape")
 

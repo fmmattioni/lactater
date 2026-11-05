@@ -141,7 +141,7 @@ with_ci |>
 
 Choose which thresholds mark LT1 and LT2, and three or five zones:
 
-```{r}
+```{r, fig.height = 6.5}
 zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax", model = 5)
 zones
 autoplot(zones)

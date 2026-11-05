@@ -553,7 +553,7 @@ plot_series <- function(tests, labels, lt1, lt2) {
       ggplot2::labs(x = NULL, y = "Heart rate (bpm)") +
       theme_lactater()
     plots <- list(lactate, hr_panel, zone_bars)
-    heights <- c(3, 1, heights[2])
+    heights <- c(3, 1.6, heights[2])
   }
 
   with_hr <- length(plots) == 3

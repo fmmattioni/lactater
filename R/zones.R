@@ -332,7 +332,7 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
     ggplot2::labs(title = NULL, subtitle = NULL, x = NULL) +
     ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.ticks.x = ggplot2::element_blank(),
                    axis.line.x = ggplot2::element_blank())
-  patchwork::wrap_plots(lactate, hr_panel, ncol = 1, heights = c(3, 1.1)) +
+  patchwork::wrap_plots(lactate, hr_panel, ncol = 1, heights = c(3, 1.6)) +
     patchwork::plot_annotation(
       title = title, subtitle = paste0(subtitle, ". Below: the heart rate of the stages, read at LT1 and LT2"),
       theme = theme_lactater()

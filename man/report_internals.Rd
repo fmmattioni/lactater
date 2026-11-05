@@ -8,7 +8,6 @@
 \alias{html_page}
 \alias{html_header}
 \alias{html_method}
-\alias{html_title}
 \alias{html_lede}
 \alias{html_stats}
 \alias{html_figure}
@@ -33,8 +32,6 @@ html_page(report)
 html_header(report)
 
 html_method(zones, boundary)
-
-html_title(r)
 
 html_lede(r)
 

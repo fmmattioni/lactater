@@ -100,8 +100,8 @@ above then describe the latest test, and \code{report_progress()} shows the prog
 \itemize{
 \item \code{report_header()}: who was tested and where. The athlete's name, the date, any other details you name (\code{sex},
 \code{age}, \code{club}, \code{tester}...), your lab or institution, and its logo.
-\item \code{report_summary()}: the answer: LT1 and LT2 as the title, what they mean, and LT1, LT2 and the peak with their
-lactate, heart rate, RPE, percentage of peak and, with \code{body_mass}, per kg.
+\item \code{report_summary()}: the answer: what LT1 and LT2 mean, and LT1, LT2 and the peak with their lactate, heart rate,
+RPE, percentage of peak and, with \code{body_mass}, per kg.
 \item \code{report_progress()}: for a series, how LT1 and LT2 changed since the first test, every lactate curve with the
 zones of each test, test by test, and whether the latest change is larger than the noise of the method
 (\code{\link[=compare_tests]{compare_tests()}}).
