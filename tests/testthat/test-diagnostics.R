@@ -16,8 +16,12 @@ test_that("lactate_diagnostics matches lm() for the polynomial curve", {
 
 test_that("the jackknife summarises leaving each stage out", {
   loo <- diagnostics$leave_one_out
-  expect_equal(nrow(loo), length(unique(results$method)) * sum(female$intensity > 0))
-  obla <- loo$intensity[loo$method == "OBLA 4.0"]
+  expect_equal(nrow(loo), length(unique(results$method)) * nrow(female))
+  ## without the resting sample only Bsln+ moves (its baseline becomes the first stage), and it is not in the jackknife
+  rest <- loo[loo$stage == 0, ]
+  expect_true(all(grepl("^Bsln", rest$method[!is.na(rest$change) & abs(rest$change) > 1e-9])))
+  expect_true(any(abs(rest$change[grepl("^Bsln", rest$method)]) > 0))
+  obla <- loo$intensity[loo$method == "OBLA 4.0" & loo$stage > 0]
   row <- diagnostics$jackknife[diagnostics$jackknife$method == "OBLA 4.0", ]
   expect_equal(row$jackknife_se, sqrt((length(obla) - 1) / length(obla) * sum((obla - mean(obla))^2)))
   expect_equal(c(row$lowest, row$highest), range(obla))

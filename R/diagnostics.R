@@ -17,7 +17,8 @@
 #' * **Leave one stage out**: every threshold is computed again without each stage in turn (a jackknife; Efron, 1982).
 #'   The range shows how much a threshold rests on one stage, and the jackknife standard error is
 #'   `sqrt((n - 1) / n * sum((theta_i - mean(theta_i))^2))`. Dropping the first or last stage changes the Dmax line
-#'   itself, so large changes there are expected for the Dmax family.
+#'   itself, so large changes there are expected for the Dmax family. The resting sample is left out too (column
+#'   "rest"), which shows how much Bsln+ rests on that one baseline sample; it is not part of the jackknife.
 #' * **Which curve predicts best**: the leave-one-out prediction error of every curve type, from
 #'   [lactate_fit_quality()]. It rewards curves that follow the data without overfitting it, which the RMSE of the fit
 #'   alone cannot do.
@@ -65,11 +66,10 @@ lactate_diagnostics <- function(x) {
     standardized = standardized, leverage = leverage, cooks_distance = cooks, influential = cooks > cut
   )
 
-  ## leave each exercise stage out and run every method again
+  ## leave each sample out, the resting one too (Bsln+ rests on it), and run every method again
   methods <- as.character(x$method)
   categories <- unique(as.character(x$method_category))
-  exercise <- which(info$data$intensity > 0)
-  loo <- do.call(rbind, lapply(exercise, function(k) {
+  loo <- do.call(rbind, lapply(seq_len(nrow(info$data)), function(k) {
     found <- tryCatch(
       compute_thresholds(info$data[-k, ], info$settings, categories)$rows,
       error = function(e) NULL
@@ -79,7 +79,8 @@ lactate_diagnostics <- function(x) {
   }))
   loo$change <- loo$intensity - unname(info$intensity[loo$method])
   jackknife <- do.call(rbind, lapply(methods, function(m) {
-    values <- loo$intensity[loo$method == m]
+    ## the jackknife is over the exercise stages; the resting sample is not one of them
+    values <- loo$intensity[loo$method == m & loo$stage > 0]
     values <- values[!is.na(values)]
     data.frame(
       method = m, intensity = unname(info$intensity[[m]]),
@@ -261,7 +262,8 @@ leave_one_out_panel <- function(object, colours, sport) {
     ggplot2::scale_alpha_identity() +
     ggplot2::scale_fill_identity() +
     ggplot2::scale_x_continuous(
-      breaks = seq_along(stages), labels = format_intensity(stages, sport), position = "top", expand = c(0, 0.1)
+      breaks = seq_along(stages), labels = ifelse(stages == 0, "rest", format_intensity(stages, sport)),
+      position = "top", expand = c(0, 0.1)
     ) +
     ggplot2::scale_y_continuous(breaks = seq_along(methods), labels = method_label(rev(methods)), expand = c(0, 0.1)) +
     ggplot2::labs(x = paste0("Stage left out (", intensity_unit(sport), ")"), y = NULL) +
