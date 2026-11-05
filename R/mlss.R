@@ -94,6 +94,14 @@ lactate_mlss <- function(bouts, x = NULL, rise = 1) {
   if(!is.null(x)) {
     info <- lactater_info(x)
     result$sport <- info$settings$sport
+    ## the MLSS lies inside a step test's range; bouts far outside it are most likely in another unit (m/s vs km/h)
+    stages <- range(info$data$intensity[info$data$intensity > 0])
+    if(any(out$intensity < stages[1] / 2 | out$intensity > stages[2] * 1.5)) {
+      warning(sprintf(
+        "The bouts (%g to %g) lie far outside the step test (%g to %g %s): are they in the same unit?",
+        min(out$intensity), max(out$intensity), stages[1], stages[2], intensity_unit(result$sport)
+      ), call. = FALSE)
+    }
     ## named apart from the column: tibble() would compute the gaps from the rounded intensity
     value <- unname(info$intensity[as.character(x$method)])
     result$thresholds <- tibble::tibble(

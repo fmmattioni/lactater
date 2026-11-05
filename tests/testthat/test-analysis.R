@@ -53,6 +53,11 @@ test_that("lactate_zones uses the chosen LT1 and LT2", {
   expect_equal(lactate_zones(results, lt1 = 100, lt2 = 150)$intensity_from[2:3], c(100, 150))
   expect_error(lactate_zones(results, lt1 = "Dmax", lt2 = "Log-log"), "below LT2")
   expect_error(lactate_zones(results, lt1 = "Nope"), "lt1")
+  ## a result without the default pair says which default is missing and how to choose
+  ltp_only <- lactate_threshold(demo_data, intensity, lactate, method = "LTP", plot = FALSE)
+  expect_error(lactate_zones(ltp_only), "(Bsln + 0.5, the default) is not in these results. Choose it with `lt1 =`",
+               fixed = TRUE)
+  expect_s3_class(lactate_zones(ltp_only, lt1 = "LTP1", lt2 = "LTP2"), "lactate_zones")
   expect_s3_class(autoplot(zones), "ggplot")
 })
 

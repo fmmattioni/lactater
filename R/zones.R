@@ -104,13 +104,18 @@ lactate_zones <- function(x, lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax", model
   info <- lactater_info(x)
   if(!identical(as.numeric(model), 3) && !identical(as.numeric(model), 5))
     stop("`model` must be 3 or 5.", call. = FALSE)
+  found <- as.character(x$method)[!is.na(info$intensity[as.character(x$method)])]
   boundary <- function(marker, arg) {
     if(is.numeric(marker) && length(marker) == 1 && !is.na(marker)) return(marker)
+    ## the default pair is not in every result (another `method`, or no Log-log crossing): say how to choose
+    default <- if(identical(marker, c(lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax")[[arg]])) ", the default" else ""
+    choose <- sprintf("Choose it with `%s =`: a number or one of %s.", arg, paste(found, collapse = ", "))
     i <- match(marker, as.character(x$method))
     if(length(marker) != 1 || is.na(i))
-      stop(sprintf("`%s` must be a number or one of: %s.", arg, paste(x$method, collapse = ", ")), call. = FALSE)
+      stop(sprintf("`%s` (%s%s) is not in these results. %s", arg, paste(marker, collapse = ", "), default, choose),
+           call. = FALSE)
     if(is.na(info$intensity[[marker]]))
-      stop(sprintf("`%s` (%s) was not found in this test.", arg, marker), call. = FALSE)
+      stop(sprintf("`%s` (%s%s) was not found in this test. %s", arg, marker, default, choose), call. = FALSE)
     info$intensity[[marker]]
   }
   lt <- c(boundary(lt1, "lt1"), boundary(lt2, "lt2"))

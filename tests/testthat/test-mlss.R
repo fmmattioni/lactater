@@ -46,3 +46,12 @@ test_that("wrong input stops, and an unsteady bout below the MLSS warns", {
   odd <- transform(bouts, lactate = c(2.0, 2.8, 3.4, 3.0, 3.5, 3.9, 4.0, 4.8, 5.6))
   expect_warning(lactate_mlss(odd), "below the MLSS")
 })
+
+test_that("bouts far outside the step test warn about their unit", {
+  runner <- lactate_threshold(lactate_tests[lactate_tests$test == "running", ], intensity, lactate, sport = "running",
+                              plot = FALSE)
+  in_ms <- data.frame(intensity = rep(c(5.0, 5.3), each = 3), time = rep(c(10, 20, 30), 2),
+                      lactate = c(2, 2.2, 2.4, 3, 3.6, 4.4))
+  expect_warning(lactate_mlss(in_ms, runner), "same unit")
+  expect_warning(lactate_mlss(transform(in_ms, intensity = intensity * 3.6), runner), NA)
+})
