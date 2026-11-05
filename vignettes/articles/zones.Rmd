@@ -109,13 +109,17 @@ averages: Seiler's scale, for example, puts zone 3 at 2.5 to 4 mmol/L, while lac
 heavy domain. Other five-level scales put LT1 at a different cut altogether ([Jamnick et al., 2020](https://doi.org/10.1007/s40279-020-01322-8), Table 1), so check
 which scale a coach means. The cut inside each domain is a convention, set with `split`:
 
-* `"equal"` (default): zone 1|2 at half of LT1, and zone 4|5 halfway between LT2 and the highest intensity of the test.
+* `"relative"` (default): zone 1|2 at 80% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of the
+  test. In Seiler's (2010) scale zone 2 starts at 66% of the maximal oxygen uptake and zone 3 at 81%, about 80% of it,
+  and zone 5 starts halfway between the start of zone 4 (88%) and the maximum. Zone 2 sits "immediately below" LT1
+  ([Sitko et al., 2025](https://doi.org/10.1123/ijspp.2024-0303)), and no physiological marker separates zones 1 and 2
+  ([Bishop et al., 2025](https://doi.org/10.1249/MSS.0000000000003795)), so both cuts are approximations.
 * `"seiler"`: where the fitted curve reaches 1.5 mmol/L (zone 1|2) and 6.0 mmol/L (zone 4|5), the lactate limits of
-  Seiler's (2010) scale. A cut outside its domain, or never reached, falls back to the equal split, with a warning.
+  Seiler's (2010) scale. A cut outside its domain, or never reached, falls back to the relative split, with a warning.
 * Two intensities of your own, `c(zone 1|2, zone 4|5)`.
 
 ```{r}
-splits <- list(equal = "equal", seiler = "seiler", own = c(70, 175))
+splits <- list(relative = "relative", seiler = "seiler", own = c(70, 175))
 splits |>
   purrr::imap(\(split, name) {
     lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax", model = 5, split = split) |>

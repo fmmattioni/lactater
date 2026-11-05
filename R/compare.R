@@ -385,7 +385,8 @@ list_to_thresholds <- function(info) {
 #' @param lt1,lt2 The thresholds that mark LT1 and LT2 in the `"curves"` view, as in [lactate_zones()].
 #' @param cv The test-retest coefficient of variation (%) for the noise band, as in [compare_tests()].
 #' @export
-autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL, lt1 = "LTP1", lt2 = "LTP2", ...) {
+autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL, lt1 = "Bsln + 0.5",
+                                   lt2 = "Log-Poly-ModDmax", ...) {
   trend <- attr(object, "lactater_trend")
   if(is.null(view)) view <- if(length(trend$day) <= 5) "curves" else "thresholds"
   view <- match.arg(view, c("curves", "thresholds"))

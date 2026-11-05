@@ -58,7 +58,13 @@ test_that("lactate_zones uses the chosen LT1 and LT2", {
 
 test_that("lactate_checks flags problems", {
   checks <- lactate_checks(results)
-  expect_equal(checks$status[checks$check == "Stages"], "ok")
+  ## 7 stages leave the three-segment LTP fit 1 degree of freedom: a note, not a warning
+  expect_equal(checks$status[checks$check == "Stages"], "note")
+  expect_match(checks$details[checks$check == "Stages"], "1 degree")
+  female <- lactate_threshold(lactate_tests[lactate_tests$test == "cycling_female", ], intensity, lactate, plot = FALSE)
+  expect_equal(lactate_checks(female)$status[1], "ok")
+  five <- lactate_checks(lactate_threshold(demo_data[1:6, ], intensity, lactate, method = "OBLA", plot = FALSE))
+  expect_equal(five$status[five$check == "Stages"], "warning")
   sweat <- lactate_threshold(fixtures$plateau_x3, "intensity", "lactate", plot = FALSE, sample = "sweat")
   sweat_checks <- lactate_checks(sweat)
   expect_equal(sweat_checks$status[sweat_checks$check == "Sample type"], "warning")
@@ -68,7 +74,7 @@ test_that("lactate_checks flags problems", {
   expect_match(pillar::tbl_sum(sweat)[["Checks"]], "warning")
   ## printed as a checklist with the counts on top
   expect_output(print(sweat_checks), "8 checks: [0-9] passed, [0-9] notes?, [1-9] warnings?")
-  expect_output(print(sweat_checks[1, ]), "^1 check: 1 passed")
+  expect_output(print(sweat_checks[sweat_checks$check == "Final stage", ]), "^1 check: 1 passed")
 })
 
 test_that("lactate_fit_quality compares the curves on the same points", {

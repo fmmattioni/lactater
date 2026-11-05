@@ -32,12 +32,12 @@
 #'   results,
 #'   file = tempfile(fileext = ".html"),
 #'   athlete = list(name = "Demo athlete", date = "3 November 2026", body_mass = 72),
-#'   lt1 = "LTP1", lt2 = "ModDmax",
 #'   protocol = "Cycle ergometer, 3-min stages of +25 W from 50 W, earlobe capillary blood",
 #'   open = FALSE
 #' )
-test_report <- function(x, file = "lactate-test-report.html", athlete = list(), lt1 = "LTP1", lt2 = "LTP2",
-                        protocol = NULL, notes = NULL, pdf = FALSE, open = interactive(), dates = NULL) {
+test_report <- function(x, file = "lactate-test-report.html", athlete = list(), lt1 = "Bsln + 0.5",
+                        lt2 = "Log-Poly-ModDmax", protocol = NULL, notes = NULL, pdf = FALSE, open = interactive(),
+                        dates = NULL) {
   report <- do.call(report_header, c(list(report_start(x, lt1 = lt1, lt2 = lt2, dates = dates)), athlete))
   report <- if(is.null(report$series)) {
     report |>
@@ -117,7 +117,7 @@ test_report <- function(x, file = "lactate-test-report.html", athlete = list(), 
 #' results <- lactate_threshold(
 #'   demo_data, intensity, lactate, heart_rate, rpe_column = rpe, plot = FALSE
 #' )
-#' report <- report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
+#' report <- report_start(results) |>
 #'   report_header(
 #'     name = "Demo athlete", date = "3 November 2026", sex = "male", age = 31, body_mass = 72,
 #'     lab = "Exercise physiology lab"
@@ -126,7 +126,7 @@ test_report <- function(x, file = "lactate-test-report.html", athlete = list(), 
 #'   report_zones(model = 3) |>
 #'   report_text("Training", "Two sessions a week in zone 2, one in zone 3.")
 #' report_save(report, tempfile(fileext = ".html"), open = FALSE)
-report_start <- function(x, lt1 = "LTP1", lt2 = "LTP2", dates = NULL) {
+report_start <- function(x, lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax", dates = NULL) {
   rlang::check_installed("gt", reason = "to build the report.")
   series <- NULL
   if(!inherits(x, "lactate_thresholds") && is.list(x)) {

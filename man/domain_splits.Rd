@@ -7,7 +7,7 @@
 domain_splits(split, lt, info)
 }
 \arguments{
-\item{split}{\code{"equal"}, \code{"seiler"}, or two intensities.}
+\item{split}{\code{"relative"}, \code{"seiler"}, or two intensities.}
 
 \item{lt}{LT1 and LT2.}
 

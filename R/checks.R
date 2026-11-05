@@ -45,8 +45,9 @@ lactate_checks <- function(x) {
   ## ModDmax only relies on a blood value when its 0.4 mmol/L default rise is kept
   absolute <- methods[grepl("^OBLA|^Bsln|^IAT$", methods) | (methods == "ModDmax" & info$settings$moddmax_rise == 0.4)]
   first_lowest <- stages$lactate[1] - min(stages$lactate[-1])
-  ## two stages per segment
-  ltp_needs <- 2 * (info$settings$ltp_breakpoints + 1)
+  ## the LTP fit has 2 + 2 per breakpoint parameters; two degrees of freedom left keep it from following single stages
+  ltp_parameters <- 2 + 2 * info$settings$ltp_breakpoints - info$settings$ltp_fix_first_slope
+  ltp_needs <- ltp_parameters + 2
   ## LTP2 is "the second increase of blood lactate concentration around 4 mmol/L" (Hofmann et al., 1997)
   peak <- max(stages$lactate)
   ltp2_reachable <- !"LTP2" %in% methods || info$settings$ltp_breakpoints == 1 ||
@@ -55,7 +56,15 @@ lactate_checks <- function(x) {
   out <- rbind(
     check(
       "Stages", n >= ltp_needs,
-      sprintf("%d stages: LTP needs at least %d, and the fitted curves rest on few points.", n, ltp_needs),
+      sprintf(
+        paste(
+          "%d stages: the LTP fit has %d parameters, so %d degree(s) of freedom are left and LTP can move a lot with",
+          "one stage (at least %d stages are better); the fitted curves rest on few points too."
+        ),
+        n, ltp_parameters, max(n - ltp_parameters, 0), ltp_needs
+      ),
+      ## a typical step test: a note, unless LTP cannot be fitted at all (two stages per segment)
+      status = if(n < 2 * (info$settings$ltp_breakpoints + 1)) "warning" else "note",
       fine = sprintf("%d stages.", n)
     ),
     check(

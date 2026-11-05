@@ -8,14 +8,14 @@ grob_labels <- function(plot) {
 lt1 <- attr(results, "lactater")$intensity[["Log-log"]]
 lt2 <- attr(results, "lactater")$intensity[["ModDmax"]]
 
-test_that("five zones split the moderate and severe domains equally by default", {
+test_that("five zones split the moderate domain at 80% of LT1 and the severe domain halfway by default", {
   zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5)
   expect_equal(zones$domain, c("moderate", "moderate", "heavy", "severe", "severe"))
-  expect_equal(attr(zones, "lactater_zones")$bounds, c(lt1 / 2, lt1, lt2, (lt2 + 191) / 2))
+  expect_equal(attr(zones, "lactater_zones")$bounds, c(0.8 * lt1, lt1, lt2, (lt2 + 191) / 2))
   expect_s3_class(autoplot(zones), "ggplot")
 })
 
-test_that("Seiler's cuts sit at 1.5 and 6.0 mmol/L, and fall back to the equal split outside their domain", {
+test_that("Seiler's cuts sit at 1.5 and 6.0 mmol/L, and fall back to the relative split outside their domain", {
   zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5, split = "seiler")
   curve <- attr(results, "lactater")$curve
   seiler <- c(retrieve_intensity(curve, 1.5), retrieve_intensity(curve, 6))
@@ -25,7 +25,7 @@ test_that("Seiler's cuts sit at 1.5 and 6.0 mmol/L, and fall back to the equal s
     low <- lactate_zones(results, lt1 = "Bsln + 0.5", lt2 = "ModDmax", model = 5, split = "seiler"),
     "1.5 mmol/L"
   )
-  expect_equal(attr(low, "lactater_zones")$bounds[1], attr(results, "lactater")$intensity[["Bsln + 0.5"]] / 2)
+  expect_equal(attr(low, "lactater_zones")$bounds[1], attr(results, "lactater")$intensity[["Bsln + 0.5"]] * 0.8)
 })
 
 test_that("own cuts are checked against their domains", {
@@ -53,7 +53,7 @@ test_that("a runner's zones leave the lactate below the first stage unknown, and
   expect_silent(results <- lactate_threshold(run, intensity, lactate, heart_rate, rpe_column = rpe, sport = "running",
                                              plot = FALSE))
   expect_false("rpe" %in% names(results))
-  zones <- expect_silent(lactate_zones(results, lt1 = "LTP1", lt2 = "LTP2", model = 5))
+  zones <- expect_silent(lactate_zones(results, lt1 = "LTP1", lt2 = "LTP2", model = 5, split = c(9.3, 22.1)))
   ## zone 1|2 (9.3 km/h) lies below the first stage (12 km/h), where the fitted curve dips below zero
   expect_lt(zones$intensity_to[1], 12)
   expect_true(is.na(zones$lactate_to[1]) && is.na(zones$lactate_from[2]))

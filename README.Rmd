@@ -80,7 +80,7 @@ gallery <- function(plot, name, width = 7.5, height = 5.2) {
 results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, rpe_column = rpe, plot = FALSE)
 gallery(autoplot(results), "overview", height = 7)
 gallery(autoplot(results, method = "ModDmax"), "method")
-five <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax", model = 5)
+five <- lactate_zones(results, model = 5)
 gallery(autoplot(five), "zones", height = 7)
 gallery(autoplot(lactate_diagnostics(results)), "diagnostics", width = 9, height = 10)
 
@@ -175,10 +175,10 @@ demo_data |>
 lactate_checks(results)
 ```
 
-You choose which thresholds mark LT1 and LT2, and three or five zones:
+You choose which thresholds mark LT1 and LT2 (Bsln + 0.5 and Log-Poly-ModDmax by default), and three or five zones:
 
 ```{r}
-lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax", model = 5)
+lactate_zones(results, model = 5)
 ```
 
 ## Compare tests
@@ -212,7 +212,7 @@ example](https://fmmattioni.github.io/lactater/report-series-example.html)). Or 
 name and logo and only the parts you want:
 
 ```r
-report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
+report_start(results) |>
   report_header(
     name = "Ana Silva", date = "3 November 2026", sex = "female", age = 27, body_mass = 61,
     lab = "Exercise physiology lab", logo = "logo.png"

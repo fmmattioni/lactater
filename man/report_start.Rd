@@ -16,7 +16,7 @@
 \alias{report_save}
 \title{Build a test report step by step}
 \usage{
-report_start(x, lt1 = "LTP1", lt2 = "LTP2", dates = NULL)
+report_start(x, lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax", dates = NULL)
 
 report_header(report, name = NULL, date = NULL, ..., lab = NULL, logo = NULL)
 
@@ -122,7 +122,7 @@ of the same age and sex in Germany (\code{\link[=reference_percentiles]{referenc
 results <- lactate_threshold(
   demo_data, intensity, lactate, heart_rate, rpe_column = rpe, plot = FALSE
 )
-report <- report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
+report <- report_start(results) |>
   report_header(
     name = "Demo athlete", date = "3 November 2026", sex = "male", age = 31, body_mass = 72,
     lab = "Exercise physiology lab"

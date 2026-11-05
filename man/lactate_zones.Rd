@@ -5,19 +5,25 @@
 \alias{autoplot.lactate_zones}
 \title{Training zones from two lactate thresholds}
 \usage{
-lactate_zones(x, lt1 = "LTP1", lt2 = "LTP2", model = 3, split = "equal")
+lactate_zones(
+  x,
+  lt1 = "Bsln + 0.5",
+  lt2 = "Log-Poly-ModDmax",
+  model = 3,
+  split = "relative"
+)
 
 \method{autoplot}{lactate_zones}(object, heart_rate = getOption("lactater.heart_rate", "panel"), ...)
 }
 \arguments{
 \item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
 
-\item{lt1, lt2}{The thresholds that mark LT1 and LT2: a method in \code{x$method}, or an intensity. Default to \code{"LTP1"}
-and \code{"LTP2"}, the turn points that define the zones in Hofmann & Tschakert (2017).}
+\item{lt1, lt2}{The thresholds that mark LT1 and LT2: a method in \code{x$method}, or an intensity. Default to
+\code{"Bsln + 0.5"} and \code{"Log-Poly-ModDmax"}; see \code{Details}.}
 
 \item{model}{The number of zones: \code{3} (default) or \code{5}.}
 
-\item{split}{How to split the moderate and severe domains in the five-zone model: \code{"equal"} (default),
+\item{split}{How to split the moderate and severe domains in the five-zone model: \code{"relative"} (default),
 \code{"seiler"}, or two intensities. Ignored with three zones.}
 
 \item{object}{The result of \code{\link[=lactate_zones]{lactate_zones()}}.}
@@ -52,36 +58,53 @@ LT1 and LT2.
 where zones 1-2 lie below LT1, zone 3 between LT1 and LT2, and zones 4-5 above LT2. The two splits inside a
 domain are set by \code{split}:
 \itemize{
-\item \code{"equal"} (default): zone 1|2 at half of LT1, and zone 4|5 halfway between LT2 and the highest intensity of
-the test.
+\item \code{"relative"} (default): zone 1|2 at 80\% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of
+the test. In the five-zone scale of Seiler (2010, Table 1), zone 2 starts at 66\% of the maximal oxygen uptake
+and zone 3 at 81\%, so zone 2 starts at about 80\% of the oxygen uptake of LT1; zone 5 starts at 94\%, halfway
+between the start of zone 4 (88\%) and the maximum. Zone 2 sits "immediately below" LT1 (Sitko et al., 2025).
+Both cuts are approximations: no physiological marker separates them (Bishop et al., 2025), the scale's zones
+are "somewhat arbitrary" (Seiler, 2010), and oxygen uptake is not proportional to power (pedaling at 0 W costs
+oxygen too), so in watts the same bands put the zone 1|2 cut nearer three quarters of LT1.
 \item \code{"seiler"}: where the fitted curve reaches 1.5 mmol/L (zone 1|2) and 6.0 mmol/L (zone 4|5), the blood lactate
 limits of the five-zone scale in Seiler (2010). A cut that falls outside its domain, or is not reached, uses
-the equal split instead, with a warning.
+the relative split instead, with a warning.
 \item Two intensities, \verb{c(zone 1|2, zone 4|5)}, for your own cuts.
 }
 }
 
-LT1 is usually a "first rise" threshold (e.g. \code{"LTP1"}, \code{"Log-log"}, \code{"Bsln + 0.5"}), and LT2 a threshold meant to
-estimate the maximal lactate steady state (MLSS; e.g. \code{"LTP2"}, \code{"ModDmax"}, \code{"Log-Poly-ModDmax"}, \code{"OBLA 4.0"},
-\code{"IAT"}). Against a measured MLSS these landed from about 40 W below to 40 W above it on average, by method,
-protocol and athletes (Hauser et al., 2014; Ploszczyca et al., 2020), and whether the MLSS or the critical power
-marks the boundary between the heavy and severe domains is debated (Jones et al., 2019). Different choices give
-different zones, so report which ones you used. No published five-zone scale is built on individual thresholds
-alone: its lactate and heart-rate limits are averages, so treat the splits inside a domain as a convention and check
-them against how the athlete responds.
+LT1 is usually a "first rise" threshold (e.g. \code{"Bsln + 0.5"}, \code{"Log-log"}, \code{"LTP1"}), and LT2 a threshold meant to
+estimate the maximal lactate steady state (MLSS; e.g. \code{"Log-Poly-ModDmax"}, \code{"Bsln + 1.5"}, \code{"LTP2"}, \code{"ModDmax"},
+\code{"OBLA 4.0"}, \code{"IAT"}). Against a measured MLSS these landed from about 40 W below to 40 W above it on average, by
+method, protocol and athletes (Hauser et al., 2014; Ploszczyca et al., 2020), and whether the MLSS or the critical
+power marks the boundary between the heavy and severe domains is debated (Jones et al., 2019). Different choices
+give different zones, so report which ones you used.
+
+The default pair has the best evidence for each boundary and moves least with a single stage. Bsln + 0.5 is among
+the most defensible markers of the moderate-heavy boundary (Jamnick et al., 2020), and Log-Poly-ModDmax estimated the
+MLSS with 4-min stages (Jamnick et al., 2018). Left out one stage at a time on the cycling tests of
+\link{lactate_tests}, Bsln + 0.5 moved by a median 1.7\% (jackknife standard error) and Log-Poly-ModDmax by 8.6\%, against
+23\% for LTP1, whose three-segment fit has few stages to spare in a step test. Bsln + 0.5 rests on a single baseline
+sample, so check that sample (see \code{\link[=lactate_diagnostics]{lactate_diagnostics()}}).
 }
 \examples{
 results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
-lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax")
-lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5)
+lactate_zones(results)
+lactate_zones(results, model = 5)
 lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5, split = "seiler")
 }
 \references{
 Hofmann P, Tschakert G. Intensity- and duration-based options to regulate endurance training. Frontiers in
 Physiology. 2017;8:337.
 
+Bishop DJ, Beck B, Biddle SJH, et al. Physical activity and exercise intensity terminology: a joint American
+College of Sports Medicine (ACSM) expert statement and Exercise and Sport Science Australia (ESSA) consensus
+statement. Medicine & Science in Sports & Exercise. 2025;57(11):2599-2613. doi:10.1249/MSS.0000000000003795
+
 Hauser T, Adam J, Schulz H. Comparison of selected lactate threshold parameters with maximal lactate steady state in
 cycling. International Journal of Sports Medicine. 2014;35(6):517-521.
+
+Jamnick NA, Botella J, Pyne DB, Bishop DJ. Manipulating graded exercise test variables affects the validity of the
+lactate threshold and VO2peak. PLOS ONE. 2018;13(7):e0199794.
 
 Jamnick NA, Pettitt RW, Granata C, Pyne DB, Bishop DJ. An examination and critique of current methods to determine
 exercise intensity. Sports Medicine. 2020;50(10):1729-1756.
@@ -95,6 +118,10 @@ cyclists. BMC Sports Science, Medicine and Rehabilitation. 2020;12:70.
 
 Seiler S. What is best practice for training intensity and duration distribution in endurance athletes?
 International Journal of Sports Physiology and Performance. 2010;5(3):276-291.
+
+Sitko S, Artetxe X, Bonnevie-Svendsen M, et al. What is "zone 2 training"?: experts' viewpoint on definition,
+training methods, and expected adaptations. International Journal of Sports Physiology and Performance.
+2025;20(11):1614-1617. doi:10.1123/ijspp.2024-0303
 
 Tonnessen E, Sylta O, Haugen TA, Hem E, Svendsen IS, Seiler S. The road to gold: training and peaking
 characteristics in the year prior to a gold medal endurance performance. PLOS ONE. 2014;9(7):e101796.

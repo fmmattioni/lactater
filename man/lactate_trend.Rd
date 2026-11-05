@@ -12,8 +12,8 @@ lactate_trend(..., day)
   method = NULL,
   view = NULL,
   cv = NULL,
-  lt1 = "LTP1",
-  lt2 = "LTP2",
+  lt1 = "Bsln + 0.5",
+  lt2 = "Log-Poly-ModDmax",
   ...
 )
 }

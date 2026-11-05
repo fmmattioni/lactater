@@ -21,7 +21,7 @@ writeLines(sub("<!-- analytics -->", analytics, form, fixed = TRUE), "pkgdown/as
 
 ## the default report, built step by step so the example shows a lab name and a logo
 results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, rpe_column = rpe, plot = FALSE)
-report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
+report_start(results) |>
   report_header(
     name = "Demo athlete", date = "3 November 2026", sex = "male", age = 31, body_mass = 72,
     tester = "F. Mattioni Maturana", lab = "Exercise physiology lab (example)", logo = "man/figures/logo.png"
@@ -47,7 +47,7 @@ runner <- lactate_threshold(running, intensity, lactate, heart_rate, rpe_column 
                             plot = FALSE)
 test_report(
   runner, "pkgdown/assets/report-running-example.html",
-  athlete = list(name = "Recreational runner (example)", sex = "male", body_mass = 76), lt1 = "LTP1", lt2 = "LTP2",
+  athlete = list(name = "Recreational runner (example)", sex = "male", body_mass = 76),
   protocol = "Treadmill at 2% grade, 3-min stages of +2 km/h from 6 km/h, earlobe capillary blood (simulated test
   in lactate_tests, on the protocol of Roecker et al. 1998)", open = FALSE
 )

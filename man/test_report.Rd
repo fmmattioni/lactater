@@ -8,8 +8,8 @@ test_report(
   x,
   file = "lactate-test-report.html",
   athlete = list(),
-  lt1 = "LTP1",
-  lt2 = "LTP2",
+  lt1 = "Bsln + 0.5",
+  lt2 = "Log-Poly-ModDmax",
   protocol = NULL,
   notes = NULL,
   pdf = FALSE,
@@ -58,7 +58,6 @@ report <- test_report(
   results,
   file = tempfile(fileext = ".html"),
   athlete = list(name = "Demo athlete", date = "3 November 2026", body_mass = 72),
-  lt1 = "LTP1", lt2 = "ModDmax",
   protocol = "Cycle ergometer, 3-min stages of +25 W from 50 W, earlobe capillary blood",
   open = FALSE
 )
