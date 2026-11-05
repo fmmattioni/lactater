@@ -46,7 +46,8 @@ lactate_threshold(
 interpolated linearly between the measured stages.}
 
 \item{rpe_column}{The name of the rating of perceived exertion (RPE) column, if recorded. The RPE at each threshold
-is interpolated between the measured stages, like the heart rate.}
+is interpolated between the measured stages, like the heart rate. A heart rate or RPE column with no values, as
+when none was written on the recording form, is left out.}
 
 \item{rpe_scale}{The RPE scale: \code{"6-20"} (Borg's RPE scale, default) or \code{"CR10"} (Borg's category-ratio scale,
 0 to 10, with ratings above 10 allowed for an absolute maximum).}

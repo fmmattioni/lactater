@@ -8,7 +8,8 @@
 #' @param heart_rate_column The name of the heart rate column, if applicable. The heart rate at each threshold is
 #' interpolated linearly between the measured stages.
 #' @param rpe_column The name of the rating of perceived exertion (RPE) column, if recorded. The RPE at each threshold
-#' is interpolated between the measured stages, like the heart rate.
+#' is interpolated between the measured stages, like the heart rate. A heart rate or RPE column with no values, as
+#' when none was written on the recording form, is left out.
 #' @param rpe_scale The RPE scale: `"6-20"` (Borg's RPE scale, default) or `"CR10"` (Borg's category-ratio scale,
 #' 0 to 10, with ratings above 10 allowed for an absolute maximum).
 #' @param method The lactate threshold method to calculate. It can be one or many of the following:

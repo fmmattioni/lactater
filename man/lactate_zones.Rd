@@ -31,9 +31,10 @@ and report.}
 }
 \value{
 a \code{lactate_zones} tibble with one row per zone: \code{zone}, \code{domain}, \code{description}, \code{intensity_from},
-\code{intensity_to}, the matching \code{pace} range (running, swimming, rowing), the \code{lactate} range on the fitted curve, and
-the \code{heart_rate} and \code{rpe} ranges (when available; a boundary below the first stage is extrapolated from the first
-three stages). The first zone has no lower bound and the last no upper bound.
+\code{intensity_to}, the matching \code{pace} range (running, swimming, rowing), the \code{lactate} range on the fitted curve
+(\code{NA} at a boundary outside the stages, where the curve is not extrapolated), and the \code{heart_rate} and \code{rpe} ranges
+(when available; a boundary below the first stage is extrapolated from the first three stages). The first zone has
+no lower bound and the last no upper bound.
 Plot it with \code{\link[=autoplot]{autoplot()}}.
 }
 \description{

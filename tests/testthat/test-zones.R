@@ -41,6 +41,22 @@ test_that("a zone below the first stage does not stretch the zones plot", {
   expect_equal(ggplot2::ggplot_build(plot[[2]])$layout$panel_params[[1]]$x.range, x_range)
 })
 
+test_that("a runner's zones leave the lactate below the first stage unknown, and label narrow zones by number", {
+  run <- lactate_tests[lactate_tests$test == "running", ]
+  ## no RPE was recorded: the empty column is dropped, so nothing warns or shows an empty RPE
+  expect_silent(results <- lactate_threshold(run, intensity, lactate, heart_rate, rpe_column = rpe, sport = "running",
+                                             plot = FALSE))
+  expect_false("rpe" %in% names(results))
+  zones <- expect_silent(lactate_zones(results, lt1 = "LTP1", lt2 = "LTP2", model = 5))
+  ## zone 1|2 (9.3 km/h) lies below the first stage (12 km/h), where the fitted curve dips below zero
+  expect_lt(zones$intensity_to[1], 12)
+  expect_true(is.na(zones$lactate_to[1]) && is.na(zones$lactate_from[2]))
+  expect_true(all(zones$lactate_from > 0, na.rm = TRUE))
+  ## zones 4 and 5 are under a tenth of the axis wide: their numbers only
+  labels <- ggplot2::layer_data(autoplot(zones)[[1]], 2)$label
+  expect_equal(labels, c("ZONE 2", "ZONE 3", "Z4", "Z5"))
+})
+
 test_that("the zones plot shows the heart rate in a panel below, on a second axis, or not at all", {
   zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax")
   panel <- autoplot(zones)

@@ -43,9 +43,10 @@ zone_colours <- list(
 #' `"seiler"`, or two intensities. Ignored with three zones.
 #'
 #' @return a `lactate_zones` tibble with one row per zone: `zone`, `domain`, `description`, `intensity_from`,
-#' `intensity_to`, the matching `pace` range (running, swimming, rowing), the `lactate` range on the fitted curve, and
-#' the `heart_rate` and `rpe` ranges (when available; a boundary below the first stage is extrapolated from the first
-#' three stages). The first zone has no lower bound and the last no upper bound.
+#' `intensity_to`, the matching `pace` range (running, swimming, rowing), the `lactate` range on the fitted curve
+#' (`NA` at a boundary outside the stages, where the curve is not extrapolated), and the `heart_rate` and `rpe` ranges
+#' (when available; a boundary below the first stage is extrapolated from the first three stages). The first zone has
+#' no lower bound and the last no upper bound.
 #' Plot it with [autoplot()].
 #'
 #' @references
@@ -118,8 +119,14 @@ lactate_zones <- function(x, lt1 = "LTP1", lt2 = "LTP2", model = 3, split = "equ
     out$pace_from <- convert_to_pace(from, sport)
     out$pace_to <- convert_to_pace(to, sport)
   }
-  out$lactate_from <- retrieve_lactate(info$curve, from)
-  out$lactate_to <- retrieve_lactate(info$curve, to)
+  ## a fitted polynomial bends anywhere outside the stages (to -1.5 mmol/L below a runner's first stage), so the
+  ## lactate of a boundary there is not known
+  stages <- range(info$data$intensity[info$data$intensity > 0])
+  on_curve <- function(x) {
+    ifelse(!is.na(x) & x >= stages[1] & x <= stages[2], retrieve_lactate(info$curve, x), NA_real_)
+  }
+  out$lactate_from <- on_curve(from)
+  out$lactate_to <- on_curve(to)
   if("heart_rate" %in% names(info$data)) {
     out$heart_rate_from <- zone_value(info$data, "heart_rate", from, digits = 0)
     out$heart_rate_to <- zone_value(info$data, "heart_rate", to, digits = 0)
@@ -156,7 +163,8 @@ lactate_zones <- function(x, lt1 = "LTP1", lt2 = "LTP2", model = 3, split = "equ
 zone_value <- function(data, column, x, digits, lowest = 0) {
   value <- retrieve_at_stages(data, column, x, digits)
   stages <- data[data$intensity > 0 & !is.na(data[[column]]), ]
-  below <- !is.na(x) & is.na(value) & nrow(stages) >= 2 & x < min(stages$intensity)
+  if(nrow(stages) < 2) return(value)
+  below <- !is.na(x) & is.na(value) & x < min(stages$intensity)
   if(any(below)) {
     first <- stages[seq_len(min(3, nrow(stages))), ]
     line <- stats::.lm.fit(cbind(1, first$intensity), first[[column]])$coefficients
@@ -235,9 +243,13 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
   bands$to <- pmin(bands$to, limits[2])
   bands <- bands[bands$to > bands$from, ]
   bands$middle <- (bands$from + bands$to) / 2
-  ## a narrow band drops the unit from its range, so neighboring labels do not run into each other
-  narrow <- (bands$to - bands$from) / diff(limits) < 0.14
-  bands$range <- ifelse(narrow, bands$range, paste(bands$range, unit))
+  ## a narrow band drops the unit from its range, and a very narrow one keeps only its number, so neighboring labels
+  ## do not run into each other
+  width <- (bands$to - bands$from) / diff(limits)
+  bands$range <- ifelse(width < 0.14, bands$range, paste(bands$range, unit))
+  bands$label <- ifelse(width < 0.09, sub("Zone ", "Z", bands$zone), toupper(bands$zone))
+  bands$range[width < 0.09] <- ""
+  bands$description[width < 0.09] <- ""
   top <- max(points$lactate, curve$lactate) * 1.25
   marks <- data.frame(intensity = zones$lt, label = sprintf('"%s"~~%s', c("LT1", "LT2"), method_plotmath(zones$labels)))
   ## the heart rate of the exercise stages; the resting value would squeeze them into the top of the scale
@@ -272,15 +284,15 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
       "rect", xmin = bands$from, xmax = bands$to, ymin = 0, ymax = top, fill = bands$fill, alpha = 0.2
     ) +
     ggplot2::annotate(
-      "text", x = bands$middle, y = top * 0.965, label = toupper(bands$zone), vjust = 1, size = 3.2, fontface = "bold",
+      "text", x = bands$middle, y = top * 0.965, label = bands$label, vjust = 1, size = 3.2, fontface = "bold",
       colour = colours[["ink"]]
     ) +
     ggplot2::annotate(
-      "text", x = bands$middle, y = top * 0.915, label = method_plotmath(bands$description), parse = TRUE, vjust = 1,
+      "text", x = bands$middle, y = top * 0.91, label = method_plotmath(bands$description), parse = TRUE, vjust = 1,
       size = 2.8, colour = colours[["muted"]]
     ) +
     ggplot2::annotate(
-      "text", x = bands$middle, y = top * 0.865, label = bands$range, vjust = 1, size = 2.8,
+      "text", x = bands$middle, y = top * 0.855, label = bands$range, vjust = 1, size = 2.8,
       colour = colours[["muted"]]
     ) +
     ggplot2::geom_segment(

@@ -33,6 +33,10 @@ prepare_data <- function(
   if(length(not_found) > 0)
     stop(sprintf("Column(s) not found in the data: %s.", paste0("`", not_found, "`", collapse = ", ")), call. = FALSE)
   out <- tibble::as_tibble(stats::setNames(as.list(.data)[columns], names(columns)))
+  ## a column left empty, such as RPE not recorded on the form, is as if it was not given
+  for(column in intersect(c("heart_rate", "rpe"), names(out))) {
+    if(all(is.na(out[[column]]))) out[[column]] <- NULL
+  }
 
   if(!is.numeric(out$intensity) || !is.numeric(out$lactate))
     stop("`intensity` and `lactate` columns must be numeric.", call. = FALSE)
