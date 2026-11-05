@@ -576,7 +576,7 @@ html_progress <- function(r, cv) {
       plot,
       paste(
         "Every lactate curve, light to dark from the first to the latest test,",
-        if(with_hr) "then the heart rate of the stages in the same colors,",
+        if(with_hr) "then the heart rate of the stages in the same colors, with LT1 and LT2 as filled points,",
         "and below them the five training zones of each test, with LT1 and LT2 at their boundaries; dashed lines: 2",
         "and 4 mmol/L."
       ),

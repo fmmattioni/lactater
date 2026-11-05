@@ -203,7 +203,7 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 * New `lactate_trend()`: a straight-line trend with its 90% interval for each
   threshold over three or more tests. Its plot draws up to five tests as their
   lactate curves, light to dark by date, then their heart rate in the same
-  colors, above the five zones of each test
+  colors with LT1 and LT2 as filled points, above the five zones of each test
   (`lt1`, `lt2`), and more tests as each threshold over time against a band for
   the noise of the method around the first test (`view = "thresholds"`). `day`
   takes dates, which then name the tests. A list of tests can be spliced in with

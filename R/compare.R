@@ -376,11 +376,12 @@ list_to_thresholds <- function(info) {
 #' @param object The result of [lactate_trend()].
 #' @param method The methods to plot in the `"thresholds"` view. Default to ModDmax, IAT, OBLA 4.0 and Dmax, which have
 #' a published test-retest variation (see [compare_tests()]), when present.
-#' @param view `"curves"`, the default for up to five tests: the lactate curves of all tests, light to dark by date,
-#' to see where along the intensity range the curve moved, above the five training zones of each test from `lt1` and
-#' `lt2`. `"thresholds"`, the default for more tests: one panel per method, each test as a dot (with its confidence
-#' interval when computed) and a gray band for the noise of the method around the first test, so that dots outside
-#' the band are changes larger than the noise (as in monitoring charts; Hopkins, 2017).
+#' @param view `"curves"`, the default for up to five tests: the lactate curves of all tests, light to dark by date, to
+#' see where along the intensity range the curve moved, then their heart rate with LT1 and LT2 as filled points (the
+#' latest test labelled), above the five training zones of each test from `lt1` and `lt2`. `"thresholds"`, the default
+#' for more tests: one panel per method, each test as a dot (with its confidence interval when computed) and a gray band
+#' for the noise of the method around the first test, so that dots outside the band are changes larger than the noise
+#' (as in monitoring charts; Hopkins, 2017).
 #' @param lt1,lt2 The thresholds that mark LT1 and LT2 in the `"curves"` view, as in [lactate_zones()].
 #' @param cv The test-retest coefficient of variation (%) for the noise band, as in [compare_tests()].
 #' @export
@@ -451,7 +452,8 @@ autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL
 #' The lactate curves and training zones of a few tests
 #'
 #' `plot_series()` draws every lactate curve, light to dark by date, then the heart rate of the stages in the same
-#' colors (when the tests have it), above the five zones of each test as one bar, on one intensity axis.
+#' colors with LT1 and LT2 as filled points (when the tests have it), above the five zones of each test as one bar, on
+#' one intensity axis.
 #' `series_zones()` gives the five zones of each test, and names the test when a threshold is missing.
 #' `date_labels()` names tests by date ("3 Nov 2026") or by day ("Day 58"). For internal use only.
 #'
@@ -542,14 +544,30 @@ plot_series <- function(tests, labels, lt1, lt2) {
   plots <- list(lactate, zone_bars)
   heights <- c(3, 0.35 * n + 0.4)
   if(!is.null(hr) && nrow(hr) >= 2) {
+    ## the heart rate at LT1 and LT2 of each test on a filled point of its color, labelled for the latest test
+    at <- do.call(rbind, lapply(seq_len(n), function(k) {
+      z <- zones[[k]]
+      if("heart_rate_from" %in% names(z)) {
+        named(k, data.frame(
+          intensity = z$intensity_from[3:4], heart_rate = z$heart_rate_from[3:4], lt = c("LT1", "LT2")
+        ))
+      }
+    }))
+    at <- at[!is.na(at$heart_rate), ]
+    latest <- at[at$test == labels[n], ]
+    ylim <- c(floor((min(hr$heart_rate) - 5) / 20) * 20, max(hr$heart_rate) + 6)
+    ## lines without the stages, which the curves above show, so the points at LT1 and LT2 stand out
     hr_panel <- ggplot2::ggplot(hr, ggplot2::aes(intensity, heart_rate, colour = test)) +
       ggplot2::geom_line(linewidth = 0.8) +
-      ggplot2::geom_point(shape = 21, fill = colours[["paper"]], size = 1.6, stroke = 0.7) +
+      ggplot2::geom_point(ggplot2::aes(fill = test), at, shape = 21, size = 2.6, stroke = 0.9,
+                          colour = colours[["paper"]]) +
+      lapply(seq_len(nrow(latest)), function(k) {
+        hr_point_label(latest$intensity[k], latest$heart_rate[k], latest$lt[k], xlim, ylim, colours)
+      }) +
       ggplot2::scale_colour_manual(values = stats::setNames(shades, labels), guide = "none") +
+      ggplot2::scale_fill_manual(values = stats::setNames(shades, labels), guide = "none") +
       ggplot2::scale_y_continuous(n.breaks = 4) +
-      ggplot2::coord_cartesian(
-        xlim = xlim, ylim = c(floor((min(hr$heart_rate) - 5) / 20) * 20, max(hr$heart_rate) + 6), expand = FALSE
-      ) +
+      ggplot2::coord_cartesian(xlim = xlim, ylim = ylim, expand = FALSE) +
       ggplot2::labs(x = NULL, y = "Heart rate (bpm)") +
       theme_lactater()
     plots <- list(lactate, hr_panel, zone_bars)
@@ -566,7 +584,7 @@ plot_series <- function(tests, labels, lt1, lt2) {
       },
       subtitle = paste0(
         n, " tests, light to dark by date; dashed: 2 and 4 mmol/L.",
-        if(with_hr) " Below them, the heart rate of the stages.",
+        if(with_hr) " Below them, the heart rate of the stages, with LT1 and LT2 as filled points.",
         " Bars: the five zones of each test, with LT1 and LT2"
       ),
       theme = theme_lactater()

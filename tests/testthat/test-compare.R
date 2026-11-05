@@ -71,6 +71,14 @@ test_that("the trend plot draws up to five curves with their zones, and more tes
   ## the curves, the heart rate of every test, the zone bars; without heart rate, no heart rate panel
   expect_length(curves, 3)
   expect_equal(nrow(curves[[2]]$data), sum(sapply(tests, function(t) sum(lactater_info(t)$data$intensity > 0))))
+  ## LT1 and LT2 of every test as filled points on its heart rate, and the latest test's labelled
+  zones <- lapply(tests, lactate_zones, lt1 = "LTP1", lt2 = "ModDmax", model = 5)
+  points <- ggplot2::layer_data(curves[[2]], 2)
+  expect_equal(points$y, unlist(lapply(zones, function(z) z$heart_rate_from[3:4])))
+  labels <- unname(unlist(lapply(curves[[2]]$layers, function(l) {
+    if(inherits(l$geom, "GeomCustomAnn")) l$geom_params$grob$children[[1]]$label
+  })))
+  expect_equal(labels, sprintf("%.0f bpm", zones[[3]]$heart_rate_from[3:4]))
   no_hr <- lapply(c(1, 1.005, 1.1), function(by) lactate_threshold(shifted(by), intensity, lactate, plot = FALSE))
   expect_length(autoplot(do.call(lactate_trend, c(no_hr, list(day = days))), lt1 = "LTP1", lt2 = "ModDmax"), 2)
   expect_error(autoplot(trend, lt2 = "nope"), "The test of Day 0")
