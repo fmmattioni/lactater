@@ -77,6 +77,7 @@ Greco
 Grossi
 Gu
 Gualano
+Guillaume
 HB
 HC
 HH
@@ -125,6 +126,8 @@ Jeker
 Jeukendrup
 Johansen
 KH
+Kabasakalis
+Keiner
 Keir
 Keizer
 Keul
@@ -155,6 +158,7 @@ Macdermid
 Machado
 Mackinnon
 Mader
+Mader's
 Marini
 Mattioni
 Mattu
@@ -224,6 +228,7 @@ RStudio
 RW
 Rademaker
 Ransnas
+Reer
 Rehabil
 Ribeiro
 Riegel
@@ -233,7 +238,9 @@ Rossiter
 Roterud
 Rudstam
 Röcker
+Röhrs
 SJR
+SRXIV
 Sablain
 Salbany
 Sareban
@@ -244,6 +251,7 @@ Schlenker
 Schmid
 Schoenmakers
 Schotte
+Schäfer
 Seibert
 Seiler
 Seiler's
@@ -252,6 +260,7 @@ Sjodin
 Sjödin
 Skaugen
 Sperlich
+SportRxiv
 Sportmed
 Sportscience
 Stannard
@@ -259,6 +268,7 @@ Stegmann
 Steinacker
 Stepan
 Stuurman
+Suttmeyer
 Svendsen
 Swinton
 Sylta
@@ -266,6 +276,7 @@ TJ
 TRIMP
 Technol
 Technometrics
+Theodoropoulos
 Thron
 Tonnessen
 Treff
@@ -286,6 +297,7 @@ V̇La
 V̇O
 WG
 WL
+Wackerhage
 Wagenpfeil
 Wasserman
 Weisiger
@@ -355,6 +367,7 @@ phy
 plotmath
 pracma
 pre
+preprint
 readxl
 sp
 stringr
@@ -362,9 +375,13 @@ submaximal
 th
 tibble
 tidyr
+turnpoints
 und
 unrounded
+vLa
 vLamax
+vLamaxblood
+vLapeak
 von
 xlsx
 zenodo

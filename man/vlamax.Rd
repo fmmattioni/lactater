@@ -16,7 +16,7 @@ vlamax(lactate_pre, lactate_post, test_duration = 15, alactic_time = 3.5)
 \item{alactic_time}{Alactic time in seconds. Default to \code{3.5} (Meixner et al., 2024).}
 }
 \value{
-a tibble with \code{vlamax} (mmol/L/s), \code{lactate_peak} and \code{delta_lactate} (mmol/L), and
+a tibble with \code{vlamax} and \code{vlapeak} (mmol/L/s), \code{lactate_peak} and \code{delta_lactate} (mmol/L), and
 \code{glycolytic_time} (s).
 }
 \description{
@@ -42,6 +42,11 @@ The default \code{test_duration} of 15 s is the sprint of Meixner et al. (2024) 
 60 studies recommends a sport-specific all-out sprint of 10-12 s instead, with lactate sampled every minute for 10
 min, and calls the rate from 15 s or longer a peak rather than a maximal rate; it also found the use of VLamax to
 predict performances of 1 min or longer inconclusive (Quittmann, 2026). Set \code{test_duration} to your sprint.
+
+\code{vlapeak} is the same rise divided by the whole sprint, with no alactic time,
+\eqn{vLa_{peak} = (La_{peak} - La_{pre}) / t_{test}}, so it is lower than \code{vlamax}. Wackerhage et al. (2025) proposed it
+partly because the alactic-time correction is error-prone. In 182 cyclists and triathletes, both gave similar
+associations with the lactate thresholds (Röhrs et al., 2026).
 }
 \examples{
 vlamax(lactate_pre = 1.1, lactate_post = c(8.9, 10.4, 10.9, 10.6, 10.1))
@@ -60,4 +65,11 @@ Exercise and Sport. 2025:1-8.
 
 Quittmann OJ. Maximal lactate accumulation rate (cLamax): current evidence and future directions for exercise
 testing and training. European Journal of Applied Physiology. 2026;126(1):1-36. doi:10.1007/s00421-025-06022-7
+
+Röhrs D, Wagner CM, Reer R, Keiner M. Lactate accumulation rate is associated with lactate turnpoints in cyclists
+and triathletes: a comparison of vLapeak and vLamaxblood. European Journal of Applied Physiology. 2026.
+doi:10.1007/s00421-026-06444-x
+
+Wackerhage H, Kabasakalis A, Seiler S, Heck H. Is the vLamax for glycolysis what the VO2max is for oxidative
+phosphorylation? Sports Medicine. 2025;55(8):1853-1866. doi:10.1007/s40279-025-02259-6
 }

@@ -279,7 +279,8 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 * New `vlamax()` estimates the maximal lactate accumulation rate from an all-out
   sprint test: (peak post-sprint lactate - pre-sprint lactate) / (sprint duration
   - alactic time), with the alactic time fixed at 3.5 s, the most reliable option
-  in Meixner et al. (2024).
+  in Meixner et al. (2024). It also returns vLapeak, the same rise divided by the
+  whole sprint (Wackerhage et al., 2025).
 * New `sample` argument (`"blood"`, `"plasma"`, `"sweat"`,
   `"interstitial fluid"`), used by `lactate_checks()`.
 

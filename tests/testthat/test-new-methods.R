@@ -29,6 +29,7 @@ test_that("max_intensity drops the stages above it from every method", {
 test_that("vlamax follows (peak - pre) / (duration - alactic time)", {
   res <- vlamax(lactate_pre = 1.1, lactate_post = c(8.9, 10.4, 10.9, 10.6))
   expect_equal(res$vlamax, (10.9 - 1.1) / (15 - 3.5))
+  expect_equal(res$vlapeak, (10.9 - 1.1) / 15)
   expect_equal(res$glycolytic_time, 11.5)
   expect_error(vlamax(1, 8, test_duration = 3, alactic_time = 3.5), "longer than")
   expect_error(vlamax(0, 8), "lactate_pre")

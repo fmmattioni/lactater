@@ -45,8 +45,10 @@ Read the result with care:
 \item With 6 to 10 stages per test the F test has little power: "no evidence of a shape change" is not proof of the same
 shape.
 \item In this model, a shift to the right is the same as a proportional fall of lactate above baseline. Better
-endurance, low glycogen stores and overreaching can all produce it, so check the peak lactate, the diet before
-the test and the performance too (Maassen & Busse, 1989; Faude et al., 2009).
+endurance, a lower glycolytic rate (VLamax) at the same VO2max, low glycogen stores and overreaching can all
+produce it, so check the peak lactate, the diet before the test and the performance too (Maassen & Busse, 1989;
+Faude et al., 2009; Wackerhage et al., 2025). A shift to the left can likewise come from a higher VLamax, not only
+from lost endurance.
 \item The exponential cannot follow an early lactate dip; check both tests with \code{\link[=lactate_diagnostics]{lactate_diagnostics()}} first.
 }
 }
@@ -69,4 +71,7 @@ indicator of carbohydrate deficiency? European Journal of Applied Physiology and
 
 Motulsky HJ, Ransnas LA. Fitting curves to data using nonlinear regression: a practical and nonmathematical review.
 FASEB Journal. 1987;1(5):365-374.
+
+Wackerhage H, Kabasakalis A, Seiler S, Heck H. Is the vLamax for glycolysis what the VO2max is for oxidative
+phosphorylation? Sports Medicine. 2025;55(8):1853-1866.
 }

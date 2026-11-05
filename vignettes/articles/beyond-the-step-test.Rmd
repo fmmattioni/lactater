@@ -30,10 +30,31 @@ a 1-s change in it can change V̇La<sub>max</sub> by up to 26% ([Meixner et al.,
 added little beyond the power of the sprint itself ([Clark & Macdermid, 2025](https://doi.org/10.1080/02701367.2025.2481176)). Compare V̇La<sub>max</sub> only within the same
 protocol, ergometer and analyzer.
 
-`vlamax()` assumes a 15-s sprint by default, as in Meixner et al. and most cycling studies. A review of 60 studies
+`vlamax()` assumes a 15-s sprint by default, as in Meixner et al. (2024) and most cycling studies. A review of 60 studies
 recommends a sport-specific all-out sprint of 10-12 s with lactate sampled every minute for 10 min, calls the rate
 from 15 s or longer a peak rather than a maximal rate, and found the use of V̇La<sub>max</sub> to predict performances of 1 min
 or longer inconclusive ([Quittmann, 2026](https://doi.org/10.1007/s00421-025-06022-7)). Give `test_duration` the length of your sprint.
+
+`vlamax()` also returns vLa<sub>peak</sub>, the same rise divided by the whole sprint, with no alactic time, so it is
+lower than V̇La<sub>max</sub>. [Wackerhage et al. (2025)](https://doi.org/10.1007/s40279-025-02259-6) proposed it, by analogy with V̇O<sub>2peak</sub>, partly because
+the alactic-time correction is error-prone. In 182 cyclists and triathletes, both gave similar associations with the
+lactate thresholds ([Röhrs et al., 2026](https://doi.org/10.1007/s00421-026-06444-x)).
+
+## What the step test shows
+
+Commercial software estimates V̇La<sub>max</sub> from submaximal bouts by fitting Mader's model of energy metabolism to the
+lactate values. The only open description of the method we found is a preprint of 9 people, who did four
+separate bouts with rest in between rather than a step test. Their V̇La<sub>max</sub> was never compared with a sprint, and the
+authors note that the same power at the maximal lactate steady state may come from different mixes of V̇O<sub>2max</sub> and V̇La<sub>max</sub> ([Suttmeyer et al.,
+2023](https://doi.org/10.51224/SRXIV.269)). The review above found that simulation approaches do not yet support predictions for an individual athlete
+(Quittmann, 2026). Measure V̇La<sub>max</sub> with a sprint.
+
+What the step test can show is its effect. At the same V̇O<sub>2max</sub>, Mader's model predicts that a higher V̇La<sub>max</sub> shifts
+the lactate curve to the left (Wackerhage et al., 2025). In 50 cyclists, adding vLa<sub>peak</sub> to V̇O<sub>2max</sub> and sex explained
+6 to 20 percentage points more of the variance in threshold power ([Meixner et al., 2026](https://doi.org/10.1007/s00421-026-06270-1)); in 182 cyclists and
+triathletes it added about 5 points beyond V̇O<sub>2max</sub> and efficiency (Röhrs et al., 2026). In both, a higher rate went
+with a lower threshold. So a curve that moved left while V̇O<sub>2max</sub> stayed the same may reflect a higher glycolytic rate,
+not only lost endurance (see `curve_shape()`).
 
 ## References
 
@@ -47,5 +68,19 @@ Meixner B, Nusser V, Koehler K, Sablain M, Boone J, Sperlich B. Reliability of p
 blood lactate accumulation, and phosphagen contribution time following 15-s sprint cycling in amateur cyclists.
 Physiol Rep. 2024;12(10):e16086. [doi:10.14814/phy2.16086](https://doi.org/10.14814/phy2.16086)
 
+Meixner B, Leo P, Sperlich B. Maximal glycolytic flux modulates metabolic thresholds independent of maximal oxygen
+uptake. Eur J Appl Physiol. 2026;126(9):4903-18. [doi:10.1007/s00421-026-06270-1](https://doi.org/10.1007/s00421-026-06270-1)
+
 Quittmann OJ. Maximal lactate accumulation rate (ċLa<sub>max</sub>): current evidence and future directions for exercise testing
 and training. Eur J Appl Physiol. 2026;126(1):1-36. [doi:10.1007/s00421-025-06022-7](https://doi.org/10.1007/s00421-025-06022-7)
+
+Röhrs D, Wagner CM, Reer R, Keiner M. Lactate accumulation rate is associated with lactate turnpoints in cyclists and
+triathletes: a comparison of vLa<sub>peak</sub> and vLa<sub>max,blood</sub>. Eur J Appl Physiol. 2026.
+[doi:10.1007/s00421-026-06444-x](https://doi.org/10.1007/s00421-026-06444-x)
+
+Suttmeyer J, Theodoropoulos M, Guillaume A, Schäfer R. Estimation of endurance performance markers using a metabolic
+model in cycling: a pilot study. SportRxiv preprint, not peer reviewed. 2023.
+[doi:10.51224/SRXIV.269](https://doi.org/10.51224/SRXIV.269)
+
+Wackerhage H, Kabasakalis A, Seiler S, Heck H. Is the vLa<sub>max</sub> for glycolysis what the V̇O<sub>2max</sub> is for oxidative
+phosphorylation? Sports Med. 2025;55(8):1853-66. [doi:10.1007/s40279-025-02259-6](https://doi.org/10.1007/s40279-025-02259-6)

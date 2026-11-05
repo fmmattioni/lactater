@@ -23,12 +23,17 @@
 #' min, and calls the rate from 15 s or longer a peak rather than a maximal rate; it also found the use of VLamax to
 #' predict performances of 1 min or longer inconclusive (Quittmann, 2026). Set `test_duration` to your sprint.
 #'
+#' `vlapeak` is the same rise divided by the whole sprint, with no alactic time,
+#' \eqn{vLa_{peak} = (La_{peak} - La_{pre}) / t_{test}}, so it is lower than `vlamax`. Wackerhage et al. (2025) proposed it
+#' partly because the alactic-time correction is error-prone. In 182 cyclists and triathletes, both gave similar
+#' associations with the lactate thresholds (Röhrs et al., 2026).
+#'
 #' @param lactate_pre Blood lactate before the sprint (mmol/L).
 #' @param lactate_post Blood lactate samples after the sprint (mmol/L); the highest is used.
 #' @param test_duration Sprint duration in seconds. Default to `15`.
 #' @param alactic_time Alactic time in seconds. Default to `3.5` (Meixner et al., 2024).
 #'
-#' @return a tibble with `vlamax` (mmol/L/s), `lactate_peak` and `delta_lactate` (mmol/L), and
+#' @return a tibble with `vlamax` and `vlapeak` (mmol/L/s), `lactate_peak` and `delta_lactate` (mmol/L), and
 #' `glycolytic_time` (s).
 #'
 #' @references
@@ -45,6 +50,13 @@
 #'
 #' Quittmann OJ. Maximal lactate accumulation rate (cLamax): current evidence and future directions for exercise
 #' testing and training. European Journal of Applied Physiology. 2026;126(1):1-36. doi:10.1007/s00421-025-06022-7
+#'
+#' Röhrs D, Wagner CM, Reer R, Keiner M. Lactate accumulation rate is associated with lactate turnpoints in cyclists
+#' and triathletes: a comparison of vLapeak and vLamaxblood. European Journal of Applied Physiology. 2026.
+#' doi:10.1007/s00421-026-06444-x
+#'
+#' Wackerhage H, Kabasakalis A, Seiler S, Heck H. Is the vLamax for glycolysis what the VO2max is for oxidative
+#' phosphorylation? Sports Medicine. 2025;55(8):1853-1866. doi:10.1007/s40279-025-02259-6
 #'
 #' @export
 #'
@@ -63,6 +75,7 @@ vlamax <- function(lactate_pre, lactate_post, test_duration = 15, alactic_time =
   glycolytic_time <- test_duration - alactic_time
   tibble::tibble(
     vlamax = (peak - lactate_pre) / glycolytic_time,
+    vlapeak = (peak - lactate_pre) / test_duration,
     lactate_peak = peak,
     delta_lactate = peak - lactate_pre,
     glycolytic_time = glycolytic_time
