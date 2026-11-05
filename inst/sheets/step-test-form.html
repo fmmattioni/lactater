@@ -89,7 +89,8 @@
   <p class="lede">Fill it in during the test; it saves itself in this browser. Then download the file for lactater
     (or Excel). Nothing leaves your computer.</p>
   <p class="current no-print" id="current"><span id="current-text"></span>
-    <button type="button" id="new-test-top">Start a new test</button></p>
+    <button type="button" id="new-athlete-top">New athlete, same protocol</button>
+    <button type="button" id="clear-all-top">Clear everything</button></p>
 
   <h2>Athlete</h2>
   <div class="fields">
@@ -172,7 +173,8 @@
     <button type="button" class="primary" id="download-xlsx">Download for lactater (.xlsx)</button>
     <button type="button" id="download-csv">Stages only (.csv)</button>
     <button type="button" id="print">Print</button>
-    <button type="button" id="new-test">Start a new test</button>
+    <button type="button" id="new-athlete">New athlete, same protocol</button>
+    <button type="button" id="clear-all">Clear everything</button>
     <span class="status" id="status" aria-live="polite"></span>
   </div>
 
@@ -189,8 +191,8 @@ test_report(results, athlete = test$athlete, protocol = test$protocol)</pre>
 
   <footer>
     <p>The .xlsx has three sheets: <code>stages</code> (the columns lactater reads, with the resting sample in the
-      first row), <code>recovery</code> and <code>test</code>. "Start a new test" clears the athlete, the stages and the
-      notes, and keeps the protocol and the tester.</p>
+      first row), <code>recovery</code> and <code>test</code>. "New athlete, same protocol" clears the athlete, the stages
+      and the notes, and keeps the protocol and the tester; "Clear everything" resets the whole form.</p>
     <p>Developed by <a href="https://fmattioni.me">Felipe Mattioni Maturana</a>.</p>
   </footer>
 </main>
@@ -381,7 +383,8 @@ function current() {
     { day: "numeric", month: "short", year: "numeric" }) : "";
   const file = state.downloaded === true ? "downloaded" :
     state.downloaded === "changed" ? "changed since the download" : "not downloaded yet";
-  document.getElementById("current-text").textContent = "Saved in this browser: " +
+  // the buttons stay at the top; the line on the saved test appears once there is one
+  document.getElementById("current-text").textContent = !hasContent() ? "" : "Saved in this browser: " +
     [String(f.name ?? "").trim() || "no name", date, `${n} stage${n === 1 ? "" : "s"}`, file].filter(Boolean).join(", ");
 }
 
@@ -534,25 +537,25 @@ document.getElementById("download-csv").addEventListener("click", () => {
   download(csvStages(record()), "text/csv", fileName("csv"));
 });
 document.getElementById("print").addEventListener("click", () => window.print());
-function newTest() {
+// a new athlete keeps the protocol and the tester for the next test; "Clear everything" resets every field
+function newTest(keepProtocol) {
   const lost = state.downloaded === true ? "" : state.downloaded === "changed" ?
     "The last changes are not in the downloaded file and will be lost.\n\n" :
     "This test has not been downloaded and will be lost.\n\n";
-  if (hasContent() && !window.confirm(lost +
-    "Start a new test? The athlete, the stages and the notes are cleared; the protocol and the tester are kept.")) return;
+  const what = keepProtocol ?
+    "Start a test for a new athlete? The athlete, the stages and the notes are cleared; the protocol and the tester are kept." :
+    "Clear everything? Every field is cleared, the protocol and the tester too.";
+  if (hasContent() && !window.confirm(lost + what)) return;
   const keep = {};
-  KEEP.forEach((f) => { if (state.fields[f]) keep[f] = state.fields[f]; });
+  if (keepProtocol) KEEP.forEach((f) => { if (state.fields[f]) keep[f] = state.fields[f]; });
   state = blank(keep);
   save();
   render();
-  document.getElementById("current").hidden = true;
   document.querySelector('[data-field="name"]').focus();
 }
-document.getElementById("new-test").addEventListener("click", newTest);
-document.getElementById("new-test-top").addEventListener("click", newTest);
+["new-athlete", "new-athlete-top"].forEach((id) => document.getElementById(id).addEventListener("click", () => newTest(true)));
+["clear-all", "clear-all-top"].forEach((id) => document.getElementById(id).addEventListener("click", () => newTest(false)));
 
-// the line at the top only when the page opens on a saved test, so the page does not jump while typing
-document.getElementById("current").hidden = !hasContent();
 render();
 </script>
 </body>
