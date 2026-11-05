@@ -14,16 +14,18 @@
 
 <style>
   :root { --ink: #11181f; --label: #3d4752; --muted: #5b6672; --line: #c9d0d8; --soft: #e6e9ee; --cell: #f4f6f8;
-          --accent: #1f5fa8; --flag: #c4452f; --paper: #ffffff; }
+          --accent: #1f5fa8; --flag: #c4452f; --paper: #ffffff; --navy: #183a53; }
   * { box-sizing: border-box; }
   html, body { margin: 0; }
   body { font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; font-size: 15px; color: var(--ink);
          background: var(--paper); line-height: 1.4; }
-  main { max-width: 1040px; margin: 0 auto; padding: 32px 16px 56px; }
-  header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding-bottom: 8px;
-           border-bottom: 1.5px solid var(--ink); }
+  main { max-width: 1040px; margin: 0 auto; padding: 0 16px 56px; }
+  /* the navy band of the report */
+  header { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 22px 24px 20px;
+           background: var(--navy); color: var(--paper); }
   h1 { margin: 0; font-size: 24px; font-weight: 600; }
-  .wordmark { font-family: "IBM Plex Mono", monospace; font-weight: 500; color: var(--ink); text-decoration: none; }
+  .wordmark { font-family: "IBM Plex Mono", monospace; font-weight: 500; color: var(--paper); opacity: 0.85;
+              text-decoration: none; }
   .lede { color: var(--muted); margin: 10px 0 0; }
   .current { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 14px; font-size: 14px; }
   .current[hidden] { display: none; }
@@ -73,6 +75,9 @@
   @media print {
     body { font-size: 11px; }
     main { max-width: none; padding: 0; }
+    /* browsers leave backgrounds out of print: the title in ink over a rule */
+    header { background: none; color: var(--ink); padding: 0 0 6px; border-bottom: 1.5px solid var(--ink); }
+    .wordmark { color: var(--ink); opacity: 1; }
     .actions, .row-actions, td.remove, .no-print { display: none; }
     input, select, textarea { font-size: 11px; min-height: 0; padding: 2px 4px; border: 0; border-radius: 0;
                               border-bottom: 1px solid var(--line); box-shadow: none; background: none; }
