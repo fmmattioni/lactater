@@ -1,7 +1,7 @@
 ## Writes the files the website offers for download, into pkgdown/assets (copied to the root of the site):
-## the recording sheet as PDF, the recording form, an example test report and an example report of a series; and the
-## first page of the example report as an image for the README. Run from the package root after changing any of them,
-## before knitting the README:
+## the recording sheet as PDF, the recording form, example reports of a cycling test, a running test and a series;
+## and the first page of the cycling report as an image for the README. Run from the package root after changing any
+## of them, before knitting the README:
 ##
 ##   Rscript data-raw/site_assets.R
 ##
@@ -39,6 +39,16 @@ report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
 page <- tempfile(fileext = ".pdf")
 pagedown::chrome_print("pkgdown/assets/report-example.html", output = page, verbose = 0)
 png::writePNG(pdftools::pdf_render_page(page, 1, dpi = 110), "man/figures/readme/report-page.png")
+
+## a runner: speed and pace, and race times
+running <- lactate_tests[lactate_tests$test == "running", ]
+runner <- lactate_threshold(running, intensity, lactate, heart_rate, sport = "running", plot = FALSE)
+test_report(
+  runner, "pkgdown/assets/report-running-example.html",
+  athlete = list(name = "Trained runner (example)", sex = "male", body_mass = 62), lt1 = "LTP1", lt2 = "LTP2",
+  protocol = "Treadmill at 0% grade, 3-min stages from 12 km/h, lactate sampled at 2 min, YSI analyser (Trinity
+  College Dublin data in lactate_tests)", open = FALSE
+)
 
 ## five tests of one cyclist; the test dates are not in the data, so they start on an example date
 series <- lactate_tests[lactate_tests$athlete == "cyclist_series", ]

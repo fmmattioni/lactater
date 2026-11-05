@@ -29,7 +29,12 @@ test_that("test_report writes one self-contained page with every section", {
   expect_equal(lengths(regmatches(html, gregexpr("<html", html))), 1)
   expect_match(html, "<title>Lactate step test, Ana &lt;test&gt;</title>", fixed = TRUE)
   expect_match(html, "the report of test_report()", fixed = TRUE)
-  expect_match(html, "Below it, the heart rate of the stages, read at LT1 and LT2.", fixed = TRUE)
+  expect_match(html, "Below, the heart rate of the stages, read at LT1 and LT2.", fixed = TRUE)
+  ## each section carries its part, which puts the stages and every method side by side in print
+  expect_match(html, "<section class=\"test\">", fixed = TRUE)
+  expect_match(html, "<section class=\"methods\">", fixed = TRUE)
+  ## the zones name their domain on its first zone, in a column
+  expect_equal(lengths(regmatches(html, gregexpr(">(Moderate|Heavy|Severe)<", html))), 3)
   ## LT1 and LT2 are in the stats, not repeated in a title above them
   zones <- attr(lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax"), "lactater_zones")$lt
   expect_match(html, sprintf("<p class=\"stat-value\">%.0f W</p>", zones[2]), fixed = TRUE)

@@ -318,8 +318,10 @@ compare_tests(before, after) |>
 ## Report the test
 
 `test_report()` writes the whole test as one web page for the athlete or
-the coach, two A4 pages when printed ([see an
-example](https://fmmattioni.github.io/lactater/report-example.html)).
+the coach, two A4 pages when printed (see [a
+cyclist](https://fmmattioni.github.io/lactater/report-example.html) and
+[a
+runner](https://fmmattioni.github.io/lactater/report-running-example.html)).
 Give it two to five tests of one athlete and their dates, and it reports
 the progress over them ([see an
 example](https://fmmattioni.github.io/lactater/report-series-example.html)).

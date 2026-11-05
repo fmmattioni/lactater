@@ -2,10 +2,9 @@
 #'
 #' Writes the default report of a step test in one call: the header with the athlete's details, LT1 and LT2 with what
 #' they mean, the training zones, the predicted performance, what to double-check, the test, and every method. Open it
-#' in a browser, or print it to PDF from there (two A4 pages for a typical test, three with the heart rate panel under
-#' the curve; a section moves to the next page whole), or set
-#' `pdf = TRUE`. To choose the sections, their order, or to add your lab's name and logo, build the report step by
-#' step with [report_start()]. Needs the gt package.
+#' in a browser, or print it to PDF from there, or set `pdf = TRUE`: two A4 pages, the answer and the zones on the
+#' first, the record on the second (a section moves to the next page whole). To choose the sections, their order, or
+#' to add your lab's name and logo, build the report step by step with [report_start()]. Needs the gt package.
 #'
 #' @param x The result of [lactate_threshold()], or a list of two to five of them with their `dates`.
 #' @param file Where to write the report, an `.html` file.
@@ -337,7 +336,10 @@ html_page <- function(report) {
     ),
     tags$body(
       html_header(report),
-      tags$main(lapply(report$sections, function(draw) tags$section(draw(report)))),
+      ## each section carries its part as a class, which the layout reads
+      tags$main(lapply(report$sections, function(draw) {
+        tags$section(class = gsub(" ", "-", attr(draw, "part")), draw(report))
+      })),
       tags$footer(sprintf(
         "Made with lactater %s on %s. Thresholds from a %s fitted to %d stages.", utils::packageVersion("lactater"),
         trimws(format(Sys.Date(), "%e %B %Y")), info$settings$fit, sum(info$data$intensity > 0)
@@ -461,10 +463,10 @@ html_figure <- function(zones) {
   html_plot(
     plot,
     paste(
-      "The lactate curve of the test, with the zones in the colors of their domain: green moderate, yellow heavy,",
-      "red severe.", if(panel) "Below it, the heart rate of the stages, read at LT1 and LT2."
+      "The lactate curve with the zones in the colors of their domain: green moderate, yellow heavy, red severe.",
+      if(panel) "Below, the heart rate of the stages, read at LT1 and LT2."
     ),
-    height = if(panel) 5.8 else 3.5
+    height = if(panel) 5 else 3.2
   )
 }
 
@@ -578,7 +580,7 @@ html_progress <- function(r, cv) {
         "and below them the five training zones of each test, with LT1 and LT2 at their boundaries; dashed lines: 2",
         "and 4 mmol/L."
       ),
-      height = if(with_hr) 4.6 + 0.3 * n else 4 + 0.3 * n
+      height = if(with_hr) 4.2 + 0.3 * n else 3.6 + 0.3 * n
     ),
     tags$h2("Test by test"),
     html_table(by_test),
@@ -652,15 +654,13 @@ html_zones <- function(zones, sport) {
     ))
   }
   n <- nrow(zones)
-  domain <- match(zones$domain, unique(zones$domain))
   table <- data.frame(
+    ## the domain named once, on its first zone, so the table stays short
+    domain = ifelse(duplicated(zones$domain), "", tools::toTitleCase(zones$domain)),
     zone = zones$zone,
     description = ifelse(zones$description == "VO2max", "V&#775;O<sub>2max</sub>", zones$description),
     intensity = paste(span(zones$intensity_from, zones$intensity_to, intensity_digits(sport)), unit)
   )
-  if(n == 5) {
-    table$domain <- sprintf("%s domain, zone %d of the three-zone model", tools::toTitleCase(zones$domain), domain)
-  }
   if("pace_from" %in% names(zones)) {
     table$pace <- span(zones$pace_to, zones$pace_from, 0, function(v) format_pace(v, sport))
   }
@@ -668,12 +668,15 @@ html_zones <- function(zones, sport) {
   if("rpe_from" %in% names(zones)) table$rpe <- span(zones$rpe_from, zones$rpe_to, 0)
   table$lactate <- span(zones$lactate_from, zones$lactate_to, 1)
   numeric <- intersect(c("intensity", "pace", "heart_rate", "rpe", "lactate"), names(table))
-  out <- gt::gt(table, groupname_col = if(n == 5) "domain") |>
+  rule <- which(!duplicated(zones$domain))[-1]
+  out <- gt::gt(table) |>
     gt::fmt_markdown(columns = "description") |>
     gt::cols_align("right", columns = numeric) |>
     gt::tab_style(gt::cell_text(weight = 600), gt::cells_body(columns = "zone")) |>
+    gt::tab_style(gt::cell_text(color = "#5b6672"), gt::cells_body(columns = "domain")) |>
+    gt::tab_style(gt::cell_borders(sides = "top", color = "#9aa3ad"), gt::cells_body(rows = rule)) |>
     gt::cols_label(.list = c(
-      list(zone = "", description = "", intensity = "Intensity"),
+      list(domain = "Domain", zone = "", description = "", intensity = "Intensity"),
       if(!is.null(table$pace)) list(pace = "Pace"),
       if(!is.null(table$heart_rate)) list(heart_rate = "Heart rate (bpm)"),
       if(!is.null(table$rpe)) list(rpe = "RPE"),
@@ -810,7 +813,7 @@ html_stages <- function(info) {
         lactate = gt::html("Lactate (mmol&middot;L<sup>&minus;1</sup>)")
       ),
       if(!is.null(table$heart_rate)) list(heart_rate = "Heart rate (bpm)"),
-      if(!is.null(table$rpe)) list(rpe = sprintf("RPE (%s)", info$settings$rpe_scale))
+      if(!is.null(table$rpe)) list(rpe = sprintf("RPE (%s)", sub("-", "\u2011", info$settings$rpe_scale)))
     ))
   html_table(out, size = 12, compact = TRUE)
 }
@@ -837,6 +840,7 @@ html_methods <- function(x, info) {
     gt::fmt_markdown(columns = c("family", "method")) |>
     gt::cols_align("right", columns = -c("family", "method")) |>
     gt::tab_style(gt::cell_text(weight = 600), gt::cells_body(columns = "family")) |>
+    gt::tab_style(gt::cell_text(whitespace = "nowrap"), gt::cells_body(columns = c("family", "method"))) |>
     gt::tab_style(gt::cell_borders(sides = "top", color = "#d9dde3"), gt::cells_body(rows = rule)) |>
     gt::cols_label(.list = c(
       list(
@@ -844,7 +848,7 @@ html_methods <- function(x, info) {
         lactate = gt::html("Lactate (mmol&middot;L<sup>&minus;1</sup>)")
       ),
       if(!is.null(table$heart_rate)) list(heart_rate = "Heart rate (bpm)"),
-      if(!is.null(table$rpe)) list(rpe = sprintf("RPE (%s)", info$settings$rpe_scale))
+      if(!is.null(table$rpe)) list(rpe = sprintf("RPE (%s)", sub("-", "\u2011", info$settings$rpe_scale)))
     )) |>
     gt::tab_options(table_body.hlines.style = "hidden")
   html_table(out, size = 11, compact = TRUE)

@@ -45,10 +45,9 @@ the path of the report, invisibly.
 \description{
 Writes the default report of a step test in one call: the header with the athlete's details, LT1 and LT2 with what
 they mean, the training zones, the predicted performance, what to double-check, the test, and every method. Open it
-in a browser, or print it to PDF from there (two A4 pages for a typical test, three with the heart rate panel under
-the curve; a section moves to the next page whole), or set
-\code{pdf = TRUE}. To choose the sections, their order, or to add your lab's name and logo, build the report step by
-step with \code{\link[=report_start]{report_start()}}. Needs the gt package.
+in a browser, or print it to PDF from there, or set \code{pdf = TRUE}: two A4 pages, the answer and the zones on the
+first, the record on the second (a section moves to the next page whole). To choose the sections, their order, or
+to add your lab's name and logo, build the report step by step with \code{\link[=report_start]{report_start()}}. Needs the gt package.
 }
 \examples{
 \dontshow{if (requireNamespace("gt", quietly = TRUE)) withAutoprint(\{ # examplesIf}

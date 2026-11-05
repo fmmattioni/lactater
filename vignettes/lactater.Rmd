@@ -154,9 +154,10 @@ lactate_report(results)
 ```
 
 For the athlete or the coach, `test_report()` writes the whole test as one web page (and PDF): their details, LT1 and
-LT2, the zones, every threshold, the predicted performance, the checks and the stages ([see an
-example](https://fmmattioni.github.io/lactater/report-example.html)). Give it two to five tests of one athlete and
-their `dates`, and it reports the progress over them ([see an
+LT2, the zones, every threshold, the predicted performance, the checks and the stages (see [a
+cyclist](https://fmmattioni.github.io/lactater/report-example.html) and [a
+runner](https://fmmattioni.github.io/lactater/report-running-example.html)). Give it two to five tests of one athlete
+and their `dates`, and it reports the progress over them ([see an
 example](https://fmmattioni.github.io/lactater/report-series-example.html)).
 
 ## Many tests at once
