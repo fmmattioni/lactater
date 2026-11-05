@@ -43,7 +43,8 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 * LTP1 and LTP2 are the global least-squares optimum of three connected
   straight segments on the measured stages, found by exhaustive search, so they
   never depend on starting values. `ltp_fix_first_slope` keeps the segment
-  before LTP1 flat. The original papers fitted each turn point in its own window
+  before LTP1 flat. Like Log-log, LTP fits the exercise stages only: the
+  resting sample has no exercise intensity. The original papers fitted each turn point in its own window
   on tests with 1-min or 90-s stages (Hofmann et al., 1997; Pokan et al., 1997);
   those windows hold too few of the 6-8 stages of a typical step test, so the
   segments are fitted together.
@@ -152,15 +153,18 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 
 ## Uncertainty, checks and zones
 
-* `ci = TRUE` adds bootstrap confidence intervals to every threshold: residuals
-  around the fitted curve are resampled (leverage-adjusted, Davison & Hinkley,
-  1997) and every method is run again. On `demo_data` OBLA moves by about
-  +/-2 W, Dmax by about +/-4 W and the breakpoint methods by about +/-12 to
-  +/-18 W.
+* `ci = TRUE` adds a bootstrap interval to every threshold for the noise of the
+  samples: each stage keeps its own residual with a random sign (a wild
+  bootstrap, as lactate error grows with concentration), widened for the few
+  degrees of freedom of a step test, and every method is run again. In a
+  simulation of 150 tests (`data-raw/bootstrap_coverage.R`) the 95% intervals
+  held the true threshold in 84-97% of tests; OBLA falls short by the bias of
+  the cubic fit.
 * `lactate_checks()` flags what is easy to miss: too few stages, no resting
   sample, thresholds not found or at the edge of the tested range, an early
   lactate dip, no rise in the last stage, a test that may have stopped before
-  LTP2, and fixed-concentration methods used on a non-blood `sample`. It
+  LTP2, fixed-concentration methods used on a non-blood `sample`, and an LTP
+  fit with fewer than two degrees of freedom left (fewer than 8 stages). It
   prints as a checklist, with a tick for each check that passed.
 * `lactate_fit_quality()` compares the curves on your data (R-squared, RMSE,
   standard error of the estimate, largest residual, and the leave-one-out
@@ -172,12 +176,17 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   standard error), and a six-panel plot with a line under each panel on what
   to look for. A grid shows how far each threshold moves without each stage,
   so a threshold that rests on one stage, or a stage many thresholds rest on,
-  stands out.
+  stands out; a "rest" column shows how much Bsln+ rests on its baseline
+  sample.
 * `lactate_zones()` builds three or five training zones from the thresholds
   you choose as LT1 and LT2, with the zone boundaries at the intensity domains
-  (moderate below LT1, heavy from LT1 to LT2, severe above LT2). Five zones
-  split the moderate and severe domains equally, at Seiler's (2010) 1.5 and
-  6.0 mmol/L, or at your own intensities. Each zone comes with intensity,
+  (moderate below LT1, heavy from LT1 to LT2, severe above LT2). By default LT1
+  is Bsln + 0.5 and LT2 Log-Poly-ModDmax, the pair with the best evidence for
+  each boundary (Jamnick et al., 2020, 2018) that also moves least with a
+  single stage. Five zones split the moderate domain at 80% of LT1 and the
+  severe domain halfway between LT2 and the peak, from the oxygen uptake bands
+  of Seiler (2010), at Seiler's 1.5 and 6.0 mmol/L, or at your own
+  intensities. Each zone comes with intensity,
   pace, lactate, heart-rate and RPE ranges, and the plot colors the zones
   green, yellow and red by domain. When the test has heart rate, the plot shows
   it in a panel under the curve, read at LT1 and LT2; `heart_rate = "axis"`
@@ -197,7 +206,11 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   `cv`), and a `verdict` (increase, decrease, unclear) against an optional
   smallest worthwhile change. It lists the heart rate at each threshold in both
   tests, and notes what could make the comparison unfair (a different protocol,
-  sample type or resting sample, or a fall in peak lactate).
+  stage length, sampling site, treadmill grade, sample type or resting sample,
+  or a fall in peak lactate).
+* New `lactate_reliability()`: the typical error of each threshold, in units
+  and as a CV, from your own repeated tests (Hopkins, 2000), for
+  `compare_tests(cv = )`.
 * New `curve_shift()`: the intensity gained at each lactate and the lactate saved
   at chosen intensities; the comparison plot shows the shift at 2 and 4 mmol/L.
 * New `lactate_trend()`: a straight-line trend with its 90% interval for each
@@ -211,9 +224,10 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
 * New `reference_percentiles()`: the percentile of the power at 3 mmol/L and at
   baseline + 1 mmol/L, in W and W/kg, among people of the same sex and age in
   Germany (14-64 years), from the reference values of Fiedler et al. (2025),
-  whose thresholds were computed with lactater. For the general population, not
-  athletes; it warns when the steps or the fitted curve differ from the
-  reference tests. `report_reference()` adds it to a report.
+  whose thresholds were computed with lactater. Both thresholds are computed as
+  the reference values were, on a 3rd degree polynomial with the resting sample.
+  For the general population, not athletes; it warns when the steps, the stage
+  length or the sampling site differ from the reference tests. `report_reference()` adds it to a report.
 * New `curve_shape()`: did the curve only shift, or change its shape? Both
   tests are fitted with one exponential shape moved by a shift, and with a
   shape each; an F test and AICc compare the two, and the shift comes with a
@@ -230,8 +244,8 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   1998, 427 runners) and the marathon from OBLA 4.0 (Sjödin & Jacobs, 1981).
   Cycling: 45-min time-trial power from six thresholds, fitted with lactater's
   own methods on the open data of Heuberger et al. (2018). It warns when the
-  steps of the test differ from the source protocol or a threshold lies outside
-  the source sample.
+  steps, stage length, sampling site or treadmill grade of the test differ from
+  the source protocol, or a threshold lies outside the source sample.
 * New `calibrate_performance()`: fit your own equation on your athletes' tests
   and races, for any threshold, sport and protocol, and use it in
   `predict_performance()`.
@@ -281,8 +295,15 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   - alactic time), with the alactic time fixed at 3.5 s, the most reliable option
   in Meixner et al. (2024). It also returns vLapeak, the same rise divided by the
   whole sprint (Wackerhage et al., 2025).
+* New `lactate_mlss()`: the maximal lactate steady state from constant-load
+  bouts, the highest one where lactate rose by no more than 1 mmol/L from
+  minute 10 to 30 (Beneke, 2003), and how far each threshold of a step test
+  lies from it.
 * New `sample` argument (`"blood"`, `"plasma"`, `"sweat"`,
-  `"interstitial fluid"`), used by `lactate_checks()`.
+  `"interstitial fluid"`), used by `lactate_checks()`, and `stage_duration`,
+  `site` and `grade` to record the protocol, which `predict_performance()`,
+  `reference_percentiles()` and `compare_tests()` check against theirs.
+  `read_recording()` returns them from the recording form.
 
 ## Leaner
 

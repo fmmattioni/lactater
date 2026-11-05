@@ -55,7 +55,7 @@ lactate_checks <- function(x) {
 
   out <- rbind(
     check(
-      "Stages", n >= ltp_needs,
+      "Stages", n >= ltp_needs || !"LTP1" %in% methods,
       sprintf(
         paste(
           "%d stages: the LTP fit has %d parameters, so %d degree(s) of freedom are left and LTP can move a lot with",

@@ -75,10 +75,10 @@ lactate_mlss <- function(bouts, x = NULL, rise = 1) {
     )
   })
   out <- tibble::as_tibble(do.call(rbind, rows))
-  out$lactate_10 <- round(out$lactate_10, 2)
-  out$lactate_30 <- round(out$lactate_30, 2)
   out$rise <- out$lactate_30 - out$lactate_10
   out$steady <- !is.na(out$rise) & out$rise <= rise + 1e-9 & out$minutes >= 30
+  ## rounded for show only, after the verdict
+  out[c("lactate_10", "lactate_30", "rise")] <- lapply(out[c("lactate_10", "lactate_30", "rise")], round, 2)
   out <- out[order(out$intensity), c("intensity", "lactate_10", "lactate_30", "rise", "minutes", "steady")]
 
   mlss <- if(any(out$steady)) max(out$intensity[out$steady]) else NA_real_

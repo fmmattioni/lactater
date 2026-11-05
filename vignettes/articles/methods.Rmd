@@ -218,6 +218,24 @@ power marks the boundary. In a meta-analysis of 10 studies the critical power wa
 95% limits of agreement from -19 to 44 W, and further above it in fitter and younger people ([Micheli et al.,
 2025](https://doi.org/10.7717/peerj.19060)).
 
+### Check it in your own athletes
+
+With two or more constant-load bouts of 30 min on separate days, `lactate_mlss()` finds the MLSS as the highest bout
+where lactate rose by no more than 1 mmol/L from minute 10 to minute 30 ([Beneke,
+2003](https://doi.org/10.1007/s00421-002-0783-1)), and gives how far each threshold of the step test lies from it.
+Over a group of athletes, that is your own answer to which threshold estimates the MLSS with your protocol.
+
+```{r mlss, fig.width = 7, fig.height = 4.2}
+bouts <- data.frame(
+  intensity = rep(c(130, 140, 150), each = 4),
+  time = rep(c(5, 10, 20, 30), 3),
+  lactate = c(2.4, 2.6, 2.7, 2.8, 3.1, 3.4, 3.8, 4.1, 3.9, 4.5, 5.4, 6.3)
+)
+mlss <- lactate_mlss(bouts, lactate_threshold(demo_data, intensity, lactate, plot = FALSE))
+mlss
+autoplot(mlss)
+```
+
 ## Collecting good data
 
 The methods are only as good as the test behind them: stage duration, sampling site, sample type and analyzer

@@ -48,10 +48,11 @@ is.
 | To | Use | You get |
 |---|---|---|
 | Estimate the thresholds | `lactate_threshold()` | every method at once, with heart rate, RPE and pace at each threshold |
-| Know how sure each one is | `ci = TRUE` | bootstrap confidence intervals |
+| Know how sure each one is | `ci = TRUE` | bootstrap intervals for the noise of the samples |
 | Check the data and the fit | `lactate_checks()`, `lactate_diagnostics()`, `lactate_fit_quality()` | what to double-check, residuals, influential stages, how much each threshold rests on one stage |
-| Make training zones | `lactate_zones()` | three or five zones from the LT1 and LT2 you choose, with intensity, pace, heart rate, RPE and lactate |
+| Make training zones | `lactate_zones()` | three or five zones from LT1 and LT2 (Bsln + 0.5 and Log-Poly-ModDmax unless you choose others), with intensity, pace, heart rate, RPE and lactate |
 | Compare two tests | `compare_tests()`, `curve_shift()`, `curve_shape()` | each change against the noise of the method, and how far and how the curve moved |
+| Measure your own noise | `lactate_reliability()` | the test-retest typical error of each threshold from your repeated tests, for `compare_tests()` |
 | Follow a series of tests | `lactate_trend()` | the curves and zones of up to five tests, and a trend for longer series |
 | Compare athletes | `relative_thresholds()` | thresholds per kg and as a percentage of peak intensity and heart rate |
 | Compare with the population | `reference_percentiles()` | the percentile of power at 3 mmol/L and at baseline + 1 mmol/L among German adults of the same age and sex (cycling, general population) |
@@ -59,6 +60,7 @@ is.
 | Predict a race | `predict_performance()`, `calibrate_performance()` | race time or time-trial power with a 95% range, from published equations or your own |
 | Report the test | `test_report()`, `report_start()` | a web page and PDF for the athlete or the coach |
 | Record a test | the [web form](https://fmmattioni.github.io/lactater/step-test-form.html), `read_recording()`, `recording_sheet()` | a form that saves itself and downloads an .xlsx lactater reads; a printable sheet and a CSV template |
+| Check the MLSS | `lactate_mlss()` | the maximal lactate steady state from constant-load bouts, and how far each threshold lies from it |
 | Analyze a sprint test | `vlamax()` | the maximal lactate accumulation rate (V&#775;La<sub>max</sub>) |
 | Practice | `lactate_tests`, `demo_data` | 16 real and simulated tests across sports and fitness levels |
 

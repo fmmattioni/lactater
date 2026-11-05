@@ -178,7 +178,7 @@ lactate_tests |>
 * [The methods and the evidence](https://fmmattioni.github.io/lactater/articles/methods.html): how each method is
   defined and what the evidence says.
 * [Checking the analysis](https://fmmattioni.github.io/lactater/articles/checking.html): checks, regression
-  diagnostics, and confidence intervals.
+  diagnostics, and bootstrap intervals.
 * [Training zones](https://fmmattioni.github.io/lactater/articles/zones.html): choosing LT1 and LT2, three and five
   zones.
 * [Training load](https://fmmattioni.github.io/lactater/articles/training-load.html): time in zone and intensity

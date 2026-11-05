@@ -97,7 +97,7 @@ read_recording <- function(file) {
     stages = stages, recovery = recovery, athlete = athlete[!vapply(athlete, is.null, logical(1))], sport = sport,
     sample = if(!is.null(fields$sample)) fields$sample else "blood",
     rpe_scale = if(!is.null(fields$rpe_scale)) fields$rpe_scale else "6-20",
-    stage_duration = number(fields$stage_duration), site = fields$site, grade = number(fields$treadmill_grade),
+    stage_duration = number(fields$stage_duration), site = if(!is.null(fields$site) && nzchar(fields$site)) fields$site, grade = number(fields$treadmill_grade),
     protocol = recording_protocol(fields, sport), details = fields
   )
 }

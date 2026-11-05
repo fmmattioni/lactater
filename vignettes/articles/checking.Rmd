@@ -15,7 +15,7 @@ off a curve fitted to them. Before trusting a number, ask three questions:
 
 1. **Is the test sound?** A missing resting sample, a lactate dip, a last stage that was not completed.
 2. **Does the curve follow the stages?** Regression diagnostics, adapted to so few points.
-3. **How sure is each threshold?** How much it moves without one stage, and its confidence interval.
+3. **How sure is each threshold?** How much it moves without one stage, and its bootstrap interval.
 
 ## Is the test sound?
 
@@ -176,9 +176,11 @@ use the exponential, LT<sub>ratio</sub> and IAT the B-spline, and Log-log and LT
 ## How sure is a threshold?
 
 The jackknife shows how much a threshold rests on single stages. `ci = TRUE` asks a different question: how much
-does it move with the scatter of this test? Every replicate keeps the fitted curve, adds residuals resampled with
-replacement (leverage-adjusted and centered; [Davison & Hinkley, 1997](https://doi.org/10.1017/CBO9780511802843)), and runs every method again. The interval is
-the middle 95% of the replicate thresholds. The overview plot draws it as a line on each row.
+does it move with the scatter of this test? Every replicate keeps the fitted curve and gives each stage its own
+residual with a random sign, a wild bootstrap ([Wu, 1986](https://doi.org/10.1214/aos/1176350142); [Davidson & Flachaire,
+2008](https://doi.org/10.1016/j.jeconom.2008.08.003)), because the error of a lactate sample grows with its
+concentration. The residuals are widened for the few degrees of freedom a step test leaves, and every method is run
+again. The interval is the middle 95% of the replicate thresholds. The overview plot draws it as a line on each row.
 
 ```{r, fig.height = 8}
 set.seed(1)
@@ -202,8 +204,15 @@ because in some replicates its breakpoint jumps to the next stage up; LT<sub>rat
 `r with_ci$intensity_low[with_ci$method == "LTratio"]` W, because the lactate / intensity ratio is nearly flat around its
 minimum; OBLA 3.0 sits in the middle of its narrow interval. A lopsided interval says in which direction a threshold is
 fragile. The intervals do not
-include errors that are the same in every sample, such as analyzer bias or the sampling site, and this bootstrap has
-not been validated specifically for lactate thresholds; read the intervals as a lower bound of the uncertainty.
+include errors that are the same in every sample, such as analyzer bias or the sampling site, nor the day-to-day
+variation of the athlete, which is larger (see `compare_tests()`).
+
+How often does a 95% interval hold the true threshold? In a simulation of 150 tests of 8 stages from a known curve
+(`data-raw/bootstrap_coverage.R` in the package source), with an analyzer error of 0.1 mmol/L plus 4%, it did in 93% of
+tests for Bsln + 1.0, 94% for Exp-D<sub>max</sub> and 84% for OBLA 4.0, and with a constant error of 0.25 mmol/L in 93%,
+97% and 91%. OBLA falls short because a 3rd degree polynomial cannot follow the true curve exactly, an error of about
+1.5 W the interval does not include. Resampling the residuals between stages, as an ordinary residual bootstrap does,
+held it in only 67% of tests for OBLA 4.0 and 81% for Exp-D<sub>max</sub> with the error that grows with lactate.
 
 ## The simulation of normality tests
 
@@ -236,8 +245,8 @@ lactate analysers. J Sports Sci Med. 2015;14:203-14. [PMCID:PMC4306774](https://
 Cook RD. Detection of influential observation in linear regression. Technometrics. 1977;19(1):15-8.
 [doi:10.2307/1268249](https://doi.org/10.2307/1268249)
 
-Davison AC, Hinkley DV. Bootstrap Methods and Their Application. Cambridge University Press; 1997.
-[doi:10.1017/CBO9780511802843](https://doi.org/10.1017/CBO9780511802843)
+Davidson R, Flachaire E. The wild bootstrap, tamed at last. Journal of Econometrics. 2008;146(1):162-9.
+[doi:10.1016/j.jeconom.2008.08.003](https://doi.org/10.1016/j.jeconom.2008.08.003)
 
 Efron B. The Jackknife, the Bootstrap and Other Resampling Plans. Philadelphia: SIAM; 1982.
 [doi:10.1137/1.9781611970319](https://doi.org/10.1137/1.9781611970319)
@@ -249,3 +258,6 @@ value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e
 
 Hoaglin DC, Welsch RE. The hat matrix in regression and ANOVA. Am Stat. 1978;32(1):17-22.
 [doi:10.1080/00031305.1978.10479237](https://doi.org/10.1080/00031305.1978.10479237)
+
+Wu CFJ. Jackknife, bootstrap and other resampling methods in regression analysis. Ann Stat. 1986;14(4):1261-95.
+[doi:10.1214/aos/1176350142](https://doi.org/10.1214/aos/1176350142)

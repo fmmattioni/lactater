@@ -64,7 +64,8 @@ test_that("lactate_checks flags problems", {
   female <- lactate_threshold(lactate_tests[lactate_tests$test == "cycling_female", ], intensity, lactate, plot = FALSE)
   expect_equal(lactate_checks(female)$status[1], "ok")
   five <- lactate_checks(lactate_threshold(demo_data[1:6, ], intensity, lactate, method = "OBLA", plot = FALSE))
-  expect_equal(five$status[five$check == "Stages"], "warning")
+  ## without LTP the stage count is not an LTP problem
+  expect_equal(five$status[five$check == "Stages"], "ok")
   sweat <- lactate_threshold(fixtures$plateau_x3, "intensity", "lactate", plot = FALSE, sample = "sweat")
   sweat_checks <- lactate_checks(sweat)
   expect_equal(sweat_checks$status[sweat_checks$check == "Sample type"], "warning")

@@ -18,7 +18,8 @@
 #'   The range shows how much a threshold rests on one stage, and the jackknife standard error is
 #'   `sqrt((n - 1) / n * sum((theta_i - mean(theta_i))^2))`. Dropping the first or last stage changes the Dmax line
 #'   itself, so large changes there are expected for the Dmax family. The resting sample is left out too (column
-#'   "rest"), which shows how much Bsln+ rests on that one baseline sample; it is not part of the jackknife.
+#'   "rest"), which shows how much Bsln+ rests on that one baseline sample (with `include_baseline = TRUE` the curve
+#'   changes too, so the curve methods move as well); it is not part of the jackknife.
 #' * **Which curve predicts best**: the leave-one-out prediction error of every curve type, from
 #'   [lactate_fit_quality()]. It rewards curves that follow the data without overfitting it, which the RMSE of the fit
 #'   alone cannot do.

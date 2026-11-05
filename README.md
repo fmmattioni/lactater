@@ -37,10 +37,11 @@ evidence behind it is.
 | To | Use | You get |
 |----|----|----|
 | Estimate the thresholds | `lactate_threshold()` | every method at once, with heart rate, RPE and pace at each threshold |
-| Know how sure each one is | `ci = TRUE` | bootstrap confidence intervals |
+| Know how sure each one is | `ci = TRUE` | bootstrap intervals for the noise of the samples |
 | Check the data and the fit | `lactate_checks()`, `lactate_diagnostics()`, `lactate_fit_quality()` | what to double-check, residuals, influential stages, how much each threshold rests on one stage |
-| Make training zones | `lactate_zones()` | three or five zones from the LT1 and LT2 you choose, with intensity, pace, heart rate, RPE and lactate |
+| Make training zones | `lactate_zones()` | three or five zones from LT1 and LT2 (Bsln + 0.5 and Log-Poly-ModDmax unless you choose others), with intensity, pace, heart rate, RPE and lactate |
 | Compare two tests | `compare_tests()`, `curve_shift()`, `curve_shape()` | each change against the noise of the method, and how far and how the curve moved |
+| Measure your own noise | `lactate_reliability()` | the test-retest typical error of each threshold from your repeated tests, for `compare_tests()` |
 | Follow a series of tests | `lactate_trend()` | the curves and zones of up to five tests, and a trend for longer series |
 | Compare athletes | `relative_thresholds()` | thresholds per kg and as a percentage of peak intensity and heart rate |
 | Compare with the population | `reference_percentiles()` | the percentile of power at 3 mmol/L and at baseline + 1 mmol/L among German adults of the same age and sex (cycling, general population) |
@@ -48,6 +49,7 @@ evidence behind it is.
 | Predict a race | `predict_performance()`, `calibrate_performance()` | race time or time-trial power with a 95% range, from published equations or your own |
 | Report the test | `test_report()`, `report_start()` | a web page and PDF for the athlete or the coach |
 | Record a test | the [web form](https://fmmattioni.github.io/lactater/step-test-form.html), `read_recording()`, `recording_sheet()` | a form that saves itself and downloads an .xlsx lactater reads; a printable sheet and a CSV template |
+| Check the MLSS | `lactate_mlss()` | the maximal lactate steady state from constant-load bouts, and how far each threshold lies from it |
 | Analyze a sprint test | `vlamax()` | the maximal lactate accumulation rate (V̇La<sub>max</sub>) |
 | Practice | `lactate_tests`, `demo_data` | 16 real and simulated tests across sports and fitness levels |
 
@@ -227,26 +229,26 @@ demo_data |>
 #> # Lactate thresholds: cycling, 3rd degree polynomial, 7 stages + rest
 #>    method           intensity intensity_low intensity_high
 #>    <fct>                <dbl>         <dbl>          <dbl>
-#>  1 OBLA 2.0               106           103            109
-#>  2 OBLA 2.5               119           117            121
-#>  3 OBLA 3.0               130           128            132
-#>  4 OBLA 3.5               139           137            140
-#>  5 OBLA 4.0               146           145            148
-#>  6 Dmax                   132           128            135
-#>  7 ModDmax                140           131            150
-#>  8 Exp-Dmax               135           134            136
-#>  9 Log-Poly-ModDmax       149           148            159
-#> 10 Log-Exp-ModDmax        152           151            160
-#> 11 LTP1                   111            84            120
-#> 12 LTP2                   160           144            168
+#>  1 OBLA 2.0               106           100            111
+#>  2 OBLA 2.5               119           115            123
+#>  3 OBLA 3.0               130           127            133
+#>  4 OBLA 3.5               139           136            142
+#>  5 OBLA 4.0               146           143            149
+#>  6 Dmax                   132           124            138
+#>  7 ModDmax                140           132            150
+#>  8 Exp-Dmax               135           133            137
+#>  9 Log-Poly-ModDmax       149           146            161
+#> 10 Log-Exp-ModDmax        152           149            162
+#> 11 LTP1                   111            75            123
+#> 12 LTP2                   160           140            171
 ```
 
 `lactate_checks()` flags what is easy to miss in a table of numbers:
 
 ``` r
 lactate_checks(results)
-#> 8 checks: 8 passed, 0 notes, 0 warnings
-#> ✔ Stages             7 stages.
+#> 8 checks: 7 passed, 1 note, 0 warnings
+#> ℹ Stages             7 stages: the LTP fit has 6 parameters, so 1 degree(s) of freedom are left and LTP can move a lot with one stage (at least 8 stages are better); the fitted curves rest on few points too.
 #> ✔ Resting sample     Present.
 #> ✔ Thresholds found   All thresholds were found.
 #> ✔ Edge of the range  No threshold sits at the first or last stage.
@@ -256,18 +258,19 @@ lactate_checks(results)
 #> ✔ Sample type        blood lactate.
 ```
 
-You choose which thresholds mark LT1 and LT2, and three or five zones:
+You choose which thresholds mark LT1 and LT2 (Bsln + 0.5 and
+Log-Poly-ModDmax by default), and three or five zones:
 
 ``` r
-lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax", model = 5)
+lactate_zones(results, model = 5)
 #> # A tibble: 5 × 11
 #>   zone   domain  description intensity_from intensity_to lactate_from lactate_to
 #>   <chr>  <chr>   <chr>                <dbl>        <dbl>        <dbl>      <dbl>
-#> 1 Zone 1 modera… recovery                NA           56         NA          1  
-#> 2 Zone 2 modera… endurance               56          111          1          2.2
-#> 3 Zone 3 heavy   tempo                  111          140          2.2        3.6
-#> 4 Zone 4 severe  threshold              140          166          3.6        5.6
-#> 5 Zone 5 severe  VO2max                 166           NA          5.6       NA  
+#> 1 Zone 1 modera… recovery                NA           66         NA          1.2
+#> 2 Zone 2 modera… endurance               66           83          1.2        1.4
+#> 3 Zone 3 heavy   tempo                   83          149          1.4        4.2
+#> 4 Zone 4 severe  threshold              149          170          4.2        6.1
+#> 5 Zone 5 severe  VO2max                 170           NA          6.1       NA  
 #> # ℹ 4 more variables: heart_rate_from <dbl>, heart_rate_to <dbl>,
 #> #   rpe_from <dbl>, rpe_to <dbl>
 ```
@@ -329,7 +332,7 @@ Or build it step by step, with your lab’s name and logo and only the
 parts you want:
 
 ``` r
-report_start(results, lt1 = "LTP1", lt2 = "ModDmax") |>
+report_start(results) |>
   report_header(
     name = "Ana Silva", date = "3 November 2026", sex = "female", age = 27, body_mass = 61,
     lab = "Exercise physiology lab", logo = "logo.png"

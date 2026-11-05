@@ -352,7 +352,7 @@ tribble(
   "A table of numbers hides a lactate dip, a final plateau or a single bad sample.",
   "No study needed",
   "Report how sure you are",
-  "`ci = TRUE` adds confidence intervals.",
+  "`ci = TRUE` adds bootstrap intervals for the noise of the samples.",
   "The precision of a threshold should be known before a change is called real ([Bentley et al.,
   2007](https://doi.org/10.2165/00007256-200737070-00002)).",
   "Review",
@@ -388,7 +388,7 @@ tribble(
   "The analysis", "The methods and how they are defined (for the D<sub>max</sub> family, where the line starts and
   ends), the fitted curve, whether the resting sample was used, the software and its version
   (`packageVersion(\"lactater\")`).",
-  "The uncertainty", "Confidence intervals, and the typical error used to judge changes."
+  "The uncertainty", "Bootstrap intervals, and the typical error used to judge changes."
 ) |>
   mutate(done = "&#9744;", .before = 1) |>
   gt() |>

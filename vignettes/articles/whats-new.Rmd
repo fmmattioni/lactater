@@ -59,12 +59,14 @@ old |>
   night and journal styles.
 * IAT, flexible targets (`fixed`, `baseline_plus`, `iat_rise`), and one turn point for submaximal tests
   (`ltp_breakpoints = 1`).
-* Confidence intervals (`ci = TRUE`), `lactate_checks()`, `lactate_diagnostics()`, `lactate_fit_quality()` and
+* Bootstrap intervals (`ci = TRUE`), `lactate_checks()`, `lactate_diagnostics()`, `lactate_fit_quality()` and
   `lactate_report()`.
 * RPE (6-20 and CR10) at each threshold and in the zones.
 * `lactate_zones()` (three or five zones) and `training_load()`: time in zone and intensity distribution.
 * `compare_tests()`, `curve_shift()`, `curve_shape()`, `lactate_trend()` and `relative_thresholds()` to compare tests
-  and athletes.
+  and athletes, and `lactate_reliability()` for the test-retest noise of your own protocol.
+* `lactate_mlss()`: the maximal lactate steady state from constant-load bouts, and how far each threshold lies from
+  it.
 * `lactate_tests`: 16 real and simulated tests across sports and fitness levels.
 * Rowing, grouped analysis (`.by`), and `vlamax()`.
 

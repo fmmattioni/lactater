@@ -42,6 +42,12 @@ within 5 W of the MLSS, while ModD<sub>max</sub> and OBLA 4.0 overestimated it b
 2020](https://doi.org/10.1186/s13102-020-00219-3)); with 4-min stages in men of mixed fitness, the IAT of lactater was 37 W below it ([Hauser et al.,
 2014](https://doi.org/10.1055/s-0033-1353176)).
 
+Without a choice, lactater uses Bsln + 0.5 for LT1 and Log-Poly-ModD<sub>max</sub> for LT2: the pair with the best evidence
+above that also moves least with a single stage. Left out one stage at a time on the cycling tests of `lactate_tests`,
+Bsln + 0.5 moved by a median 1.7% and Log-Poly-ModD<sub>max</sub> by 8.6%, against 23% for LTP1, whose three straight
+segments have few stages to spare in a step test of 6 to 8 stages. Bsln + 0.5 rests on a single baseline sample, so
+check it in the leave-one-out grid of `lactate_diagnostics()`.
+
 ```{r, message = FALSE}
 library(lactater)
 library(dplyr)
