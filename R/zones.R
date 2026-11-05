@@ -242,7 +242,6 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
   bands$from <- pmax(bands$from, limits[1])
   bands$to <- pmin(bands$to, limits[2])
   bands <- bands[bands$to > bands$from, ]
-  bands$middle <- (bands$from + bands$to) / 2
   ## a narrow band drops the unit from its range, and a very narrow one keeps only its number, so neighboring labels
   ## do not run into each other
   width <- (bands$to - bands$from) / diff(limits)
@@ -279,22 +278,32 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
   title <- sprintf("%d training zones", n)
   subtitle <- "Zones at the intensity domains: moderate below LT1, heavy from LT1 to LT2, severe above LT2"
 
+  ## the zone, its description and its range, set down from the top of the panel in points rather than in units of
+  ## the axis, so the three lines keep apart at any height of the plot
+  zone_label <- function(k) {
+    line <- function(label, from_top, size, ...) {
+      grid::textGrob(label, y = grid::unit(1, "npc") - grid::unit(from_top, "pt"), vjust = 1, gp = grid::gpar(
+        fontsize = size * ggplot2::.pt, fontfamily = getOption("lactater.font", ""), ...
+      ))
+    }
+    ggplot2::annotation_custom(
+      grid::grobTree(
+        line(bands$label[k], 5, 3.2, fontface = "bold", col = colours[["ink"]]),
+        ## an invisible bar on each side gives every description the same height, so "recovery" (no tall letter)
+        ## sits on the same line as "endurance"
+        line(parse(text = sprintf('phantom("|")*%s*phantom("|")', method_plotmath(bands$description[k]))), 16, 2.8,
+             col = colours[["muted"]]),
+        line(bands$range[k], 26.5, 2.8, col = colours[["muted"]])
+      ),
+      xmin = bands$from[k], xmax = bands$to[k], ymin = -Inf, ymax = Inf
+    )
+  }
+
   lactate <- ggplot2::ggplot() +
     ggplot2::annotate(
       "rect", xmin = bands$from, xmax = bands$to, ymin = 0, ymax = top, fill = bands$fill, alpha = 0.2
     ) +
-    ggplot2::annotate(
-      "text", x = bands$middle, y = top * 0.965, label = bands$label, vjust = 1, size = 3.2, fontface = "bold",
-      colour = colours[["ink"]]
-    ) +
-    ggplot2::annotate(
-      "text", x = bands$middle, y = top * 0.91, label = method_plotmath(bands$description), parse = TRUE, vjust = 1,
-      size = 2.8, colour = colours[["muted"]]
-    ) +
-    ggplot2::annotate(
-      "text", x = bands$middle, y = top * 0.855, label = bands$range, vjust = 1, size = 2.8,
-      colour = colours[["muted"]]
-    ) +
+    lapply(seq_len(nrow(bands)), zone_label) +
     ggplot2::geom_segment(
       ggplot2::aes(x = intensity, xend = intensity, y = 0, yend = top * 0.8), marks,
       colour = colours[["ink"]], linewidth = 0.4, linetype = "22"
@@ -312,13 +321,36 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
     theme_lactater()
   if(heart_rate != "panel") return(lactate)
 
-  ## the heart rate under the curve, on the same intensity axis, with its value at LT1 and LT2 beside the line: left of
-  ## it and above, or right and below when the threshold is near the left edge
-  at <- data.frame(intensity = zones$lt, heart_rate = zone_value(info$data, "heart_rate", zones$lt, 0))
+  ## the heart rate under the curve, on the same intensity axis
+  at <- data.frame(
+    intensity = zones$lt, heart_rate = zone_value(info$data, "heart_rate", zones$lt, 0), lt = c("LT1", "LT2")
+  )
   at <- at[!is.na(at$heart_rate), ]
-  left <- (at$intensity - limits[1]) / diff(limits) > 0.15
   ## at least 5 bpm of room under the lowest stage, so its dot is not cut by the axis
   hr_limits <- c(floor((min(hr$heart_rate) - 5) / 20) * 20, ceiling(max(hr$heart_rate) / 20) * 20 + 10)
+  ## the heart rate at LT1 and LT2 on a filled point where the line crosses the threshold, with its value over "at LT1"
+  ## beside it: right of the threshold and under the line, where no stage sits, or left of it and above the line near
+  ## the right edge or the bottom of the panel. Offsets in points, so the label hugs its point at any plot size.
+  hr_label <- function(k) {
+    below <- (limits[2] - at$intensity[k]) / diff(limits) > 0.2 &&
+      (at$heart_rate[k] - hr_limits[1]) / diff(hr_limits) > 0.35
+    side <- if(below) 1 else -1
+    line <- function(label, from_point, size, ...) {
+      grid::textGrob(
+        label, x = grid::unit(0.5, "npc") + grid::unit(side * 5, "pt"),
+        y = grid::unit(0.5, "npc") - grid::unit(side * from_point, "pt"), hjust = if(below) 0 else 1,
+        vjust = if(below) 1 else 0, gp = grid::gpar(fontsize = size * ggplot2::.pt,
+                                                    fontfamily = getOption("lactater.font", ""), ...)
+      )
+    }
+    ggplot2::annotation_custom(
+      grid::grobTree(
+        line(sprintf("%.0f bpm", at$heart_rate[k]), if(below) 3 else 13, 3, fontface = "bold", col = colours[["ink"]]),
+        line(paste("at", at$lt[k]), if(below) 13.5 else 3, 2.6, col = colours[["muted"]])
+      ),
+      xmin = at$intensity[k], xmax = at$intensity[k], ymin = at$heart_rate[k], ymax = at$heart_rate[k]
+    )
+  }
   hr_panel <- ggplot2::ggplot() +
     ggplot2::annotate(
       "rect", xmin = bands$from, xmax = bands$to, ymin = hr_limits[1], ymax = hr_limits[2], fill = bands$fill,
@@ -332,10 +364,10 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
     ggplot2::geom_point(ggplot2::aes(intensity, heart_rate), hr, shape = 21, size = 1.8, stroke = 0.6,
                         fill = colours[["paper"]], colour = colours[["ink"]]) +
     ggplot2::annotate(
-      "text", x = at$intensity, y = at$heart_rate, label = sprintf("%.0f bpm", at$heart_rate),
-      hjust = ifelse(left, 1.12, -0.12), vjust = ifelse(left, -0.5, 1.5), size = 3, fontface = "bold",
-      colour = colours[["ink"]]
+      "point", x = at$intensity, y = at$heart_rate, shape = 21, size = 2.4, stroke = 0.9, fill = colours[["ink"]],
+      colour = colours[["paper"]]
     ) +
+    lapply(seq_len(nrow(at)), hr_label) +
     ggplot2::scale_y_continuous(limits = hr_limits, n.breaks = 4, expand = c(0, 0)) +
     ggplot2::coord_cartesian(xlim = limits, expand = FALSE) +
     ggplot2::labs(x = intensity_label(sport), y = "Heart rate\n(bpm)") +

@@ -1,4 +1,10 @@
 results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
+## the first line of each label the plot draws as a grob (zone names, heart rate at LT1 and LT2)
+grob_labels <- function(plot) {
+  unname(unlist(lapply(plot$layers, function(l) {
+    if(inherits(l$geom, "GeomCustomAnn")) l$geom_params$grob$children[[1]]$label
+  })))
+}
 lt1 <- attr(results, "lactater")$intensity[["Log-log"]]
 lt2 <- attr(results, "lactater")$intensity[["ModDmax"]]
 
@@ -53,8 +59,7 @@ test_that("a runner's zones leave the lactate below the first stage unknown, and
   expect_true(is.na(zones$lactate_to[1]) && is.na(zones$lactate_from[2]))
   expect_true(all(zones$lactate_from > 0, na.rm = TRUE))
   ## zones 4 and 5 are under a tenth of the axis wide: their numbers only
-  labels <- ggplot2::layer_data(autoplot(zones)[[1]], 2)$label
-  expect_equal(labels, c("ZONE 2", "ZONE 3", "Z4", "Z5"))
+  expect_equal(grob_labels(autoplot(zones)[[1]]), c("ZONE 2", "ZONE 3", "Z4", "Z5"))
 })
 
 test_that("the zones plot shows the heart rate in a panel below, on a second axis, or not at all", {
@@ -62,8 +67,11 @@ test_that("the zones plot shows the heart rate in a panel below, on a second axi
   panel <- autoplot(zones)
   expect_s3_class(panel, "patchwork")
   expect_length(panel, 2)
-  ## read at LT1 and LT2 as in the table of the zones
-  expect_equal(ggplot2::layer_data(panel[[2]], 5)$label, sprintf("%.0f bpm", zones$heart_rate_from[2:3]))
+  ## read at LT1 and LT2 as in the table of the zones, on a point where the line crosses each threshold
+  expect_equal(grob_labels(panel[[2]]), sprintf("%.0f bpm", zones$heart_rate_from[2:3]))
+  marked <- ggplot2::layer_data(panel[[2]], 5)
+  expect_equal(marked$x, attr(zones, "lactater_zones")$lt)
+  expect_equal(marked$y, zones$heart_rate_from[2:3])
   axis <- autoplot(zones, heart_rate = "axis")
   expect_false(inherits(axis, "patchwork"))
   expect_equal(axis$scales$get_scales("y")$secondary.axis$name, "Heart rate (bpm)")

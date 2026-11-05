@@ -17,7 +17,8 @@ save(autoplot(results, method = "ModDmax") + ggplot2::labs(title = NULL, subtitl
      "method.png", 6, 3.2)
 save(leave_one_out_panel(lactate_diagnostics(results), lactater_colours(), "cycling"), "grid.png", 6, 3.6)
 zones <- lactate_zones(results, lt1 = "LTP1", lt2 = "ModDmax", model = 5)
-save(autoplot(zones) + ggplot2::labs(title = NULL, subtitle = NULL), "zones.png", 6, 3.4)
+## the curve over the heart rate panel: the titles sit on the whole patchwork
+save(autoplot(zones) + patchwork::plot_annotation(title = NULL, subtitle = NULL), "zones.png", 6, 4.4)
 series <- lactate_tests[lactate_tests$athlete == "cyclist_series", ]
 before <- lactate_threshold(series[series$day == 0, ], intensity, lactate, plot = FALSE)
 after <- lactate_threshold(series[series$day == 58, ], intensity, lactate, plot = FALSE)
