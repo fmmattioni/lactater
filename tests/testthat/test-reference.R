@@ -1,4 +1,7 @@
 demo <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
+## the reference values were computed with the resting sample in the fit
+obla3 <- attr(lactate_threshold(demo_data, intensity, lactate, include_baseline = TRUE, plot = FALSE),
+              "lactater")$intensity[["OBLA 3.0"]]
 scaled <- function(by) {
   lactate_threshold(transform(demo_data, intensity = intensity * by), intensity, lactate, heart_rate, plot = FALSE)
 }
@@ -16,12 +19,12 @@ test_that("a power at the median of its age and sex is on the 50th percentile", 
                                        reference_power$sex == "male" & reference_power$age == 31 &
                                        reference_power$percentile == 50]
   ## the power at 3 mmol/L scales with the intensities, so a scaled demo test hits the median (steps stay near 25 W)
-  at_median <- scaled(median_31 / attr(demo, "lactater")$intensity[["OBLA 3.0"]])
+  at_median <- scaled(median_31 / obla3)
   out <- reference_percentiles(at_median, age = 31, sex = "male")
   expect_s3_class(out, "lactate_reference")
   expect_equal(out$percentile[out$method == "OBLA 3.0"], 50)
   ## at the median exactly, the value starts the interval up to the 75th
-  expect_equal(out$standing[out$method == "OBLA 3.0"], "upper half")
+  expect_equal(reference_percentile(median_31, "OBLA 3.0", "W", "male", 31)$standing, "upper half")
   ## one year older, the same power sits a little higher
   expect_gte(reference_percentiles(at_median, age = 50, sex = "M")$percentile[1], 50)
   expect_output(print(out), "men aged 31 in Germany")
@@ -30,7 +33,7 @@ test_that("a power at the median of its age and sex is on the 50th percentile", 
 test_that("power per kg is placed too, and values beyond the published percentiles get a standing only", {
   out <- reference_percentiles(demo, age = 31, sex = "female", body_mass = 72)
   expect_equal(out$unit, c("W", "W", "W/kg", "W/kg"))
-  expect_equal(out$value[3], round(attr(demo, "lactater")$intensity[["OBLA 3.0"]] / 72, 2))
+  expect_equal(out$value[3], round(obla3 / 72, 2))
   expect_true(all(out$percentile >= 2.5 & out$percentile <= 97.5))
   strong <- suppressWarnings(reference_percentiles(scaled(2), age = 31, sex = "female"))
   expect_true(all(is.na(strong$percentile)))
@@ -39,18 +42,21 @@ test_that("power per kg is placed too, and values beyond the published percentil
 
 test_that("the protocol is checked and wrong input stops", {
   expect_warning(reference_percentiles(scaled(2), age = 31, sex = "male"), "steps of this test")
-  expect_warning(
-    reference_percentiles(lactate_threshold(demo_data, intensity, lactate, fit = "B-spline", plot = FALSE), 31, "male"),
-    "3rd degree polynomial"
-  )
+  ## the thresholds are computed the reference way, whatever the test was analyzed with
+  expected <- reference_percentiles(demo, 31, "male")
+  spline <- lactate_threshold(demo_data, intensity, lactate, fit = "B-spline", include_baseline = TRUE, plot = FALSE)
+  expect_equal(reference_percentiles(spline, 31, "male"), expected)
+  dmax_only <- lactate_threshold(demo_data, intensity, lactate, method = "Dmax", plot = FALSE)
+  expect_equal(reference_percentiles(dmax_only, 31, "male"), expected)
+  expect_warning(reference_percentiles(demo, 31, "male"), NA)
+  no_rest <- lactate_threshold(demo_data[-1, ], intensity, lactate, plot = FALSE)
+  expect_warning(reference_percentiles(no_rest, 31, "male"), "no resting sample")
   runner <- lactate_threshold(lactate_tests[lactate_tests$test == "running", ], intensity, lactate, sport = "running",
                               plot = FALSE)
   expect_error(reference_percentiles(runner, age = 30, sex = "male"), "cycle ergometry")
   expect_error(reference_percentiles(demo, age = 70, sex = "male"), "14 to 64")
   expect_error(reference_percentiles(demo, age = 30, sex = "x"), "female")
   expect_error(reference_percentiles(demo, age = 30, sex = "male", body_mass = -1), "body_mass")
-  dmax_only <- lactate_threshold(demo_data, intensity, lactate, method = "Dmax", plot = FALSE)
-  expect_error(reference_percentiles(dmax_only, age = 30, sex = "male"), "OBLA 3.0")
 })
 
 test_that("a report can compare the athlete with the population", {

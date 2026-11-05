@@ -6,22 +6,22 @@
 #'
 #' The percentiles come from 2,389 women and 2,801 men of two national health surveys (KiGGS wave 2 and DEGS1), tested
 #' on a cycle ergometer from 25 W with 25 W more every 2 min, at 60-80 rpm, with earlobe blood analyzed on a Biosen
-#' C-Line, until 85% of the age-predicted maximal heart rate. Their thresholds were computed with lactater, on a 3rd
-#' degree polynomial with the resting sample, as [lactate_threshold()] does by default. Read the result with three
-#' limits in mind:
+#' C-Line, until 85% of the age-predicted maximal heart rate. Their thresholds were computed with lactater "on a 3rd
+#' degree polynomial with the baseline (step 0) data" included, so the two thresholds are computed here in the same way,
+#' whatever `fit` and `include_baseline` the test was analyzed with: they can differ by a few watts from its table. Read
+#' the result with three limits in mind:
 #'
 #' * **The protocol.** Percentiles transfer only between tests run the same way. Shorter stages put the thresholds at
 #'   higher intensities (Bentley et al., 2007), so a test with 3-min stages looks a little weaker against these 2-min
-#'   norms. A warning is given when the steps of the test are not 25 W or the curve is not a 3rd degree polynomial;
-#'   the stage length is yours to check.
+#'   norms. A warning is given when the steps of the test are not 25 W or it has no resting sample; the stage length
+#'   is yours to check.
 #' * **The population.** These are values of the general population, not of athletes: most trained cyclists land
 #'   above the 97.5th percentile.
 #' * **The precision.** The percentile is interpolated between the nine published percentiles, from the 2.5th to the
 #'   97.5th, on the normal scale and at the exact age. Beyond the 2.5th or the 97.5th it is `NA`, and `standing`
 #'   says "top 2.5%" or "bottom 2.5%".
 #'
-#' @param x The result of [lactate_threshold()] for a cycling test, with `"OBLA 3.0"` and `"Bsln + 1.0"` among its
-#'   methods, as by default.
+#' @param x The result of [lactate_threshold()] for a cycling test.
 #' @param age Age in years, from 14 to 64.
 #' @param sex `"female"` or `"male"` (or `"F"`, `"M"`).
 #' @param body_mass Body mass (kg), for the percentiles of power per kg, or `NULL`.
@@ -55,11 +55,8 @@ reference_percentiles <- function(x, age, sex, body_mass = NULL) {
   if(!is.null(body_mass) && (!is.numeric(body_mass) || length(body_mass) != 1 || is.na(body_mass) || body_mass <= 0))
     stop("`body_mass` must be a single positive number (kg).", call. = FALSE)
   methods <- c("OBLA 3.0", "Bsln + 1.0")
-  if(!all(methods %in% as.character(x$method))) {
-    stop("`x` needs \"OBLA 3.0\" and \"Bsln + 1.0\": keep 3 in `fixed` and 1 in `baseline_plus`.", call. = FALSE)
-  }
 
-  ## the reference tests: 25 W steps, thresholds on a 3rd degree polynomial
+  ## the reference tests: 25 W steps, a resting sample
   step <- stats::median(diff(sort(info$data$intensity[info$data$intensity > 0])))
   if(!is.na(step) && abs(step / 25 - 1) > 0.05) {
     warning(sprintf(
@@ -67,13 +64,19 @@ reference_percentiles <- function(x, age, sex, body_mass = NULL) {
       format(step), "the thresholds, and so the percentiles, may shift."
     ), call. = FALSE)
   }
-  if(info$settings$fit != "3rd degree polynomial") {
-    warning(sprintf(
-      "The reference thresholds were computed on a 3rd degree polynomial, this test on a %s.", info$settings$fit
-    ), call. = FALSE)
+  if(!any(info$data$intensity == 0)) {
+    warning(
+      "This test has no resting sample, so Bsln + 1.0 is 1 mmol/L above the first stage, not above rest.",
+      call. = FALSE
+    )
   }
 
-  power <- unname(info$intensity[methods])
+  ## computed as in the reference: a 3rd degree polynomial with the resting sample (Fiedler et al., 2025)
+  settings <- utils::modifyList(info$settings, list(
+    fit = "3rd degree polynomial", include_baseline = TRUE, fixed = 3, baseline_plus = 1
+  ))
+  found <- compute_thresholds(info$data, settings, c("OBLA", "Bsln+"))$rows
+  power <- found$intensity[match(methods, found$method)]
   rows <- data.frame(method = methods, value = power, unit = "W")
   if(!is.null(body_mass)) rows <- rbind(rows, data.frame(method = methods, value = power / body_mass, unit = "W/kg"))
   ## placed unrounded, shown rounded

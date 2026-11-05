@@ -2,7 +2,8 @@
 #'
 #' It applies the `Log-log` method. Two straight lines are fitted to log(lactate) vs log(intensity),
 #' split at the measured stage with the lowest total residual sum of squares, and the threshold is
-#' where they cross (see `fit_two_lines()`). The lactate at the threshold is read off the lines.
+#' where they cross (see `fit_two_lines()`). The lactate at the threshold is read off the lines. The resting
+#' sample is never used: it has no exercise intensity.
 #'
 #' @inheritParams method_obla
 #'
@@ -10,7 +11,7 @@
 #' for each row.
 #' @keywords internal
 method_loglog <- function(data, curve, settings) {
-  breakpoint <- loglog_breakpoint(modeling_data(data, settings$include_baseline), settings$loglog_restrainer)
+  breakpoint <- loglog_breakpoint(data, settings$loglog_restrainer)
   method_result(
     method = "Log-log",
     fitting = user_fitting(settings),

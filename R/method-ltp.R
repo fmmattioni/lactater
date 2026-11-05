@@ -7,7 +7,8 @@
 #' two-line regression inside a window, on tests with 1-min or 90-s stages; with the 6-8 stages of a
 #' typical step test those windows hold too few stages, so the three segments are fitted together.
 #' With `settings$ltp_breakpoints = 1` (a submaximal test) two segments are fitted, the breakpoint is
-#' LTP1 and LTP2 is `NA`. The lactate at each turn point is read off the fitted segments.
+#' LTP1 and LTP2 is `NA`. The lactate at each turn point is read off the fitted segments. The resting
+#' sample is never used: it has no exercise intensity.
 #'
 #' @inheritParams method_obla
 #'
@@ -15,7 +16,7 @@
 #' for each row.
 #' @keywords internal
 method_ltp <- function(data, curve, settings) {
-  points <- modeling_data(data, settings$include_baseline)
+  points <- data[data$intensity > 0, ]
   fit <- fit_breakpoints(
     points$intensity, points$lactate,
     n_breakpoints = settings$ltp_breakpoints, flat_first = settings$ltp_fix_first_slope

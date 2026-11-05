@@ -25,6 +25,7 @@ segment is flat. Hofmann et al. (1997) and Pokan et al. (1997) fitted each turn 
 two-line regression inside a window, on tests with 1-min or 90-s stages; with the 6-8 stages of a
 typical step test those windows hold too few stages, so the three segments are fitted together.
 With \code{settings$ltp_breakpoints = 1} (a submaximal test) two segments are fitted, the breakpoint is
-LTP1 and LTP2 is \code{NA}. The lactate at each turn point is read off the fitted segments.
+LTP1 and LTP2 is \code{NA}. The lactate at each turn point is read off the fitted segments. The resting
+sample is never used: it has no exercise intensity.
 }
 \keyword{internal}

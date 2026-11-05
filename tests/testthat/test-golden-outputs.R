@@ -14,7 +14,7 @@ golden_run <- function(.data) {
 test_that("demo_data golden outputs stay stable", {
   expected <- tibble::tribble(
     ~method_category, ~method, ~intensity, ~lactate, ~heart_rate,
-    "Log-log", "Log-log", 77.7, 1.2, 136,
+    "Log-log", "Log-log", 100.7, 1.8, 154,
     "OBLA", "OBLA 2.0", 106.8, 2.0, 158,
     "OBLA", "OBLA 2.5", 119.7, 2.5, 167,
     "OBLA", "OBLA 3.0", 129.9, 3.0, 172,
@@ -28,8 +28,8 @@ test_that("demo_data golden outputs stay stable", {
     "Dmax", "Exp-Dmax", 134.8, 3.3, 175,
     "Dmax", "Log-Poly-ModDmax", 149.4, 4.2, 182,
     "Dmax", "Log-Exp-ModDmax", 151.5, 4.4, 183,
-    "LTP", "LTP1", 88.9, 1.3, 145,
-    "LTP", "LTP2", 157.3, 4.5, 185,
+    "LTP", "LTP1", 111.0, 2.0, 161,
+    "LTP", "LTP2", 159.6, 4.7, 186,
     "LTratio", "LTratio", 71.2, 1.2, 131,
     "IAT", "IAT", 122.2, 2.7, 168
   )
@@ -39,7 +39,7 @@ test_that("demo_data golden outputs stay stable", {
 test_that("noisy fixture outputs stay stable", {
   expected <- tibble::tribble(
     ~method_category, ~method, ~intensity, ~lactate, ~heart_rate,
-    "Log-log", "Log-log", 78.3, 1.3, 136,
+    "Log-log", "Log-log", 120.3, 2.4, 168,
     "OBLA", "OBLA 2.0", 105.3, 2.0, 157,
     "OBLA", "OBLA 2.5", 118.9, 2.5, 167,
     "OBLA", "OBLA 3.0", 129.5, 3.0, 173,
@@ -53,7 +53,7 @@ test_that("noisy fixture outputs stay stable", {
     "Dmax", "Exp-Dmax", 134.8, 3.3, 176,
     "Dmax", "Log-Poly-ModDmax", 158.1, 4.9, 187,
     "Dmax", "Log-Exp-ModDmax", 159.4, 5.0, 187,
-    "LTP", "LTP1", 113.7, 2.0, 163,
+    "LTP", "LTP1", 117.1, 2.2, 165,
     "LTP", "LTP2", 167.9, 5.5, 191,
     "LTratio", "LTratio", 74.4, 1.3, 133,
     "IAT", "IAT", 125.0, 2.8, 171

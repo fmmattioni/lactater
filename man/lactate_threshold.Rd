@@ -61,10 +61,11 @@ thresholds.
 Please, note that a few lactate thresholds have default methods for this and cannot be changed.
 Options are \verb{3rd degree polynomial}, \verb{4th degree polynomial}, or \code{B-spline}. See \code{Details}.}
 
-\item{include_baseline}{A boolean to indicate whether to include the resting (baseline) sample in the fit. The
-resting sample is
-the row with intensity 0; it is placed one median step before the first stage. Data without a resting sample is fine.
-Rows with a missing intensity or lactate are dropped with a warning.}
+\item{include_baseline}{A boolean to indicate whether to include the resting (baseline) sample in the fitted
+curve (used by OBLA, Bsln+, LTratio, IAT and Stegmann). The resting sample is the row with intensity 0; in the fit
+it is placed one median step before the first stage. Log-log, LTP and the Dmax family fit the exercise stages only,
+so they never use it. Data without a resting sample is fine. Rows with a missing intensity or lactate are dropped
+with a warning.}
 
 \item{sport}{The sport at which the incremental test was performed. One of \code{cycling} (intensity in W), \code{running}
 (km/h), \code{swimming} (m/s), or \code{rowing} (W). For running, swimming and rowing a \code{pace} column is added: s/km,

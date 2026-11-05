@@ -4,7 +4,7 @@
       print(run())
     Output
                    method intensity lactate heart_rate
-      1           Log-log        78    1.20        136
+      1           Log-log       101    1.80        154
       2          OBLA 2.0       107    2.00        158
       3          OBLA 2.5       120    2.50        167
       4          OBLA 3.0       130    3.00        172
@@ -18,8 +18,8 @@
       12         Exp-Dmax       135    3.30        175
       13 Log-Poly-ModDmax       149    4.20        182
       14  Log-Exp-ModDmax       152    4.40        183
-      15             LTP1        89    1.30        145
-      16             LTP2       157    4.50        185
+      15             LTP1       111    2.00        161
+      16             LTP2       160    4.70        186
       17          LTratio        71    1.20        131
       18              IAT       122    2.70        168
 
@@ -29,7 +29,7 @@
       print(run())
     Output
                    method intensity lactate heart_rate
-      1           Log-log        78    1.30        136
+      1           Log-log       120    2.40        168
       2          OBLA 2.0       105    2.00        157
       3          OBLA 2.5       119    2.50        167
       4          OBLA 3.0       130    3.00        173
@@ -43,7 +43,7 @@
       12         Exp-Dmax       135    3.30        176
       13 Log-Poly-ModDmax       158    4.90        187
       14  Log-Exp-ModDmax       159    5.00        187
-      15             LTP1       114    2.00        163
+      15             LTP1       117    2.20        165
       16             LTP2       168    5.50        191
       17          LTratio        74    1.30        133
       18              IAT       125    2.80        171
@@ -54,7 +54,7 @@
       print(run())
     Output
                    method intensity lactate
-      1           Log-log       148     1.3
+      1           Log-log       171     1.6
       2          OBLA 2.0       189     2.0
       3          OBLA 2.5       210     2.5
       4          OBLA 3.0       229     3.0
@@ -68,7 +68,7 @@
       12         Exp-Dmax       256     3.7
       13 Log-Poly-ModDmax       194     1.9
       14  Log-Exp-ModDmax       244     3.4
-      15             LTP1       183     1.4
+      15             LTP1       185     1.4
       16             LTP2       335     6.2
       17          LTratio       156     1.4
       18              IAT       235     2.9
@@ -79,7 +79,7 @@
       print(run())
     Output
                    method intensity lactate
-      1           Log-log       148     3.8
+      1           Log-log       171     4.9
       2          OBLA 2.0        NA     2.0
       3          OBLA 2.5       113     2.5
       4          OBLA 3.0       133     3.0
@@ -93,7 +93,7 @@
       12         Exp-Dmax       256    11.1
       13 Log-Poly-ModDmax       194     5.7
       14  Log-Exp-ModDmax       244    10.3
-      15             LTP1       183     4.1
+      15             LTP1       185     4.3
       16             LTP2       335    18.7
       17          LTratio       156     4.1
       18              IAT       195     5.6
@@ -104,7 +104,7 @@
       print(run())
     Output
                    method intensity lactate
-      1           Log-log       208     1.4
+      1           Log-log       201     1.3
       2          OBLA 2.0       244     2.0
       3          OBLA 2.5       264     2.5
       4          OBLA 3.0       278     3.0
@@ -118,7 +118,7 @@
       12         Exp-Dmax       265     2.6
       13 Log-Poly-ModDmax       281     3.2
       14  Log-Exp-ModDmax       290     3.4
-      15             LTP1       200     1.4
+      15             LTP1       175     1.0
       16             LTP2       281     2.7
       17          LTratio       209     1.4
       18              IAT       275     2.9
@@ -168,7 +168,7 @@
       12         Exp-Dmax       195     2.7
       13 Log-Poly-ModDmax       221     3.4
       14  Log-Exp-ModDmax       226     3.6
-      15             LTP1       116     1.2
+      15             LTP1       121     1.3
       16             LTP2       219     3.0
       17          LTratio       144     1.7
       18              IAT       215     3.2
@@ -179,7 +179,7 @@
       print(run())
     Output
                    method intensity  pace lactate heart_rate
-      1           Log-log      10.2 353.9     1.2        143
+      1           Log-log      12.0 298.9     1.8        156
       2          OBLA 2.0      12.3 292.5     2.0        158
       3          OBLA 2.5      13.2 273.6     2.5        164
       4          OBLA 3.0      13.8 260.4     3.0        169
@@ -193,7 +193,7 @@
       12         Exp-Dmax      14.1 255.2     3.3        171
       13 Log-Poly-ModDmax      15.2 236.4     4.4        177
       14  Log-Exp-ModDmax      15.4 233.6     4.5        178
-      15             LTP1      11.0 328.2     1.3        149
+      15             LTP1      11.3 317.6     1.5        151
       16             LTP2      15.0 239.3     3.7        176
       17          LTratio       9.0 400.1     1.1        135
       18              IAT      13.3 270.3     2.6        165
@@ -204,7 +204,7 @@
       print(run())
     Output
                    method intensity  pace lactate
-      1           Log-log      1.19  84.2     1.8
+      1           Log-log      1.20  83.6     1.9
       2          OBLA 2.0      1.20  83.4     2.0
       3          OBLA 2.5      1.25  80.2     2.5
       4          OBLA 3.0      1.28  77.9     3.0

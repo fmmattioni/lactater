@@ -7,8 +7,7 @@
 reference_percentiles(x, age, sex, body_mass = NULL)
 }
 \arguments{
-\item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}} for a cycling test, with \code{"OBLA 3.0"} and \code{"Bsln + 1.0"} among its
-methods, as by default.}
+\item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}} for a cycling test.}
 
 \item{age}{Age in years, from 14 to 64.}
 
@@ -30,14 +29,15 @@ to 64 (Fiedler et al., 2025): in watts and, with \code{body_mass}, in watts per 
 \details{
 The percentiles come from 2,389 women and 2,801 men of two national health surveys (KiGGS wave 2 and DEGS1), tested
 on a cycle ergometer from 25 W with 25 W more every 2 min, at 60-80 rpm, with earlobe blood analyzed on a Biosen
-C-Line, until 85\% of the age-predicted maximal heart rate. Their thresholds were computed with lactater, on a 3rd
-degree polynomial with the resting sample, as \code{\link[=lactate_threshold]{lactate_threshold()}} does by default. Read the result with three
-limits in mind:
+C-Line, until 85\% of the age-predicted maximal heart rate. Their thresholds were computed with lactater "on a 3rd
+degree polynomial with the baseline (step 0) data" included, so the two thresholds are computed here in the same way,
+whatever \code{fit} and \code{include_baseline} the test was analyzed with: they can differ by a few watts from its table. Read
+the result with three limits in mind:
 \itemize{
 \item \strong{The protocol.} Percentiles transfer only between tests run the same way. Shorter stages put the thresholds at
 higher intensities (Bentley et al., 2007), so a test with 3-min stages looks a little weaker against these 2-min
-norms. A warning is given when the steps of the test are not 25 W or the curve is not a 3rd degree polynomial;
-the stage length is yours to check.
+norms. A warning is given when the steps of the test are not 25 W or it has no resting sample; the stage length
+is yours to check.
 \item \strong{The population.} These are values of the general population, not of athletes: most trained cyclists land
 above the 97.5th percentile.
 \item \strong{The precision.} The percentile is interpolated between the nine published percentiles, from the 2.5th to the

@@ -20,6 +20,7 @@ for each row.
 \description{
 It applies the \code{Log-log} method. Two straight lines are fitted to log(lactate) vs log(intensity),
 split at the measured stage with the lowest total residual sum of squares, and the threshold is
-where they cross (see \code{fit_two_lines()}). The lactate at the threshold is read off the lines.
+where they cross (see \code{fit_two_lines()}). The lactate at the threshold is read off the lines. The resting
+sample is never used: it has no exercise intensity.
 }
 \keyword{internal}
