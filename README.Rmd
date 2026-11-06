@@ -81,10 +81,8 @@ gallery <- function(plot, name, width = 7.5, height = 5.2) {
 }
 results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, rpe_column = rpe, plot = FALSE)
 gallery(autoplot(results), "overview", height = 7)
-gallery(autoplot(results, method = "ModDmax"), "method")
 five <- lactate_zones(results, model = 5)
 gallery(autoplot(five), "zones", height = 7)
-gallery(autoplot(lactate_diagnostics(results)), "diagnostics", width = 9, height = 10)
 
 series <- filter(lactate_tests, athlete == "cyclist_series")
 analyse <- function(d) lactate_threshold(filter(series, day == d), intensity, lactate, heart_rate, plot = FALSE)
@@ -93,41 +91,29 @@ tests <- lapply(days, analyse)
 ## the test dates are not in the data: an example start date
 trend <- lactate_trend(!!!tests, day = as.Date("2019-01-14") + days)
 gallery(autoplot(trend, lt1 = "Bsln + 0.5", lt2 = "ModDmax"), "series", height = 9.1)
-gallery(autoplot(compare_tests(analyse(0), analyse(58))), "compare")
-gallery(autoplot(curve_shape(analyse(0), analyse(2046))), "shape")
 
-set.seed(1)
-week <- data.frame(
-  session = rep(c("Monday, easy", "Wednesday, intervals", "Saturday, long"), times = c(720, 720, 1440)),
-  heart_rate = c(rnorm(720, 135, 4), rep(c(150, 182), times = 360), rnorm(1440, 142, 5))
-)
-gallery(autoplot(training_load(week, five, interval = 5, .by = "session")), "load")
-runner <- lactate_threshold(
-  filter(lactate_tests, test == "running"), intensity, lactate, heart_rate, sport = "running", plot = FALSE
-)
-gallery(autoplot(predict_performance(runner)), "performance")
+## four of the method plots, with recovery samples (simulated) for Stegmann
+recovery <- data.frame(time = c(1, 3, 5, 7, 10), lactate = c(9.3, 9.6, 9.0, 8.2, 7.1))
+with_recovery <- lactate_threshold(demo_data, intensity, lactate, heart_rate, recovery = recovery,
+                                   stage_duration = 3, plot = FALSE)
+methods <- lapply(c("Log-log", "LTP1", "IAT", "Stegmann"), function(m) autoplot(with_recovery, method = m))
+gallery(plot_methods(methods, ncol = 2), "methods", width = 10.5, height = 9.5)
+gallery(autoplot(lactate_diagnostics(results)), "diagnostics", width = 9, height = 10)
+
 ```
 
 <table>
 <tr>
 <td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/autoplot.lactate_thresholds.html"><img src="man/figures/readme/gallery-overview.png" alt="Every threshold of a test on one intensity axis, grouped by method family, with a table of lactate, heart rate and percentages of peak"></a><br><b>One test, every method</b>: each threshold on one axis, grouped by family, with its values. <code>autoplot(results)</code></td>
-<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/lactate_trend.html"><img src="man/figures/readme/gallery-series.png" alt="The lactate curves of five tests, light to dark by date, then their heart rate, above the five training zones of each test"></a><br><b>Up to five tests</b>: where the curve, the heart rate and the zones moved, by date. <code>autoplot(lactate_trend(...))</code></td>
-</tr>
-<tr>
-<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/autoplot.lactate_thresholds.html"><img src="man/figures/readme/gallery-method.png" alt="The ModDmax method: the line from the first rise to the last stage and the threshold on the fitted curve"></a><br><b>How a method works</b>: its construction drawn on the curve, and the threshold with lactate and heart rate. <code>autoplot(results, method = "ModDmax")</code></td>
 <td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/lactate_zones.html"><img src="man/figures/readme/gallery-zones.png" alt="Five training zones on the lactate curve, colored by intensity domain, with the heart rate of the stages in a panel below"></a><br><b>Training zones</b>: three or five, colored by intensity domain, with the heart rate at LT1 and LT2. <code>autoplot(lactate_zones(...))</code></td>
 </tr>
 <tr>
-<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/compare_tests.html"><img src="man/figures/readme/gallery-compare.png" alt="Two lactate curves with arrows showing the intensity gained at 2 and 4 mmol/L"></a><br><b>Two tests</b>: the intensity gained at 2 and 4 mmol/L. <code>autoplot(compare_tests(before, after))</code></td>
-<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/curve_shape.html"><img src="man/figures/readme/gallery-shape.png" alt="Two exponential curves, one shifted onto the other, to test whether the shape changed"></a><br><b>Shifted or reshaped?</b> One curve moved onto the other, with a test of whether the shape changed. <code>autoplot(curve_shape(before, after))</code></td>
-</tr>
-<tr>
-<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/training_load.html"><img src="man/figures/readme/gallery-load.png" alt="The share of time in each training zone for three sessions"></a><br><b>Time in zone</b>: how each session or week was spread across the zones. <code>autoplot(training_load(...))</code></td>
-<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/predict_performance.html"><img src="man/figures/readme/gallery-performance.png" alt="Predicted race times from 5 km to the marathon with their 95% ranges"></a><br><b>Race prediction</b>: expected times or time-trial power with a 95% range. <code>autoplot(predict_performance(results))</code></td>
-</tr>
-<tr>
-<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/lactate_diagnostics.html"><img src="man/figures/readme/gallery-diagnostics.png" alt="Six diagnostic panels: fit, residuals, normality, influential stages, leave one stage out, and which curve predicts best"></a><br><b>Is the curve right?</b> Six panels, each with a line on what to look for. <code>autoplot(lactate_diagnostics(results))</code></td>
+<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/lactate_trend.html"><img src="man/figures/readme/gallery-series.png" alt="The lactate curves of five tests, light to dark by date, then their heart rate, above the five training zones of each test"></a><br><b>Up to five tests</b>: where the curve, the heart rate and the zones moved, by date. <code>autoplot(lactate_trend(...))</code></td>
 <td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/report-example.html"><img src="man/figures/readme/report-page.png" alt="The first page of a test report: LT1 and LT2, what they mean, and the training zones"></a><br><b>A report for the athlete</b>: the whole test on two A4 pages, as a web page and PDF. <code>test_report(results)</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/articles/methods.html"><img src="man/figures/readme/gallery-methods.png" alt="Four method plots: the two Log-log lines, the three LTP segments, the IAT rise above LTratio, and the Stegmann tangent from the recovery samples"></a><br><b>Each method, as its paper defined it</b>: what it fitted, the stages, and the threshold with its lactate and heart rate. <code>autoplot(results, method = "LTP1")</code></td>
+<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/lactate_diagnostics.html"><img src="man/figures/readme/gallery-diagnostics.png" alt="Six panels checking the lactate curve: the fit, residuals, normality, influential stages, a leave-one-stage-out grid and which curve predicts best"></a><br><b>Checking the curve</b>: residuals, influential stages, and how far each threshold moves without each stage. <code>autoplot(lactate_diagnostics(results))</code></td>
 </tr>
 </table>
 

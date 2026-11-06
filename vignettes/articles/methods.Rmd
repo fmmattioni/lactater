@@ -71,6 +71,12 @@ tribble(
 
 ## How lactater computes them
 
+The plots below are `demo_data`, a cycling test of 7 stages, with `autoplot(results, method = ...)`.
+
+```{r methods-results}
+results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
+```
+
 ### Fitted curves
 
 The 3rd and 4th degree polynomials are fitted by least squares. "B-spline" is a natural cubic
@@ -81,8 +87,19 @@ and `b`. This needs no starting values and cannot fail to converge. `lactate_fit
 ### Fixed concentrations (OBLA, Bsln+, IAT)
 
 The intensity is found by solving the fitted curve for the target
-lactate. When the curve crosses the target more than once (an early lactate dip), the highest crossing is used.
+lactate. When the curve crosses the target more than once (an early lactate dip), the last crossing where lactate rises
+through it is used: from there on, lactate stays above the target.
 Bsln+ takes the resting sample as the baseline, or the first stage when there is no resting sample.
+
+```{r bsln-plus}
+autoplot(results, method = "Bsln + 0.5")
+```
+
+IAT rises from the lowest lactate / intensity ratio (LT<sub>ratio</sub>) instead of from the baseline:
+
+```{r iat}
+autoplot(results, method = "IAT")
+```
 
 A fixed concentration assumes that everyone's MLSS sits at the same lactate, and it does not. In national and
 international athletes the lactate at the MLSS was 3.1 +/- 0.5 mmol/L in rowing, 5.4 +/- 1.0 in cycling and 6.6 +/- 0.9
@@ -112,6 +129,10 @@ and [Jamnick et al. (2018)](https://doi.org/10.1371/journal.pone.0199794) wrote 
 al. measured plasma lactate from the fingertip. Change the rise with `moddmax_rise`, for example for sweat lactate.
 The resting sample is never used, and the Log-log start of the Log-*-ModD<sub>max</sub> variants is computed without it.
 
+```{r log-poly-moddmax}
+autoplot(results, method = "Log-Poly-ModDmax")
+```
+
 ### Log-log
 
 [Beaver et al. (1985)](https://doi.org/10.1152/jappl.1985.59.6.1936) split the log-log data into two segments that share the stage between them, fitted
@@ -121,15 +142,23 @@ every stage as the split, with at least three stages per line (a line through tw
 would favor the shortest segments), so Log-log needs at least five stages. When the two lines cross outside the
 measured stages, the result is `NA`.
 
+```{r log-log}
+autoplot(results, method = "Log-log")
+```
+
 ### LTP
 
 [Hofmann et al. (1997)](https://doi.org/10.1097/00005768-199706000-00005) and [Pokan et al. (1997)](https://doi.org/10.1097/00005768-199708000-00009) found each turn point as the crossing of two regression lines
 "with minimal standard deviation", inside a window: LTP1 from the first lactate value up to 4 mmol/L ([Hofmann et
 al., 1997](https://doi.org/10.1097/00005768-199706000-00005)) or 75% of the maximal power ([Pokan et al., 1997](https://doi.org/10.1097/00005768-199708000-00009)), and LTP2 from LTP1 to the maximal power. Their tests had 1-min and 90-s stages,
-so the windows held many samples. With the 6-8 stages of a typical step test the windows hold too few stages, so
+so the windows held many samples. With the 6 to 10 stages of a typical step test the windows hold too few stages, so
 lactater fits three connected straight segments to all stages at once, trying every pair of breakpoints with at
 least two stages per segment. The result is the global optimum and never depends on starting values.
 `ltp_fix_first_slope = TRUE` keeps the segment before LTP1 flat.
+
+```{r ltp}
+autoplot(results, method = "LTP1")
+```
 
 ### Stegmann
 
