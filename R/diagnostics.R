@@ -8,7 +8,7 @@
 #' * **Residuals**: the measured lactate minus the curve. A run of residuals of the same sign, or an arch against the
 #'   fitted values, means the shape of the curve is wrong for this test.
 #' * **Standardized residuals**: residuals divided by their standard error. With so few stages, normality and
-#'   equal-variance tests have almost no power, so a check that "passes" means "could not tell", not "fine"; analyser
+#'   equal-variance tests have almost no power, so a check that "passes" means "could not tell", not "fine"; analyzer
 #'   error also grows with lactate (Bonaventura et al., 2015).
 #' * **Leverage and Cook's distance**: how much one stage pulls the curve (Cook, 1977). The first and last stages always
 #'   have high leverage, by design. A stage is flagged when its Cook's distance is above the median of the

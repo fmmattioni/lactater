@@ -91,7 +91,7 @@ cycling_equations <- data.frame(
 #' (Vickers & Vertosick, 2016).
 #'
 #' @param x The result of [lactate_threshold()].
-#' @param method The thresholds to predict from. Default to every threshold of `x` that has an equation.
+#' @param method The thresholds to predict from. Defaults to every threshold of `x` that has an equation.
 #' @param equation Your own equation(s) from [calibrate_performance()], one or a list of them, used in place of the
 #' published ones.
 #'
@@ -199,7 +199,7 @@ predict_performance <- function(x, method = NULL, equation = NULL) {
   out <- tibble::tibble(
     event = equations$event, method = equations$method, threshold = round(threshold, digits),
     intensity = round(intensity, digits), intensity_low = round(intensity - half, digits),
-    intensity_high = round(intensity + half, digits)
+    intensity_high = round(intensity + half, digits), extrapolated = outside
   )
   if(any(!is.na(equations$distance))) {
     ## the times first, after the threshold: they are what a runner reads
@@ -247,7 +247,7 @@ predict_performance <- function(x, method = NULL, equation = NULL) {
 #' [predict_performance()].
 #' @param sport `"cycling"`, `"running"`, `"rowing"` or `"swimming"`, as in [lactate_threshold()].
 #' @param distance The race distance in meters, when `performance` is a time. Not for cycling.
-#' @param event A name for the race. Default to the distance (e.g. `"10 km"`), or `"Performance"`.
+#' @param event A name for the race. Defaults to the distance (e.g. `"10 km"`), or `"Performance"`.
 #' @param protocol A short description of your test protocol and population, printed with every prediction.
 #'
 #' @return a `lactate_calibration` tibble with one row: the equation (`intercept`, `slope`), its residual SD

@@ -8,7 +8,7 @@ Authors@R:
            email = "felipe.mattioni@med.uni-tuebingen.de",
            comment = c(ORCID = "0000-0002-4221-6104"))
 Description: Set of tools for analyzing lactate thresholds from a step incremental test to exhaustion. Estimate
-    Log-log, Onset of Blood Lactate Accumulation (OBLA), Baseline plus (Bsln+), the Dmax family, Lactate Turning Points (LTP),
+    Log-log, Onset of Blood Lactate Accumulation (OBLA), Baseline plus (Bsln+), the Dmax family, Lactate Turn Points (LTP),
     the Lactate / Intensity ratio (LTratio), and the Individual Anaerobic Thresholds of Dickhuth (IAT) and Stegmann in
     cycling, running, swimming, or rowing, with bootstrap confidence intervals, data-quality checks, training zones, test comparisons, training
     load, and the maximal lactate accumulation rate (VLamax).
@@ -38,21 +38,13 @@ LazyData: true
 Roxygen: list(markdown = TRUE)
 VignetteBuilder: knitr
 Suggests: 
-    bsplus,
     covr,
-    datapasta,
     dplyr,
     knitr,
     lintr,
-    miniUI,
     pagedown,
-    pillar,
     readxl,
-    rhandsontable,
     rmarkdown,
-    shiny,
-    shinyjs,
-    shinyWidgets,
     gt,
     htmltools,
     spelling,
@@ -61,12 +53,16 @@ Suggests:
 Imports: 
     ggplot2 (>= 4.0.0),
     ggtext (>= 0.2.0),
+    grDevices,
     grid,
     patchwork,
+    pillar,
     rlang,
     splines,
     stats,
     tibble,
+    tools,
+    utils,
     vctrs
 Depends: 
     R (>= 4.1.0)

@@ -68,7 +68,7 @@ lactate_report <- function(x, title = "Lactate thresholds") {
     gt::cols_label(
       method = "Method",
       intensity = sprintf("Intensity (%s)", unit),
-      lactate = gt::html("Lactate (mmol&middot;L<sup>&minus;1</sup>)")
+      lactate = "Lactate (mmol/L)"
     ) |>
     gt::cols_align(align = "right", columns = -"method") |>
     gt_lactater()

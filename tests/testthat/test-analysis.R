@@ -79,7 +79,7 @@ test_that("lactate_checks flags problems", {
   expect_equal(no_rest$status[no_rest$check == "Resting sample"], "note")
   expect_match(pillar::tbl_sum(sweat)[["Checks"]], "warning")
   ## printed as a checklist with the counts on top
-  expect_output(print(sweat_checks), "8 checks: [0-9] passed, [0-9] notes?, [1-9] warnings?")
+  expect_output(print(sweat_checks), "10 checks: [0-9] passed, [0-9] notes?, [1-9] warnings?")
   expect_output(print(sweat_checks[sweat_checks$check == "Final stage", ]), "^1 check: 1 passed")
 })
 

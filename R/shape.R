@@ -22,7 +22,7 @@
 #'
 #' @param before,after The results of [lactate_threshold()] for the two tests, with the same sport and at least five
 #' stages each.
-#' @param level The confidence level of the shift. Default to `0.95`.
+#' @param level The confidence level of the shift. Defaults to `0.95`.
 #'
 #' @return a `lactate_shape` list with `shift` (intensity units, positive when the curve moved to the right),
 #' `shift_low` and `shift_high`, `f`, `df1`, `df2`, `p_value`, `aicc_shift` and `aicc_free`, `verdict` (`"shift"`
@@ -74,13 +74,11 @@ curve_shape <- function(before, after, level = 0.95) {
     shifted <- (x - d * second - min(x)) / span
     rss <- function(k) sum(stats::.lm.fit(cbind(1, exp(k * shifted)), y)$residuals^2)
     grid <- seq(0.05, 40, length.out = 100)
-    best <- which.min(vapply(grid, rss, numeric(1)))
-    stats::optimize(rss, grid[c(max(best - 1, 1), min(best + 1, length(grid)))])$objective
+    refine_extremum(rss, grid, vapply(grid, rss, numeric(1)))$objective
   }
   ds <- seq(-span, span, length.out = 161)
   profile <- vapply(ds, rss_at, numeric(1))
-  best <- which.min(profile)
-  fit <- stats::optimize(rss_at, ds[c(max(best - 1, 1), min(best + 1, length(ds)))])
+  fit <- refine_extremum(rss_at, ds, profile)
   shift <- fit$minimum
   rss_shift <- fit$objective
   curves <- list(before = fit_curve(one, "Exponential"), after = fit_curve(two, "Exponential"))

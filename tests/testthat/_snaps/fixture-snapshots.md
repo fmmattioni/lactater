@@ -4,24 +4,24 @@
       print(run())
     Output
                    method intensity lactate heart_rate
-      1           Log-log       101    1.80        154
-      2          OBLA 2.0       107    2.00        158
-      3          OBLA 2.5       120    2.50        167
-      4          OBLA 3.0       130    3.00        172
-      5          OBLA 3.5       138    3.50        176
-      6          OBLA 4.0       146    4.00        180
-      7        Bsln + 0.5        85    1.43        142
-      8        Bsln + 1.0       105    1.93        157
-      9        Bsln + 1.5       118    2.43        166
-      10             Dmax       132    3.10        173
-      11          ModDmax       140    3.60        177
-      12         Exp-Dmax       135    3.30        175
-      13 Log-Poly-ModDmax       149    4.20        182
-      14  Log-Exp-ModDmax       152    4.40        183
-      15             LTP1       111    2.00        161
-      16             LTP2       160    4.70        186
-      17          LTratio        71    1.20        131
-      18              IAT       122    2.70        168
+      1           Log-log       101     1.8        154
+      2          OBLA 2.0       107     2.0        158
+      3          OBLA 2.5       120     2.5        167
+      4          OBLA 3.0       130     3.0        172
+      5          OBLA 3.5       138     3.5        176
+      6          OBLA 4.0       146     4.0        180
+      7        Bsln + 0.5        85     1.4        142
+      8        Bsln + 1.0       105     1.9        157
+      9        Bsln + 1.5       118     2.4        166
+      10             Dmax       132     3.1        173
+      11          ModDmax       140     3.6        177
+      12         Exp-Dmax       135     3.3        175
+      13 Log-Poly-ModDmax       149     4.2        182
+      14  Log-Exp-ModDmax       152     4.4        183
+      15             LTP1       111     2.0        161
+      16             LTP2       160     4.7        186
+      17          LTratio        71     1.2        131
+      18              IAT       122     2.7        168
 
 # fixture output: noisy
 
@@ -29,24 +29,24 @@
       print(run())
     Output
                    method intensity lactate heart_rate
-      1           Log-log       120    2.40        168
-      2          OBLA 2.0       105    2.00        157
-      3          OBLA 2.5       119    2.50        167
-      4          OBLA 3.0       130    3.00        173
-      5          OBLA 3.5       138    3.50        177
-      6          OBLA 4.0       146    4.00        181
-      7        Bsln + 0.5        81    1.43        138
-      8        Bsln + 1.0       103    1.93        155
-      9        Bsln + 1.5       117    2.43        165
-      10             Dmax       132    3.10        174
-      11          ModDmax       141    3.60        178
-      12         Exp-Dmax       135    3.30        176
-      13 Log-Poly-ModDmax       158    4.90        187
-      14  Log-Exp-ModDmax       159    5.00        187
-      15             LTP1       117    2.20        165
-      16             LTP2       168    5.50        191
-      17          LTratio        74    1.30        133
-      18              IAT       125    2.80        171
+      1           Log-log       120     2.4        168
+      2          OBLA 2.0       105     2.0        157
+      3          OBLA 2.5       119     2.5        167
+      4          OBLA 3.0       130     3.0        173
+      5          OBLA 3.5       138     3.5        177
+      6          OBLA 4.0       146     4.0        181
+      7        Bsln + 0.5        81     1.4        138
+      8        Bsln + 1.0       103     1.9        155
+      9        Bsln + 1.5       117     2.4        165
+      10             Dmax       132     3.1        174
+      11          ModDmax       141     3.6        178
+      12         Exp-Dmax       135     3.3        176
+      13 Log-Poly-ModDmax       158     4.9        187
+      14  Log-Exp-ModDmax       159     5.0        187
+      15             LTP1       117     2.2        165
+      16             LTP2       168     5.5        191
+      17          LTratio        74     1.3        133
+      18              IAT       125     2.8        171
 
 # fixture output: plateau
 
@@ -129,24 +129,24 @@
       print(run())
     Output
                    method intensity lactate heart_rate
-      1           Log-log       101    1.80        154
-      2          OBLA 2.0       106    2.00        158
-      3          OBLA 2.5       119    2.50        166
-      4          OBLA 3.0       130    3.00        172
-      5          OBLA 3.5       139    3.50        177
-      6          OBLA 4.0       146    4.00        180
-      7        Bsln + 0.5        85    1.48        142
-      8        Bsln + 1.0       105    1.98        157
-      9        Bsln + 1.5       119    2.48        166
-      10             Dmax       132    3.10        173
-      11          ModDmax       140    3.60        177
-      12         Exp-Dmax       135    3.30        175
-      13 Log-Poly-ModDmax       149    4.20        182
-      14  Log-Exp-ModDmax       152    4.40        183
-      15             LTP1       111    2.00        161
-      16             LTP2       160    4.70        186
-      17          LTratio        77    1.30        136
-      18              IAT       125    2.80        170
+      1           Log-log       101     1.8        154
+      2          OBLA 2.0       106     2.0        158
+      3          OBLA 2.5       119     2.5        166
+      4          OBLA 3.0       130     3.0        172
+      5          OBLA 3.5       139     3.5        177
+      6          OBLA 4.0       146     4.0        180
+      7        Bsln + 0.5        85     1.5        142
+      8        Bsln + 1.0       105     2.0        157
+      9        Bsln + 1.5       119     2.5        166
+      10             Dmax       132     3.1        173
+      11          ModDmax       140     3.6        177
+      12         Exp-Dmax       135     3.3        175
+      13 Log-Poly-ModDmax       149     4.2        182
+      14  Log-Exp-ModDmax       152     4.4        183
+      15             LTP1       111     2.0        161
+      16             LTP2       160     4.7        186
+      17          LTratio        77     1.3        136
+      18              IAT       125     2.8        170
 
 # fixture output: negative_rest
 

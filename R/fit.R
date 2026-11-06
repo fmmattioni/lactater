@@ -22,30 +22,57 @@ fit_curve <- function(points, fit = c("3rd degree polynomial", "4th degree polyn
   y <- points$lactate
   curve <- switch(
     fit,
-    "3rd degree polynomial" = fit_polynomial(x, y, degree = 3),
-    "4th degree polynomial" = fit_polynomial(x, y, degree = 4),
-    "B-spline" = fit_spline(x, y),
+    "3rd degree polynomial" = fit_polynomial(x, y, degree = 3, fit),
+    "4th degree polynomial" = fit_polynomial(x, y, degree = 4, fit),
+    "B-spline" = fit_spline(x, y, fit),
     "Exponential" = fit_exponential(x, y)
   )
   c(list(fit = fit, points = points, domain = range(x)), curve)
 }
 
-fit_polynomial <- function(x, y, degree) {
+fit_polynomial <- function(x, y, degree, label) {
   powers <- function(v) outer(v, 0:degree, "^")
-  fit <- stats::lm.fit(powers(x), y)
+  fit <- fit_linear(powers(x), y, label)
   coefficients <- unname(fit$coefficients)
   list(coefficients = coefficients, predict = function(v) drop(powers(v) %*% coefficients), leverage = leverage(fit))
 }
 
-fit_spline <- function(x, y) {
+fit_spline <- function(x, y, label) {
   basis <- splines::ns(x, df = 4)
-  fit <- stats::lm.fit(cbind(1, basis), y)
+  fit <- fit_linear(cbind(1, basis), y, label)
   coefficients <- unname(fit$coefficients)
   list(
     coefficients = coefficients,
     predict = function(v) drop(cbind(1, stats::predict(basis, v)) %*% coefficients),
     leverage = leverage(fit)
   )
+}
+
+#' Refine the extremum of a function found on a grid
+#'
+#' The grid finds the basin of the extremum; `optimize()` between the neighbours of the best grid point makes it
+#' exact. For internal use only.
+#'
+#' @param f The function of one variable.
+#' @param grid Where it was evaluated.
+#' @param values `f(grid)`, when already computed.
+#' @param maximum Whether to look for a maximum.
+#' @param tol The tolerance of `optimize()`.
+#' @return the result of `optimize()`: `minimum` or `maximum`, and `objective`.
+#' @keywords internal
+refine_extremum <- function(f, grid, values = f(grid), maximum = FALSE, tol = 1e-8) {
+  best <- if (maximum) which.max(values) else which.min(values)
+  stats::optimize(f, grid[c(max(best - 1, 1), min(best + 1, length(grid)))], maximum = maximum, tol = tol)
+}
+
+## a curve with as many parameters as points, or more, is not determined: lm.fit would return NA coefficients
+fit_linear <- function(design, y, label) {
+  fit <- stats::lm.fit(design, y)
+  if(fit$rank < ncol(design)) {
+    stop(sprintf("`%s` has %d parameters, so it needs at least %d points; this test has %d.",
+                 label, ncol(design), ncol(design), length(y)), call. = FALSE)
+  }
+  fit
 }
 
 ## diagonal of the hat matrix
@@ -61,8 +88,11 @@ fit_exponential <- function(x, y) {
   rss <- function(k) sum(linear_part(k)$residuals^2)
   ## shortcut: rates beyond 40 (a 2e17-fold rise across the test) are not lactate curves
   grid <- seq(0.05, 40, length.out = 400)
-  best <- which.min(vapply(grid, rss, numeric(1)))
-  k <- stats::optimize(rss, grid[c(max(best - 1, 1), min(best + 1, length(grid)))], tol = 1e-10)$minimum
+  ## the residual sum of squares of y on a constant and exp(k * scaled), for every k of the grid at once
+  e <- exp(outer(scaled, grid))
+  e <- sweep(e, 2, colMeans(e))
+  centred <- y - mean(y)
+  k <- refine_extremum(rss, grid, values = sum(centred^2) - colSums(e * centred)^2 / colSums(e^2), tol = 1e-10)$minimum
   ab <- linear_part(k)$coefficients
   c_ <- k / width
   a <- unname(ab[1])

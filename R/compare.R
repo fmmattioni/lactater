@@ -99,7 +99,7 @@ lactate_reliability <- function(x, athlete, test) {
 #' notes on what could make the comparison unfair.
 #'
 #' A threshold moves between two tests even without any change in fitness, by the day-to-day variation of
-#' the athlete and the error of the analyser and the method. Each change is therefore given with an
+#' the athlete and the error of the analyzer and the method. Each change is therefore given with an
 #' interval, change +/- z * sqrt(2) * typical error, where the typical error is the coefficient of
 #' variation (`cv`) times the intensity before (Hopkins, 2000; Swinton et al., 2018). The change is called
 #' an `"increase"` or a `"decrease"` when the whole interval lies beyond the smallest worthwhile change
@@ -108,14 +108,14 @@ lactate_reliability <- function(x, athlete, test) {
 #' The default `cv` comes from test-retest studies of trained male cyclists: 3.6% for IAT, 3.8% for OBLA 4.0,
 #' 3.4% for Dmax and 4.3% for ModDmax (Heuberger et al., 2018), and 3.4-3.7% for Bsln+ (Pallares et al.,
 #' 2016, ramp test). Other methods have no published value, so their `verdict` is `NA` unless you give one.
-#' The best `cv` is the one of your own athletes, measured with your protocol and analyser.
+#' The best `cv` is the one of your own athletes, measured with your protocol and analyzer.
 #'
 #' @param before,after The results of [lactate_threshold()] for the two tests, with the same sport.
 #' @param cv The test-retest coefficient of variation (%) of each method: one number for all methods, or a
 #' named vector (e.g. `c("LTP2" = 3)`) that adds to or replaces the defaults, or the result of [lactate_reliability()]
 #' for your own tests.
-#' @param swc The smallest worthwhile change, in % of the intensity before. Default to `0`.
-#' @param level The probability of the interval. Default to `0.9`.
+#' @param swc The smallest worthwhile change, in % of the intensity before. Defaults to `0`.
+#' @param level The probability of the interval. Defaults to `0.9`.
 #'
 #' @return a `lactate_comparison` tibble with one row per method found in both tests: `method`, `before`,
 #' `after`, `change`, `change_percent`, the interval of the change (`change_low`, `change_high`), the `verdict`,
@@ -189,6 +189,18 @@ compare_tests <- function(before, after, cv = NULL, swc = 0, level = 0.9) {
   out
 }
 
+#' @exportS3Method pillar::tbl_sum
+tbl_sum.lactate_comparison <- function(x, ...) {
+  tests <- attr(x, "lactater_comparison")
+  if(is.null(tests)) return(NextMethod())
+  notes <- attr(x, "notes")
+  c(
+    "Tests compared" = sprintf("%s, %d methods; a change is clear when it exceeds the test-retest noise",
+                               tests$before$settings$sport, nrow(x)),
+    if(length(notes)) stats::setNames(notes, rep("Note", length(notes)))
+  )
+}
+
 #' What could make two tests hard to compare
 #'
 #' @param before,after The `lactater` attributes of the two tests.
@@ -241,7 +253,7 @@ comparison_notes <- function(before, after) {
 #'
 #' @inheritParams compare_tests
 #' @param lactate Lactate values (mmol/L) at which to compare the intensity. Values outside either curve are
-#' `NA`. Default to `seq(1.5, 4, by = 0.5)`.
+#' `NA`. Defaults to `seq(1.5, 4, by = 0.5)`.
 #' @param intensity Intensities at which to compare the lactate, or `NULL`.
 #'
 #' @return a tibble with `lactate`, `intensity_before`, `intensity_after` and `shift`; with `intensity`,
@@ -458,11 +470,11 @@ list_to_thresholds <- function(info) {
 }
 #' @rdname lactate_trend
 #' @param object The result of [lactate_trend()].
-#' @param method The methods to plot in the `"thresholds"` view. Default to ModDmax, IAT, OBLA 4.0 and Dmax, which have
+#' @param method The methods to plot in the `"thresholds"` view. Defaults to ModDmax, IAT, OBLA 4.0 and Dmax, which have
 #' a published test-retest variation (see [compare_tests()]), when present.
 #' @param view `"curves"`, the default for up to five tests: the lactate curves of all tests, light to dark by date, to
 #' see where along the intensity range the curve moved, then their heart rate with LT1 and LT2 as filled points (the
-#' latest test labelled), above the five training zones of each test from `lt1` and `lt2`. `"thresholds"`, the default
+#' latest test labeled), above the five training zones of each test from `lt1` and `lt2`. `"thresholds"`, the default
 #' for more tests: one panel per method, each test as a dot (with its confidence interval when computed) and a gray band
 #' for the noise of the method around the first test, so that dots outside the band are changes larger than the noise
 #' (as in monitoring charts; Hopkins, 2017).

@@ -4,7 +4,16 @@
 \alias{bootstrap_intervals}
 \title{Bootstrap intervals}
 \usage{
-bootstrap_intervals(data, settings, method, curve, n_rows, n_boot, level)
+bootstrap_intervals(
+  data,
+  settings,
+  method,
+  curve,
+  n_rows,
+  n_boot,
+  level,
+  seed = NULL
+)
 }
 \arguments{
 \item{data}{The data retrieved from \code{prepare_data()}.}
@@ -20,6 +29,8 @@ bootstrap_intervals(data, settings, method, curve, n_rows, n_boot, level)
 \item{n_boot}{Number of replicates.}
 
 \item{level}{Confidence level.}
+
+\item{seed}{A seed for the replicates, or \code{NULL} to draw from the current random stream.}
 }
 \value{
 a matrix with one row per threshold and the columns \code{low} and \code{high}.

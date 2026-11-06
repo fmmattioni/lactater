@@ -25,17 +25,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' lactate_curve(
-#'   .data = demo_data,
-#'   intensity_column = "intensity",
-#'   lactate_column = "lactate",
-#'   heart_rate_column = "heart_rate",
-#'   fit = "3rd degree polynomial",
-#'   include_baseline = TRUE,
-#'   sport = "cycling"
-#' )
-#' }
+#' lactate_curve(demo_data, intensity, lactate, heart_rate)
 lactate_curve <- function(
   .data,
   intensity_column,
@@ -43,7 +33,7 @@ lactate_curve <- function(
   heart_rate_column,
   fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
   include_baseline = FALSE,
-  sport = c("cycling", "running", "swimming")
+  sport = c("cycling", "running", "swimming", "rowing")
 ) {
   if(missing(.data))
     stop("No data, no fun. Please, include your data to the function.", call. = FALSE)
@@ -59,7 +49,7 @@ lactate_curve <- function(
     heart_rate_column = if(!missing(heart_rate_column)) rlang::as_name(rlang::ensym(heart_rate_column))
   )
   curve <- fit_curve(modeling_data(data, include_baseline), fit)
-  intensity <- seq(curve$domain[1], curve$domain[2], by = switch(sport, cycling = 0.1, running = 0.1, swimming = 0.01))
+  intensity <- seq(curve$domain[1], curve$domain[2], by = if(sport == "swimming") 0.01 else 0.1)
 
   out <- list(
     data = position_rest(data),

@@ -4,7 +4,7 @@ test_that("fixed, baseline_plus and iat_rise set the targets and the method name
   res <- run(method = c("OBLA", "Bsln+", "IAT"), fixed = c(4, 2.25), baseline_plus = 2, iat_rise = 1)
   expect_equal(as.character(res$method), c("OBLA 2.25", "OBLA 4.0", "Bsln + 2.0", "IAT"))
   expect_equal(res$lactate[1:2], c(2.25, 4))
-  expect_equal(res$lactate[3], demo_data$lactate[1] + 2)
+  expect_equal(res$lactate[3], round(demo_data$lactate[1] + 2, 1))
   default_iat <- run(method = "IAT")
   expect_lt(res$intensity[4], default_iat$intensity)
   expect_error(run(fixed = c(2, -1)), "`fixed`")

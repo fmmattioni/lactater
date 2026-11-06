@@ -54,10 +54,7 @@ stegmann_tangent <- function(data, curve, settings) {
   ## the tangent that touches the curve from below is the steepest line from that point to the curve
   slope <- function(x) (end$lactate - curve$predict(x)) / (out$from[["intensity"]] - x)
   grid <- seq(min(stages$intensity), end$intensity, length.out = 2001)
-  best <- which.max(slope(grid))
-  out$intensity <- stats::optimize(
-    slope, grid[c(max(best - 1, 1), min(best + 1, length(grid)))], maximum = TRUE, tol = 1e-8
-  )$maximum
+  out$intensity <- refine_extremum(slope, grid, maximum = TRUE)$maximum
   out$elimination <- slope(out$intensity) * rate
   out
 }

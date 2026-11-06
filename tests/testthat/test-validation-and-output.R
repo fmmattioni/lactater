@@ -102,7 +102,7 @@ test_that("input validation errors are informative", {
       sport = "cycling",
       plot = FALSE
     ),
-    "At least 3 rows"
+    "At least 3 exercise stages"
   )
 
   expect_error(

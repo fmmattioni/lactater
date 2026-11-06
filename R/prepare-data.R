@@ -46,8 +46,8 @@ prepare_data <- function(
     warning(sprintf("Dropped %d row(s) with a missing `intensity` or `lactate` value.", sum(missing)), call. = FALSE)
     out <- out[!missing, ]
   }
-  if(nrow(out) < 3)
-    stop("At least 3 rows are required for lactate threshold estimation.", call. = FALSE)
+  if(sum(out$intensity > 0, na.rm = TRUE) < 3)
+    stop("At least 3 exercise stages (intensity > 0) are required for lactate threshold estimation.", call. = FALSE)
   if(!all(out$intensity >= 0))
     stop("`intensity` values must be >= 0.", call. = FALSE)
   if(!all(out$lactate > 0))

@@ -11,7 +11,7 @@ lactate_curve(
   heart_rate_column,
   fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
   include_baseline = FALSE,
-  sport = c("cycling", "running", "swimming")
+  sport = c("cycling", "running", "swimming", "rowing")
 )
 }
 \arguments{
@@ -46,15 +46,5 @@ these points is the interpolation used for the heart rate at each threshold.}
 It retrieves the lactate curve for plotting purposes.
 }
 \examples{
-\dontrun{
-lactate_curve(
-  .data = demo_data,
-  intensity_column = "intensity",
-  lactate_column = "lactate",
-  heart_rate_column = "heart_rate",
-  fit = "3rd degree polynomial",
-  include_baseline = TRUE,
-  sport = "cycling"
-)
-}
+lactate_curve(demo_data, intensity, lactate, heart_rate)
 }

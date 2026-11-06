@@ -12,7 +12,7 @@ test_that("autoplot draws the overview and single methods", {
   table <- autoplot(results)[[4]]
   headers <- vapply(table$scales$get_scales("x")$labels, function(e) paste(deparse(e), collapse = ""), "")
   expect_equal(headers, c(
-    'atop("Lactate", "mmol/L")', 'atop("Heart rate", "bpm")', 'atop("% peak", "PO")', 'atop("%", HR[max])'
+    'atop("Lactate", "mmol/L")', 'atop("Heart rate", "bpm")', 'atop("% peak", "PO")', 'atop("% of", HR[max])'
   ))
   ## every column, the outer ones included, sits inside the panel
   expect_equal(ggplot2::ggplot_build(table)$layout$panel_params[[1]]$x.range, c(0.5, 4.5))

@@ -2,8 +2,8 @@
 #'
 #' Finds the maximal lactate steady state (MLSS) from two or more constant-load bouts of at least 30 min on separate
 #' days: a bout is steady when blood lactate rises by no more than 1.0 mmol/L from minute 10 to minute 30, and the MLSS
-#' is the highest steady bout. This is the criterion of Heck et al. (1985), who introduced the test and the term, and of
-#' Beneke (2003). Against the highest steady oxygen uptake, a window from minute 15 or 20 to minute 30 was more accurate
+#' is the highest steady bout. Heck et al. (1985), who introduced the test and the term, allowed a rise of 1 mmol/L over
+#' the last 20 min of 3 + 25-min runs; the minute 10 to 30 window is that of Beneke (2003). Against the highest steady oxygen uptake, a window from minute 15 or 20 to minute 30 was more accurate
 #' (Iannetta et al., 2022); set it with `from`. With the result of [lactate_threshold()] for a step test of the same
 #' athlete, it also gives how far each threshold lies from the MLSS, your own check of which threshold estimates it.
 #'
@@ -18,8 +18,8 @@
 #' @param bouts A data frame with one row per sample: `intensity` (the load of the bout, in the unit of the step
 #'   test), `time` (minutes from the start of the bout) and `lactate` (mmol/L).
 #' @param x The result of [lactate_threshold()] for a step test of the same athlete, or `NULL`.
-#' @param rise The largest rise in lactate (mmol/L) from minute `from` to minute 30 of a steady bout. Default to `1`.
-#' @param from The minute the rise is measured from, to minute 30. Default to `10` (Heck et al., 1985; Beneke, 2003);
+#' @param rise The largest rise in lactate (mmol/L) from minute `from` to minute 30 of a steady bout. Defaults to `1`.
+#' @param from The minute the rise is measured from, to minute 30. Defaults to `10` (Heck et al., 1985; Beneke, 2003);
 #'   `15` or `20` agreed best with the highest steady oxygen uptake in Iannetta et al. (2022).
 #'
 #' @return a `lactate_mlss` list with `mlss` (the highest steady bout, `NA` when none was steady), `next_bout` (the

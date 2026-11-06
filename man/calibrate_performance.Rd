@@ -33,7 +33,7 @@ intensity otherwise.}
 
 \item{distance}{The race distance in meters, when \code{performance} is a time. Not for cycling.}
 
-\item{event}{A name for the race. Default to the distance (e.g. \code{"10 km"}), or \code{"Performance"}.}
+\item{event}{A name for the race. Defaults to the distance (e.g. \code{"10 km"}), or \code{"Performance"}.}
 
 \item{protocol}{A short description of your test protocol and population, printed with every prediction.}
 

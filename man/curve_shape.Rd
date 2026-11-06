@@ -13,7 +13,7 @@ curve_shape(before, after, level = 0.95)
 \item{before, after}{The results of \code{\link[=lactate_threshold]{lactate_threshold()}} for the two tests, with the same sport and at least five
 stages each.}
 
-\item{level}{The confidence level of the shift. Default to \code{0.95}.}
+\item{level}{The confidence level of the shift. Defaults to \code{0.95}.}
 
 \item{object}{The result of \code{\link[=curve_shape]{curve_shape()}}.}
 

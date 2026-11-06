@@ -12,6 +12,7 @@ S3method(autoplot,lactate_trend)
 S3method(autoplot,lactate_zones)
 S3method(grid::makeContent,lactater_pointer)
 S3method(pillar::tbl_sum,lactate_calibration)
+S3method(pillar::tbl_sum,lactate_comparison)
 S3method(pillar::tbl_sum,lactate_load)
 S3method(pillar::tbl_sum,lactate_performance)
 S3method(pillar::tbl_sum,lactate_reference)
@@ -57,7 +58,6 @@ export(report_summary)
 export(report_test)
 export(report_text)
 export(report_zones)
-export(run_data_input)
 export(test_report)
 export(theme_lactater)
 export(training_load)
@@ -66,6 +66,7 @@ importFrom(ggplot2,
   "%+replace%",
   autoplot
 )
+importFrom(pillar,tbl_sum)
 importFrom(stats,
   approx,
   uniroot

@@ -11,9 +11,9 @@ vlamax(lactate_pre, lactate_post, test_duration = 15, alactic_time = 3.5)
 
 \item{lactate_post}{Blood lactate samples after the sprint (mmol/L); the highest is used.}
 
-\item{test_duration}{Sprint duration in seconds. Default to \code{15}.}
+\item{test_duration}{Sprint duration in seconds. Defaults to \code{15}.}
 
-\item{alactic_time}{Alactic time in seconds. Default to \code{3.5} (Meixner et al., 2024).}
+\item{alactic_time}{Alactic time in seconds. Defaults to \code{3.5} (Meixner et al., 2024).}
 }
 \value{
 a tibble with \code{vlamax} and \code{vlapeak} (mmol/L/s), \code{lactate_peak} and \code{delta_lactate} (mmol/L), and

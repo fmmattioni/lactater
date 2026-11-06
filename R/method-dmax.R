@@ -98,12 +98,7 @@ dmax_point <- function(curve, x0, y0, x1, y1) {
   if (anyNA(c(x0, y0, x1, y1)) || x1 <= x0) return(NA_real_)
   below_line <- function(x) y0 + (y1 - y0) / (x1 - x0) * (x - x0) - curve(x)
   grid <- seq(x0, x1, length.out = 1001)
-  best <- which.max(below_line(grid))
-  if (below_line(grid[best]) <= 0) return(NA_real_)
-  stats::optimize(
-    below_line,
-    interval = grid[c(max(best - 1, 1), min(best + 1, length(grid)))],
-    maximum = TRUE,
-    tol = 1e-8
-  )$maximum
+  values <- below_line(grid)
+  if (max(values) <= 0) return(NA_real_)
+  refine_extremum(below_line, grid, values, maximum = TRUE)$maximum
 }

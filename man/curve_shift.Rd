@@ -10,7 +10,7 @@ curve_shift(before, after, lactate = seq(1.5, 4, by = 0.5), intensity = NULL)
 \item{before, after}{The results of \code{\link[=lactate_threshold]{lactate_threshold()}} for the two tests, with the same sport.}
 
 \item{lactate}{Lactate values (mmol/L) at which to compare the intensity. Values outside either curve are
-\code{NA}. Default to \code{seq(1.5, 4, by = 0.5)}.}
+\code{NA}. Defaults to \code{seq(1.5, 4, by = 0.5)}.}
 
 \item{intensity}{Intensities at which to compare the lactate, or \code{NULL}.}
 }

@@ -30,11 +30,27 @@ fit_breakpoints <- function(x, y, n_breakpoints = 2, flat_first = FALSE, min_poi
     sum(stats::.lm.fit(breakpoint_design(x, psi, flat_first), y)$residuals^2)
   }
 
-  ## a coarse grid finds the basin of the global optimum; the refinement below makes it exact
+  ## a coarse grid finds the basin of the global optimum; the refinement below makes it exact. The hinge column of
+  ## every candidate and the number of points before it are computed once, not once per cell
   candidates <- seq(x[min_points], x[n - min_points + 1], length.out = if (n_breakpoints == 1) 100 else 50)
-  grid <- as.matrix(expand.grid(rep(list(candidates), n_breakpoints)))
+  hinges <- outer(x, candidates, function(v, p) pmax(v - p, 0))
+  before <- colSums(outer(x, candidates, "<"))
+  base <- if (flat_first) matrix(1, n) else cbind(1, x)
+  index <- seq_along(candidates)
+  grid <- if (n_breakpoints == 1) cbind(index) else as.matrix(expand.grid(index, index))
   if (n_breakpoints == 2) grid <- grid[grid[, 1] < grid[, 2], , drop = FALSE]
-  start <- grid[which.min(apply(grid, 1, rss)), ]
+  ## only the cells that leave enough points in every segment are fitted
+  counts <- cbind(
+    before[grid[, 1]], if (n_breakpoints == 2) before[grid[, 2]] - before[grid[, 1]], n - before[grid[, n_breakpoints]]
+  )
+  grid <- grid[rowSums(counts < min_points) == 0, , drop = FALSE]
+  if (nrow(grid) == 0) {
+    stop(sprintf("No breakpoints leave at least %d measured points in each segment.", min_points), call. = FALSE)
+  }
+  values <- apply(grid, 1, function(index) {
+    sum(stats::.lm.fit(cbind(base, hinges[, index, drop = FALSE]), y)$residuals^2)
+  })
+  start <- candidates[grid[which.min(values), ]]
   psi <- if (n_breakpoints == 1) {
     step <- diff(candidates[1:2])
     stats::optimize(rss, c(start - step, start + step), tol = 1e-8)$minimum

@@ -294,9 +294,11 @@ prepare_series <- function(tests, dates) {
     stop("Give each test its date with `dates`: dates, or days since the first test.", call. = FALSE)
   ## date-times, as Excel dates read by readxl, count as their dates
   if(inherits(dates, "POSIXt")) dates <- as.Date(dates)
-  if(is.character(dates)) dates <- tryCatch(as.Date(dates), error = function(e) rep(as.Date(NA), length(dates)))
+  ## one explicit format: as.Date() alone reads "03/11/2026" as the year 3
+  if(is.character(dates)) dates <- as.Date(dates, format = "%Y-%m-%d")
   days <- if(inherits(dates, "Date")) as.numeric(dates - min(dates)) else suppressWarnings(as.numeric(dates))
-  if(anyNA(days) || anyDuplicated(days)) stop("`dates` must be distinct dates or numbers of days.", call. = FALSE)
+  if(anyNA(days) || anyDuplicated(days))
+    stop("`dates` must be distinct dates (Date objects or \"YYYY-MM-DD\") or numbers of days.", call. = FALSE)
   sports <- unique(vapply(tests, function(t) lactater_info(t)$settings$sport, ""))
   if(length(sports) > 1) stop("The tests of a series must come from one sport.", call. = FALSE)
   labels <- date_labels(if(inherits(dates, "Date")) dates else days)
@@ -417,6 +419,21 @@ html_stats <- function(r) {
       })
     )
   }
+  ## the other methods aimed at the same boundary, so the reader sees how much the choice of method matters
+  others <- function(k) {
+    members <- setdiff(
+      if(k == 1) c("Bsln + 0.5", "Log-log", "LTP1") else c("Log-Poly-ModDmax", "OBLA 4.0", "LTP2"),
+      attr(three, "lactater_zones")$labels[k]
+    )
+    values <- info$intensity[members]
+    members <- members[!is.na(values)]
+    values <- values[!is.na(values)]
+    if(length(values)) {
+      ## a method stays on one line with its value
+      pairs <- gsub(" ", "&nbsp;", paste(method_html(members), intensity_text(values, sport)), fixed = TRUE)
+      paste("Also", paste(pairs, collapse = " \u00b7 "))
+    }
+  }
   boundary <- function(k) {
     row <- three[k + 1, ]
     stat(
@@ -432,7 +449,8 @@ html_stats <- function(r) {
           sprintf("%.1f mmol/L", row$lactate_from),
           if("heart_rate_from" %in% names(row)) sprintf("%.0f bpm", row$heart_rate_from),
           if("rpe_from" %in% names(row)) sprintf("RPE %.0f", row$rpe_from)
-        )
+        ),
+        others(k)
       )
     )
   }
@@ -530,7 +548,7 @@ html_progress <- function(r, cv) {
       if(!is.null(table$heart_rate)) list(heart_rate = "Heart rate at LT2 (bpm)"),
       list(
         peak = paste0("Peak (", unit, ")"),
-        peak_lactate = gt::html("Peak lactate (mmol&middot;L<sup>&minus;1</sup>)")
+        peak_lactate = "Peak lactate (mmol/L)"
       )
     ))
 
@@ -682,7 +700,7 @@ html_zones <- function(zones, sport) {
       if(!is.null(table$pace)) list(pace = paste0("Pace (min", sub("^\\S+ ", "", format_pace(0, sport)), ")")),
       if(!is.null(table$heart_rate)) list(heart_rate = "Heart rate (bpm)"),
       if(!is.null(table$rpe)) list(rpe = "RPE"),
-      list(lactate = gt::html("Lactate (mmol&middot;L<sup>&minus;1</sup>)"))
+      list(lactate = "Lactate (mmol/L)")
     ))
   ## the zone cell in the color of its band in the chart
   colours <- zone_colours[[as.character(n)]]
@@ -715,7 +733,7 @@ html_prediction <- function(r) {
   if(any(from_chosen)) prediction <- prediction[from_chosen, ]
   unit <- intensity_unit(sport)
   outside <- grepl("outside the range", notes)
-  extrapolated <- vapply(prediction$method, function(m) any(startsWith(notes[outside], paste0(m, " ("))), logical(1))
+  extrapolated <- prediction$extrapolated
   boundary <- match(prediction$method, chosen)
   method <- method_html(prediction$method)
   table <- data.frame(
@@ -812,7 +830,7 @@ html_stages <- function(info) {
     gt::cols_label(.list = c(
       list(
         stage = "Stage", intensity = paste0("Intensity (", intensity_unit(sport), ")"),
-        lactate = gt::html("Lactate (mmol&middot;L<sup>&minus;1</sup>)")
+        lactate = "Lactate (mmol/L)"
       ),
       if(!is.null(table$heart_rate)) list(heart_rate = "Heart rate (bpm)"),
       if(!is.null(table$rpe)) list(rpe = sprintf("RPE (%s)", sub("-", "\u2011", info$settings$rpe_scale)))
@@ -847,7 +865,7 @@ html_methods <- function(x, info) {
     gt::cols_label(.list = c(
       list(
         family = "", method = "Method", intensity = paste0("Intensity (", intensity_unit(sport), ")"),
-        lactate = gt::html("Lactate (mmol&middot;L<sup>&minus;1</sup>)")
+        lactate = "Lactate (mmol/L)"
       ),
       if(!is.null(table$heart_rate)) list(heart_rate = "Heart rate (bpm)"),
       if(!is.null(table$rpe)) list(rpe = sprintf("RPE (%s)", sub("-", "\u2011", info$settings$rpe_scale)))

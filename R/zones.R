@@ -20,11 +20,11 @@ zone_colours <- list(
 #'   domain are set by `split`:
 #'   * `"relative"` (default): zone 1|2 at 75% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of
 #'     the test. In the five-zone scale of Seiler (2010, Table 1), zone 2 starts at 66% of the maximal oxygen uptake
-#'     and zone 3 at 81%; with the oxygen cost of cycling and running (Glass & Dwyer, 2007), that puts zone 2 at about
-#'     77% of the power at LT1 and 80% of the running speed. Sitko et al. (2025) place zone 2 "immediately below" LT1,
-#'     at about 80% to 90% of the heart rate at LT1, which on the cycling tests of [lactate_tests] starts it at a median
-#'     of about 65% of the power at LT1 (where that heart rate falls within the stages). 75% lies between the two and
-#'     needs no heart rate. Zone 5 starts at 94% of the maximal
+#'     and zone 3 at 81%; converted with the oxygen cost of cycling and running (Glass & Dwyer, 2007), our own
+#'     calculation, that puts zone 2 at about 77% of the power at LT1 and 80% of the running speed. Sitko et al. (2025)
+#'     place zone 2 "immediately below" LT1, at about 80% to 90% of the heart rate at LT1, which on the cycling tests
+#'     of [lactate_tests] (our count, where that heart rate falls within the stages) starts it at a median of about
+#'     65% of the power at LT1. 75% lies between the two and needs no heart rate. Zone 5 starts at 94% of the maximal
 #'     oxygen uptake, halfway between the start of zone 4 (88%) and the maximum. Both cuts are approximations: no
 #'     physiological marker separates them (Bishop et al., 2025), and the scale's zones are "somewhat arbitrary"
 #'     (Seiler, 2010).
@@ -124,7 +124,7 @@ lactate_zones <- function(x, lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax", model
     info$intensity[[marker]]
   }
   lt <- c(boundary(lt1, "lt1"), boundary(lt2, "lt2"))
-  if(lt[1] >= lt[2]) stop("LT1 must be below LT2.", call. = FALSE)
+  if(lt[1] >= lt[2]) stop(sprintf("LT1 (%g) must be below LT2 (%g).", lt[1], lt[2]), call. = FALSE)
 
   if(model == 3) {
     bounds <- lt

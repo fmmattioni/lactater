@@ -33,12 +33,20 @@ format_pace <- function(seconds, sport) {
   sprintf("%d:%02d %s", seconds %/% 60, seconds %% 60, distance)
 }
 
+## every sport, its unit, the decimals shown and the axis label
+sports <- data.frame(
+  sport = c("cycling", "rowing", "running", "swimming"),
+  unit = c("W", "W", "km/h", "m/s"),
+  digits = c(0, 0, 1, 2),
+  label = c("Power (W)", "Power (W)", "Speed (km/h)", "Speed (m/s)")
+)
+
 #' Intensity unit of each sport
 #'
 #' @param sport The sport.
 #' @keywords internal
 intensity_unit <- function(sport) {
-  switch(sport, cycling = "W", rowing = "W", running = "km/h", swimming = "m/s")
+  sports$unit[match(sport, sports$sport)]
 }
 
 #' Decimals shown for the intensity of each sport
@@ -48,7 +56,7 @@ intensity_unit <- function(sport) {
 #' @param sport The sport.
 #' @keywords internal
 intensity_digits <- function(sport) {
-  switch(sport, cycling = 0, rowing = 0, running = 1, swimming = 2)
+  sports$digits[match(sport, sports$sport)]
 }
 
 #' Format an intensity with the decimals of its sport

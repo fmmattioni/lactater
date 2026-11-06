@@ -9,7 +9,7 @@
 #' for each row.
 #' @keywords internal
 method_ltratio <- function(data, curve, settings) {
-  minimum <- ltratio_minimum(data, curve, settings)
+  minimum <- settings$ltratio
   method_result(
     method = "LTratio",
     fitting = "B-Spline (default)",
@@ -30,7 +30,7 @@ method_ltratio <- function(data, curve, settings) {
 #' for each row.
 #' @keywords internal
 method_iat <- function(data, curve, settings) {
-  minimum <- ltratio_minimum(data, curve, settings)
+  minimum <- settings$ltratio
   start <- minimum$spline$predict(minimum$intensity)
   target <- start + settings$iat_rise
   method_result(
@@ -58,8 +58,7 @@ ltratio_minimum <- function(data, curve, settings) {
 
   ## the ratio is only meaningful during exercise, not at the positioned resting sample
   grid <- seq(min(data$intensity[data$intensity > 0]), spline$domain[2], length.out = 2001)
-  best <- which.min(ratio(grid))
-  intensity <- stats::optimize(ratio, grid[c(max(best - 1, 1), min(best + 1, length(grid)))], tol = 1e-8)$minimum
+  intensity <- refine_extremum(ratio, grid)$minimum
 
   list(
     spline = spline,

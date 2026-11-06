@@ -646,10 +646,12 @@ lactate_breaks <- function(top) {
 #' @param sport The sport.
 #' @keywords internal
 intensity_label <- function(sport) {
-  switch(sport, cycling = "Power (W)", rowing = "Power (W)", running = "Speed (km/h)", swimming = "Speed (m/s)")
+  sports$label[match(sport, sports$sport)]
 }
 
 #' Combine lactate threshold methods into one plot
+#'
+#' The one-line note under each title is dropped: it would crowd a grid of small panels.
 #'
 #' @param plots The `ggplot2` objects to be combined.
 #' @param ... Additional arguments passed onto `patchwork::wrap_plots()`.
@@ -657,5 +659,6 @@ intensity_label <- function(sport) {
 #' @return a `patchwork` object
 #' @export
 plot_methods <- function(plots, ...) {
+  plots <- lapply(plots, function(p) p + ggplot2::labs(subtitle = NULL))
   patchwork::wrap_plots(... = plots, ...)
 }

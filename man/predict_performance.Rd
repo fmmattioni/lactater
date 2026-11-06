@@ -12,7 +12,7 @@ predict_performance(x, method = NULL, equation = NULL)
 \arguments{
 \item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
 
-\item{method}{The thresholds to predict from. Default to every threshold of \code{x} that has an equation.}
+\item{method}{The thresholds to predict from. Defaults to every threshold of \code{x} that has an equation.}
 
 \item{equation}{Your own equation(s) from \code{\link[=calibrate_performance]{calibrate_performance()}}, one or a list of them, used in place of the
 published ones.}

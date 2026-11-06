@@ -34,7 +34,7 @@ test_that("compare_tests notes a different protocol and a fall in peak lactate",
 test_that("curve_shift finds the intensity gained at each lactate", {
   shift <- curve_shift(before, run(shifted(1.1)), lactate = c(2, 4))
   at_2 <- retrieve_intensity(attr(before, "lactater")$curve, 2)
-  expect_equal(shift$shift[1], round(0.1 * at_2), tolerance = 1)
+  expect_lt(abs(shift$shift[1] - 0.1 * at_2), 2)
   saved <- curve_shift(before, run(shifted(1.1)), lactate = 2, intensity = 150)
   expect_lt(saved$lactate_change[2], 0)
 })
@@ -55,7 +55,7 @@ test_that("lactate_trend recovers a steady change per 30 days", {
   trend <- do.call(lactate_trend, c(tests, list(day = days)))
   obla <- trend[trend$method == "OBLA 4.0", ]
   at_start <- attr(tests[[1]], "lactater")$intensity[["OBLA 4.0"]]
-  expect_equal(obla$per_30_days, at_start / 100, tolerance = 0.25)
+  expect_lt(abs(obla$per_30_days - at_start / 100), 0.25 * at_start / 100)
   expect_lt(obla$low, obla$per_30_days)
   expect_s3_class(autoplot(trend), "patchwork")
   expect_error(lactate_trend(tests[[1]], tests[[2]], day = 1:2), "at least three")
@@ -102,4 +102,9 @@ test_that("the trend plot draws up to five curves with their zones, and more tes
 
 test_that("the comparison plot draws the shift arrows", {
   expect_s3_class(autoplot(compare_tests(before, run(shifted(1.05)))), "ggplot")
+})
+
+test_that("compare_tests prints its notes", {
+  tired <- transform(demo_data, lactate = ifelse(intensity > 150, lactate * 0.8, lactate))
+  expect_output(print(compare_tests(before, run(tired))), "Note.*Peak lactate fell")
 })

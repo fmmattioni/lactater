@@ -25,14 +25,14 @@
 #' sport with `.by = test`.
 #'
 #' Twelve tests are real: eleven from the Trinity College Dublin graded exercise test data (3-min stages,
-#' lactate sampled at 2 min, YSI analyser; running on a treadmill at 0% grade; rowing with 1 min of rest
+#' lactate sampled at 2 min, YSI analyzer; running on a treadmill at 0% grade; rowing with 1 min of rest
 #' between stages) and one from Heuberger et al. (2018) (5-min steps from 175 W). Names, birth dates and
 #' test dates were removed. Four tests are simulated, where no open data exists: a swimmer's 7 x 200 m
 #' step test (+0.05 m/s per step; Pelarigo et al., 2017), an untrained client tested to exhaustion and
 #' stopped early (25 W steps; untrained men peaked near 250 W in Messonnier et al., 2013), and a recreational runner
 #' on the protocol of Roecker et al. (1998) (treadmill at 2% grade, +2 km/h every 3 min from 6 km/h), so that
 #' their race-time equations apply as published. Their lactate
-#' rises exponentially through about 2.5 mmol/L near the first threshold, with analyser scatter of 3% from
+#' rises exponentially through about 2.5 mmol/L near the first threshold, with analyzer scatter of 3% from
 #' 2 mmol/L and 5% below (Bonaventura et al., 2015). Their simulated RPE rises with lactate, from about 11 at
 #' 2 mmol/L to 14 at 4 mmol/L (close to the cohort means at the first rise in lactate and at 4 mmol/L of Scherr et
 #' al., 2013) and 19 to 20 at the last stage. See `data-raw/lactate_tests.R`.

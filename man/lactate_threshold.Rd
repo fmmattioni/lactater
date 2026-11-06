@@ -2,7 +2,7 @@
 % Please edit documentation in R/lactate_threshold.R
 \name{lactate_threshold}
 \alias{lactate_threshold}
-\title{Lactate threshold}
+\title{Lactate thresholds from a step test}
 \usage{
 lactate_threshold(
   .data,
@@ -34,84 +34,83 @@ lactate_threshold(
   ci = FALSE,
   n_boot = 500,
   ci_level = 0.95,
+  seed = NULL,
   .by = NULL
 )
 }
 \arguments{
-\item{.data}{The raw data.}
+\item{.data}{One row per stage: the intensity, the lactate at the end of the stage and, if recorded, the heart rate
+and the rating of perceived exertion (RPE). The resting sample, if any, is the row with intensity 0. Rows with a
+missing intensity or lactate are dropped with a warning.}
 
-\item{intensity_column}{The name of the intensity column.}
+\item{intensity_column}{The name of the intensity column: bare, as a string, or a variable that holds the name.}
 
 \item{lactate_column}{The name of the lactate column.}
 
-\item{heart_rate_column}{The name of the heart rate column, if applicable. The heart rate at each threshold is
-interpolated linearly between the measured stages.}
+\item{heart_rate_column}{The name of the heart rate column, if recorded. The heart rate at each threshold is
+interpolated linearly between the measured stages, and is \code{NA} outside them: a threshold there is doubtful
+anyway (see \code{\link[=lactate_checks]{lactate_checks()}}). A zone boundary below the first stage, which is common for zone 1|2, is instead
+extrapolated (see \code{\link[=lactate_zones]{lactate_zones()}}).}
 
-\item{rpe_column}{The name of the rating of perceived exertion (RPE) column, if recorded. The RPE at each threshold
-is interpolated between the measured stages, like the heart rate. A heart rate or RPE column with no values, as
-when none was written on the recording form, is left out.}
+\item{rpe_column}{The name of the RPE column, if recorded. The RPE at each threshold is interpolated like the heart
+rate. A heart rate or RPE column with no values, as when none was written on the recording form, is left out.}
 
 \item{rpe_scale}{The RPE scale: \code{"6-20"} (Borg's RPE scale, default) or \code{"CR10"} (Borg's category-ratio scale,
 0 to 10, with ratings above 10 allowed for an absolute maximum).}
 
-\item{method}{The lactate threshold method to calculate. It can be one or many of the following:
-\code{Log-log}, \code{OBLA}, \verb{Bsln+}, \code{Dmax}, \code{LTP}, \code{LTratio}, \code{IAT}, \code{Stegmann}. See \code{Details} for more information.
-Default to all of them (\code{Stegmann} only when \code{recovery} is given).}
+\item{method}{The method families to estimate, one or more of \code{"Log-log"}, \code{"OBLA"}, \code{"Bsln+"}, \code{"Dmax"},
+\code{"LTP"}, \code{"LTratio"}, \code{"IAT"} and \code{"Stegmann"}. Defaults to all of them (\code{Stegmann} only when \code{recovery} is
+given).}
 
-\item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate
-thresholds.
-Please, note that a few lactate thresholds have default methods for this and cannot be changed.
-Options are \verb{3rd degree polynomial}, \verb{4th degree polynomial}, or \code{B-spline} (a natural cubic regression spline with 4
-degrees of freedom, built on a B-spline basis; with 6 stages it nearly passes through every point). See \code{Details}.}
+\item{fit}{The curve fitted to the lactate values: \code{"3rd degree polynomial"} (default), \code{"4th degree polynomial"}
+or \code{"B-spline"} (a natural cubic regression spline with 4 degrees of freedom; with 6 stages it nearly passes
+through every point). OBLA, Bsln+ and Stegmann read their thresholds off this curve; the other methods fit their
+own, as their papers did (see \code{Details}). \code{\link[=lactate_fit_quality]{lactate_fit_quality()}} compares the curves on your data.}
 
-\item{include_baseline}{A boolean to indicate whether to include the resting (baseline) sample in the fitted
-curve (used by OBLA, Bsln+, LTratio, IAT and Stegmann). The resting sample is the row with intensity 0; in the fit
-it is placed one median step before the first stage. Log-log, LTP and the Dmax family fit the exercise stages only,
-so they never use it. Data without a resting sample is fine. Rows with a missing intensity or lactate are dropped
-with a warning.}
+\item{include_baseline}{Whether the resting sample is part of the curve fitted with \code{fit} (used by OBLA, Bsln+,
+LTratio, IAT and Stegmann). In the fit it is placed one median step before the first stage. Log-log, LTP and the
+Dmax family fit the exercise stages only. Defaults to \code{FALSE}.}
 
-\item{sport}{The sport at which the incremental test was performed. One of \code{cycling} (intensity in W), \code{running}
-(km/h), \code{swimming} (m/s), or \code{rowing} (W). For running, swimming and rowing a \code{pace} column is added: s/km,
-s/100 m, and the Concept2 split in s/500 m (\code{watts = 2.80 / pace^3}, pace in s/m).}
+\item{sport}{One of \code{"cycling"} (intensity in W), \code{"running"} (km/h), \code{"swimming"} (m/s) or \code{"rowing"} (W). For
+running, swimming and rowing a \code{pace} column is added: s/km, s/100 m, and the Concept2 split in s/500 m
+(\code{watts = 2.80 / pace^3}, pace in s/m).}
 
-\item{loglog_restrainer}{Deprecated. Log-log uses all stages, as Beaver et al. (1985) did. A
-value below \code{1} still keeps only that share of the first stages, with a warning; it will be removed in a future
-version.}
+\item{loglog_restrainer}{Deprecated. Log-log uses all stages, as Beaver et al. (1985) did. A value below \code{1} still
+keeps only that share of the first stages, with a warning; it will be removed in a future version.}
 
-\item{plot}{A boolean to indicate whether to generate a plot from each one of the methods. Default to \code{TRUE}.}
+\item{plot}{Whether to draw the plot of each method into a \code{plot} column. Defaults to \code{TRUE}.}
 
-\item{dmax_anchor}{Where the ends of the \code{Dmax} lines sit: \code{"original"} (default) as in each
-variant's paper, \code{"fitted"} on the fitted curve, \code{"observed"} at the measured lactate of the start
-and end stages. See \code{Details}.}
+\item{dmax_anchor}{Where the ends of the Dmax lines sit: \code{"original"} (default) as in each variant's paper,
+\code{"fitted"} on the fitted curve, \code{"observed"} at the measured lactate of the start and end stages. See \code{Details}.}
 
-\item{moddmax_rise}{The rise in lactate (mmol/L) between two consecutive stages that marks the
-first rise in \code{ModDmax}. Default to \code{0.4} (Bishop et al., 1998, who measured fingertip plasma lactate);
-change it for other sample types such as sweat.}
+\item{moddmax_rise}{The rise in lactate (mmol/L) between two consecutive stages that marks the first rise in
+ModDmax. Defaults to \code{0.4} (Bishop et al., 1998, who measured fingertip plasma lactate); change it for other
+sample types such as sweat.}
 
-\item{ltp_fix_first_slope}{A boolean to indicate whether the first \code{LTP} segment (before LTP1) is flat
-(slope fixed at zero) instead of estimated. Default to \code{FALSE}.}
+\item{ltp_fix_first_slope}{Whether the first LTP segment (before LTP1) is flat instead of estimated. Defaults to
+\code{FALSE}.}
 
-\item{dmax_methods}{Which \code{Dmax} variants to calculate when \code{method} includes \code{Dmax}: one or more of
-\code{"Dmax"}, \code{"ModDmax"}, \code{"Exp-Dmax"}, \code{"LTP1-Poly-ModDmax"}, \code{"Log-Poly-ModDmax"}, and \code{"Log-Exp-ModDmax"}.
-Default to all but \code{"LTP1-Poly-ModDmax"} (a line from LTP1 instead of Log-log; not part of Jamnick et al., 2018).}
+\item{dmax_methods}{Which Dmax variants to estimate when \code{method} includes \code{"Dmax"}: one or more of \code{"Dmax"},
+\code{"ModDmax"}, \code{"Exp-Dmax"}, \code{"LTP1-Poly-ModDmax"}, \code{"Log-Poly-ModDmax"} and \code{"Log-Exp-ModDmax"}. Defaults to all
+but \code{"LTP1-Poly-ModDmax"} (a line from LTP1 instead of Log-log; not part of Jamnick et al., 2018).}
 
-\item{fixed}{The fixed lactate concentrations (mmol/L) for \code{OBLA}. Default to \code{c(2, 2.5, 3, 3.5, 4)}.}
+\item{fixed}{The fixed lactate concentrations (mmol/L) for OBLA. Defaults to \code{c(2, 2.5, 3, 3.5, 4)}.}
 
-\item{baseline_plus}{The rises above baseline (mmol/L) for \verb{Bsln+}. Default to \code{c(0.5, 1, 1.5)}.}
+\item{baseline_plus}{The rises above baseline (mmol/L) for Bsln+. Defaults to \code{c(0.5, 1, 1.5)}.}
 
-\item{iat_rise}{The rise (mmol/L) above the lactate at LTratio that defines \code{IAT}. Default to \code{1.5}
-(Dickhuth et al., 1999).}
+\item{iat_rise}{The rise (mmol/L) above the lactate at LTratio that defines IAT. Defaults to \code{1.5} (Dickhuth et
+al., 1999).}
 
-\item{ltp_breakpoints}{The number of lactate turn points to fit: \code{2} (default) for a test to exhaustion,
-or \code{1} for a submaximal test that stopped before the second turn point (LTP1 only; LTP2 is \code{NA}).}
+\item{ltp_breakpoints}{The number of lactate turn points to fit: \code{2} (default) for a test to exhaustion, or \code{1}
+for a submaximal test that stopped before the second turn point (LTP1 only; LTP2 is \code{NA}).}
 
-\item{recovery}{The lactate samples taken after the end of the test, for \code{Stegmann}: a data frame with the
-columns \code{time} (minutes after the end of exercise) and \code{lactate}. Sample until lactate has fallen back below
-its end-of-exercise value; Stegmann et al. (1981) sampled at 1, 2, 5 and 10 min.}
+\item{recovery}{The lactate samples taken after the end of the test, for Stegmann: a data frame with the columns
+\code{time} (minutes after the end of exercise) and \code{lactate}. Sample until lactate has fallen back below its
+end-of-exercise value; Stegmann et al. (1981) sampled at 1, 2, 5 and 10 min.}
 
-\item{stage_duration}{The duration of each stage, in minutes, or \code{NULL}. \code{Stegmann} needs it to put the recovery
-minutes on the intensity axis, and \code{\link[=predict_performance]{predict_performance()}}, \code{\link[=reference_percentiles]{reference_percentiles()}} and \code{\link[=compare_tests]{compare_tests()}} check it
-against their protocols (a different stage length moves the thresholds).}
+\item{stage_duration}{The duration of each stage, in minutes, or \code{NULL}. Stegmann needs it to put the recovery
+minutes on the intensity axis, and \code{\link[=predict_performance]{predict_performance()}}, \code{\link[=reference_percentiles]{reference_percentiles()}} and \code{\link[=compare_tests]{compare_tests()}} check
+it against their protocols (a different stage length moves the thresholds).}
 
 \item{site}{Where the blood was sampled: \code{"earlobe"}, \code{"fingertip"}, \code{"venous"}, \code{"other"}, or \code{NULL} (not
 recorded). It does not change the calculations; \code{\link[=predict_performance]{predict_performance()}}, \code{\link[=reference_percentiles]{reference_percentiles()}} and
@@ -119,202 +118,152 @@ recorded). It does not change the calculations; \code{\link[=predict_performance
 
 \item{grade}{The treadmill grade (\%) of a running test, or \code{NULL}. Checked like \code{site}.}
 
-\item{max_intensity}{Stages above this intensity are left out of every method (e.g. an incomplete last
-stage, or a last stage where lactate plateaus). Default to \code{NULL} (keep all stages).}
+\item{max_intensity}{Stages above this intensity are left out of every method (an incomplete last stage, or one
+where lactate plateaus). Defaults to \code{NULL} (keep all stages).}
 
-\item{sample}{The sample the lactate was measured in: \code{"blood"} (default), \code{"plasma"}, \code{"sweat"}, or
+\item{sample}{The sample the lactate was measured in: \code{"blood"} (default), \code{"plasma"}, \code{"sweat"} or
 \code{"interstitial fluid"}. It does not change the calculations; \code{\link[=lactate_checks]{lactate_checks()}} warns when a method relies on
 fixed blood lactate concentrations that do not transfer to the sample.}
 
-\item{ci}{A boolean to indicate whether to add bootstrap confidence intervals for the intensities
-(\code{intensity_low}, \code{intensity_high}). See \code{Details}. Default to \code{FALSE}.}
+\item{ci}{Whether to add bootstrap confidence intervals for the intensities (\code{intensity_low}, \code{intensity_high}).
+See \code{Details}. Defaults to \code{FALSE}.}
 
-\item{n_boot}{Number of bootstrap replicates when \code{ci = TRUE}. Default to \code{500}.}
+\item{n_boot}{Number of bootstrap replicates when \code{ci = TRUE}. Defaults to \code{500}.}
 
-\item{ci_level}{Confidence level when \code{ci = TRUE}. Default to \code{0.95}.}
+\item{ci_level}{Confidence level when \code{ci = TRUE}. Defaults to \code{0.95}.}
 
-\item{.by}{Names of columns that identify separate tests (e.g. \code{"athlete"} or \code{athlete}, or
-\code{c("athlete", "date")}).
+\item{seed}{A seed for the bootstrap replicates, so that the intervals are reproducible, or \code{NULL} to draw them
+from the current random stream (then call \code{set.seed()} first for reproducibility).}
+
+\item{.by}{Names of columns that identify separate tests (\code{"athlete"} or \code{athlete}, or \code{c("athlete", "date")}).
 Each test is analyzed on its own and the results are bound together, with the \code{.by} columns first.}
 }
 \value{
-a \code{lactate_thresholds} tibble (plot it with \code{\link[=autoplot]{autoplot()}} or \code{\link[=plot]{plot()}}) with the following columns:
-\item{method_category}{the category of the lactate threshold method.}
-\item{method}{the method used to estimate the lactate threshold}
-\item{fitting}{the fitting method used to predict the lactate curve}
-\item{intensity}{the intensity associated with the estimated lactate threshold}
-\item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{heart_rate}{the heart rate associated with the estimated lactate threshold}
-\item{rpe}{the rating of perceived exertion at the threshold, when \code{rpe_column} is given}
-\item{plot}{the plot produced to display the lactate threshold}
+a \code{lactate_thresholds} tibble (plot it with \code{\link[=autoplot]{autoplot()}} or \code{\link[=plot]{plot()}}) with one row per threshold:
+\item{method_category}{the method family.}
+\item{method}{the method.}
+\item{fitting}{the curve the method used.}
+\item{intensity}{the intensity at the threshold, in whole watts, km/h to 0.1 or m/s to 0.01; \code{NA} when the method
+found no threshold in the tested range.}
+\item{intensity_low, intensity_high}{with \code{ci = TRUE}, the confidence interval of the intensity.}
+\item{pace}{for running, swimming and rowing, the pace at the threshold.}
+\item{lactate}{the lactate at the threshold.}
+\item{heart_rate}{the heart rate at the threshold, when \code{heart_rate_column} is given.}
+\item{rpe}{the RPE at the threshold, when \code{rpe_column} is given.}
+\item{plot}{the plot of the method, when \code{plot = TRUE}.}
+With \code{.by}, the columns that identify each test come first.
 }
 \description{
-This is a general function that applies several lactate threshold methods at the same time.
+Estimates the lactate thresholds of a step incremental test with every method at once, or the methods you choose,
+and returns them with the lactate, heart rate and RPE at each one. How each method is defined, how lactater computes
+it and what the evidence says is in the article
+\href{https://fmmattioni.github.io/lactater/articles/methods.html}{The methods and the evidence}; the essentials are
+under \code{Details}.
 }
 \details{
 \subsection{Log-log}{
 
-The log of lactate vs the log of intensity is divided at a measured stage into two segments that both
-include that stage, and each segment is fitted by its own straight line (Beaver et al., 1985). Beaver et al.
-chose the division by eye; lactater takes the division with "the lowest residuals sum of squares"
-(Jamnick et al., 2018), trying every stage, with at least three stages per line (so at least five stages).
-The exercise intensity where the two lines cross is considered as Log-log; it is \code{NA} when they cross
-outside the measured stages. Beaver et al. plotted log lactate against log oxygen uptake; lactater uses the log of
-the exercise intensity, so the threshold is an intensity, not an oxygen uptake.
-Caution: this method might require a double-check via a visual inspection, depending in some cases.
+Two straight lines through log(lactate) against log(intensity), split at a measured stage that belongs to both
+lines, at the split with "the lowest residuals sum of squares" (Beaver et al., 1985; Jamnick et al., 2018), with
+at least three stages per line, so at least five stages. The threshold is where the lines cross, and the lactate
+is read off the lines; it is \code{NA} when they cross outside the measured stages. Beaver et al. plotted lactate
+against oxygen uptake; lactater uses the intensity.
 }
 
 \subsection{OBLA}{
 
-The Onset of Blood Lactate Accumulation (OBLA) is the exercise intensity at fixed lactate of 2.0, 2.5,
-3.0, 3.5, and 4.0 mmol/L (Heck et al., 1985, Kindermann et al., 1979; Skinner & Mclellan, 1980). The lactate curve is
-usually fitted using a 3rd order polynomial regression curve,
-but the user can define another method (4th degree polynomial or B-spline).
+The intensity at which the fitted curve reaches each concentration in \code{fixed}, 2.0 to 4.0 mmol/L by default
+(Heck et al., 1985; Kindermann et al., 1979; Skinner & McLellan, 1980), solved exactly. When the curve crosses a
+target more than once (an early lactate dip), the last crossing where lactate rises through it is used: from there
+on, lactate stays above the target. \code{NA} when the curve never reaches it.
 }
 
 \subsection{Bsln+}{
 
-In the baseline plus method (Bsln+), the exercise intensity at which lactate increases to 0.5, 1.0,
-and 1.5 mmol/L above baseline (resting) values is considered (Berg et al., 1990; Zoladz et al., 1995). The lactate
-curve is usually fitted using a
-3rd order polynomial regression curve,
-but the user can define another method (4th degree polynomial or B-spline).
-
-The baseline is a single sample: the resting sample when there is one, otherwise the first stage. Studies differ
-here: Heuberger et al. (2018) used the mean of the measurements before lactate rose, and Jamnick et al. (2018) wrote
-only "baseline value(s)". One sample carries the analyzer error, about 0.1 mmol/L at low concentrations
-(Bonaventura et al., 2015): on \code{demo_data}, a baseline 0.1 mmol/L lower or higher moves Bsln + 0.5 from 83 W to 77
-or 88 W. \code{\link[=lactate_diagnostics]{lactate_diagnostics()}} shows how much each threshold rests on the baseline sample.
+The intensity at which the fitted curve is each rise in \code{baseline_plus} above the baseline (Berg et al., 1990;
+Zoladz et al., 1995), solved like OBLA. The baseline is one sample: the resting sample when there is one, otherwise
+the first stage. Studies differ here: Heuberger et al. (2018) used the mean of the samples before lactate rose, and
+Jamnick et al. (2018) wrote only "baseline value(s)". One sample carries the analyzer error, about 0.1 mmol/L at
+low concentrations (Bonaventura et al., 2015): on \code{demo_data}, a baseline 0.1 mmol/L lower or higher moves
+Bsln + 0.5 from 83 W to 77 or 88 W. \code{\link[=lactate_diagnostics]{lactate_diagnostics()}} shows how much each threshold rests on the baseline
+sample, and \code{\link[=lactate_checks]{lactate_checks()}} says when the LT1 methods disagree.
 }
 
-\subsection{Dmax}{
+\subsection{The Dmax family}{
 
-All \code{Dmax} variants look for the point on the fitted curve furthest below a straight line that
-ends at the last stage. With \code{dmax_anchor = "original"} (default) the ends sit where each paper put them:
-on the fitted curve for Dmax and Exp-Dmax ("the two end points of the curve", Cheng et al., 1992), and at
-the measured lactate for ModDmax ("the LT and the final lactate point", Bishop et al., 1998) and for the
-end of the Log-log variants ("the final lactate point", Jamnick et al., 2018). \code{dmax_anchor = "fitted"}
-puts every end on the curve and \code{"observed"} every end at the measured values (Heuberger et al., 2018).
-A line starting at the Log-log threshold or LTP1 always starts on the curve. When the curve never dips
-below the line, the result is \code{NA}. The resting sample is never used.
-\subsection{Dmax}{
-
-The exercise intensity that yields the maximum perpendicular distance to the straight line
-between the first and the last stage (Cheng et al., 1992). The lactate curve is fitted using a 3rd order polynomial
-regression curve,
-and it can't be changed.
+Every variant takes the point of its curve that lies furthest below a straight line ending at the last stage (the
+perpendicular distance peaks at the same point as the vertical one). The variants differ in the curve, which \code{fit}
+does not change, and in where the line starts:
+\itemize{
+\item Dmax: a 3rd degree polynomial, from the first stage (Cheng et al., 1992).
+\item ModDmax: the polynomial, from the stage preceding the first rise of at least \code{moddmax_rise} (Bishop et al., 1998).
+Bishop et al. and Jamnick et al. (2018) wrote a rise of "> 0.4"; lactater counts a rise of exactly 0.4 too, as
+Heuberger et al. (2018) did.
+\item Exp-Dmax: an exponential plus constant, from the first stage (Hughson et al., 1987).
+\item Log-Poly-ModDmax and Log-Exp-ModDmax: the polynomial or the exponential, from the Log-log threshold, computed
+without the resting sample (Jamnick et al., 2018).
+\item LTP1-Poly-ModDmax: the polynomial, from LTP1 (only when requested in \code{dmax_methods}).
 }
 
-\subsection{Modified Dmax (ModDmax)}{
-
-The exercise intensity that yields the maximum perpendicular distance to the straight line
-between the stage preceding the first rise in lactate of at least \code{moddmax_rise} (0.4 mmol/L by default)
-and the last stage (Bishop et al., 1998). Bishop et al. and Jamnick et al. (2018) wrote a rise of "> 0.4";
-lactater counts a rise of exactly 0.4 too, as Heuberger et al. (2018) did. The lactate curve is fitted using a
-3rd order polynomial regression curve, and it can't be changed.
-}
-
-\subsection{Exponential Dmax (Exp-Dmax)}{
-
-The exercise intensity on the exponential plus-constant regression lactate curve that
-yields the maximum perpendicular distance to the straight line between the first and the
-last stage (Hughson et al., 1987). The lactate curve is fitted using an exponential curve,
-and it can't be changed.
-}
-
-\subsection{Log-log modified Dmax (Log-Poly-ModDmax)}{
-
-The exercise intensity that yields the maximum perpendicular distance to the straight line
-between the Log-log threshold and the last stage in the 3rd order polynomial regression curve (Jamnick et al., 2018).
-The Log-log threshold used here is always computed without the resting sample.
-The lactate curve is fitted using a 3rd order polynomial regression curve,
-and it can't be changed.
-}
-
-\subsection{Log-log exponential Dmax (Log-Exp-ModDmax)}{
-
-The exercise intensity that yields the maximum perpendicular distance to the straight line
-between the Log-log threshold and the last stage in the exponential curve (Jamnick et al., 2018).
-The lactate curve is fitted using an exponential curve,
-and it can't be changed.
-}
-
+With \code{dmax_anchor = "original"} (default) the ends of the line sit where each paper put them: on the fitted curve
+for Dmax and Exp-Dmax ("the two end points of the curve", Cheng et al., 1992), and at the measured lactate for
+ModDmax ("the LT and the final lactate point", Bishop et al., 1998) and for the end of the Log-log variants ("the
+final lactate point", Jamnick et al., 2018). \code{"fitted"} puts every end on the curve and \code{"observed"} every end at
+the measured values (Heuberger et al., 2018); a line starting at the Log-log threshold or LTP1 always starts on the
+curve. \code{NA} when the curve never dips below the line. The resting sample is never used.
 }
 
 \subsection{LTP}{
-\subsection{Lactate Turning Point 1 (LTP1) and Lactate Turning Point 2 (LTP2)}{
 
-The lactate response is divided into three continuous straight segments, fitted to the measured stages
-by exhaustive search for the two breakpoints with the lowest residual sum of squares (at least two stages
-per segment, so at least six stages are needed). With \code{ltp_fix_first_slope = TRUE} the first segment is
-flat. The original papers fitted each turn point with its own two-line regression inside a window (LTP1
-from the first stage up to 4 mmol/L, or up to 75\% of the maximal intensity; LTP2 from LTP1 to the maximal
-intensity), on tests with 1-min or 90-s stages. With the 6-8 stages of a typical step test those windows
-hold too few stages, so lactater fits the three segments together. The first breaking point, representing
-the first rise in lactate above resting levels, is considered as LTP1. The second breaking point,
-representing an accelerated lactate accumulation, is then considered as LTP2
-(Hofmann & Tschakert, 2017; Hofmann et al., 1997; Pokan et al., 1997).
-Caution: this method might require a double-check via a visual inspection, depending in some cases.
+Three connected straight segments through the exercise stages, with the two breakpoints found by exhaustive search
+for the lowest residual sum of squares, at least two stages per segment (so at least six stages; four with
+\code{ltp_breakpoints = 1}, which fits LTP1 only). \code{ltp_fix_first_slope = TRUE} keeps the first segment flat. LTP1 is
+the first rise of lactate above resting levels and LTP2 the second, accelerated rise (Hofmann et al., 1997; Pokan
+et al., 1997; Hofmann & Tschakert, 2017). The original papers fitted each turn point in its own window, on tests
+with 1-min or 90-s stages; with the 6 to 10 stages of a step test the windows hold too few stages, so lactater fits
+the three segments together. The fit has 6 parameters, so with 6 or 7 stages a single stage can move the turn
+points a lot: \code{\link[=lactate_checks]{lactate_checks()}} says so, and \code{\link[=lactate_diagnostics]{lactate_diagnostics()}} shows by how much.
 }
 
-}
+\subsection{LTratio and IAT}{
 
-\subsection{LTratio}{
-
-The lactate response (i.e., ratio of lactate / exercise intensity vs exercise intensity) is interpolated
-using a B-spline regression curve. LTratio is then defined as the lowest value of the lactate / exercise intensity
-ratio, which attempts to describe the onset of the lactate increase (Dickhuth et al., 1999).
-}
-
-\subsection{Bootstrap intervals}{
-
-With \code{ci = TRUE}, each threshold gets a percentile bootstrap interval for the noise of the samples. Each replicate
-keeps the curve fitted to the data and gives every stage its own residual with a random sign (a wild bootstrap; Wu,
-1986; Davidson & Flachaire, 2008), because the error of a lactate sample grows with its concentration; the
-residuals are scaled for their leverage and widened as a t quantile is over a normal one, for the few degrees of
-freedom a step test leaves. Every method is then run again, and the bounds are rounded outward.
-
-In a simulation of 150 tests of 8 stages from a known curve, with an analyzer error of 0.1 mmol/L plus 4\%, the 95\%
-intervals held the true threshold in 93\% of tests for Bsln + 1.0, 94\% for Exp-Dmax and 84\% for OBLA 4.0; with a
-constant error of 0.25 mmol/L, in 93\%, 97\% and 91\% (\code{data-raw/bootstrap_coverage.R}). OBLA falls short because a
-3rd degree polynomial cannot follow the curve exactly (here 1.5 W too low on average), an error the interval does
-not include. Nor does it include errors that are the same in every sample (analyzer bias, sampling site), or the
-day-to-day variation of the athlete, which is larger (about 3.5-4\% of the intensity; Heuberger et al., 2018; see
-\code{\link[=compare_tests]{compare_tests()}}). Call \code{set.seed()} first to make the intervals reproducible.
-}
-
-\subsection{IAT}{
-
-The individual anaerobic threshold (IAT) is the intensity at which lactate is 1.5 mmol/L above the
-lactate at LTratio, on the same B-spline curve (Dickhuth et al., 1999; as described by Heuberger et al., 2018).
-Like OBLA and Bsln+, it uses an absolute lactate step, so it assumes blood lactate.
+LTratio is the intensity where lactate / intensity is lowest on a B-spline through the stages (Dickhuth et al.,
+1999). IAT, the individual anaerobic threshold of Dickhuth et al. (1999), is the intensity \code{iat_rise} (1.5 mmol/L)
+above the lactate at LTratio, on the same spline (as described by Heuberger et al., 2018). Like OBLA and Bsln+, IAT
+uses an absolute lactate step, so it assumes blood lactate.
 }
 
 \subsection{Stegmann}{
 
 The individual anaerobic threshold of Stegmann et al. (1981). After the test, blood lactate first rises and then
-falls. From the point in recovery where it is back at its end-of-exercise value, a tangent is drawn to the
-lactate curve of the test; the point of contact is the threshold, and the slope of the tangent the maximal rate of
-lactate elimination. Stegmann et al. plotted lactate against time, so lactater puts the recovery minutes on the
-intensity axis at the rate the test rose: the median increment between stages divided by \code{stage_duration}. The
-time lactate is back at its end-of-exercise value is interpolated linearly between the recovery samples after
-the post-exercise peak; when lactate never falls back to it, or never rises after the test, the threshold is \code{NA}.
-The tangent touches the curve fitted with \code{fit}.
+falls. From the point in recovery where it is back at its end-of-exercise value, a tangent is drawn to the lactate
+curve of the test; the point of contact is the threshold, and the slope of the tangent the maximal rate of lactate
+elimination. Stegmann et al. plotted lactate against time, so lactater puts the recovery minutes on the intensity
+axis at the rate the test rose (the median increment between stages divided by \code{stage_duration}), interpolates
+the return to the end-of-exercise value between the recovery samples after the post-exercise peak, and draws the
+tangent to the curve fitted with \code{fit}. When lactate never falls back to its end value, or never rises after the
+test, the threshold is \code{NA}.
+}
+
+\subsection{Bootstrap intervals}{
+
+With \code{ci = TRUE}, each threshold gets an approximate percentile bootstrap interval for the noise of the samples.
+Each replicate keeps the curve fitted to the data and gives every stage its own residual with a random sign (a
+wild bootstrap; Wu, 1986; Davidson & Flachaire, 2008), because the error of a lactate sample grows with its
+concentration; the residuals are scaled for their leverage and widened for the few degrees of freedom a step test
+leaves. Every method is then run again on each replicate, and the bounds are rounded outward. Replicates on which
+a method fails are left out, with a warning. The interval does not include the bias of the fitted curve, errors
+that are the same in every sample (analyzer bias, sampling site), or the day-to-day variation of the athlete,
+which is larger (about 3.5-4\% of the intensity; Heuberger et al., 2018; see \code{\link[=compare_tests]{compare_tests()}}). How the intervals
+were calibrated, and how often they held the true threshold in simulated tests, is in
+\href{https://fmmattioni.github.io/lactater/articles/checking.html}{Checking the analysis}.
 }
 }
 \examples{
-\dontrun{
-lactate_threshold(
-  .data = demo_data,
-  intensity_column = "intensity",
-  lactate_column = "lactate",
-  heart_rate_column = "heart_rate",
-  fit = "3rd degree polynomial",
-  include_baseline = TRUE,
-  sport = "cycling",
-  plot = TRUE
-)
-}
+results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
+results
+lactate_checks(results)
+autoplot(results, method = "Dmax")
 }
 \references{
 Beaver WL, Wasserman K, Whipp BJ. Improved detection of lactate threshold during exercise using a log-log

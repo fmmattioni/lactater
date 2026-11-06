@@ -16,7 +16,9 @@ method_bsln_plus <- function(data, curve, settings) {
     method = paste("Bsln +", target_label(plus)),
     fitting = user_fitting(settings),
     intensity = vapply(target, retrieve_intensity, numeric(1), curve = curve),
-    lactate = target,
-    plot_data = list(curve = curve_points(curve), baseline = data$lactate[1], fitting = curve$fit)
+    lactate = round(target, 1),
+    plot_data = lapply(plus, function(rise) {
+      list(curve = curve_points(curve), baseline = data$lactate[1], rise = rise, fitting = curve$fit)
+    })
   )
 }

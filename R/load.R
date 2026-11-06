@@ -9,7 +9,7 @@
 #'   zones in interval sessions; power or speed samples avoid that (Seiler, 2010).
 #' * **Intensity distribution** across the three domains (moderate below LT1, heavy from LT1 to LT2, severe above
 #'   LT2; with five zones, zones 1-2 and 4-5 are added up). The polarization index is
-#'   `log10(moderate / heavy * severe * 100)`, with each domain as a fraction of the total time; when the heavy domain
+#'   `log10((moderate / heavy) * severe * 100)`, with each domain as a fraction of the total time; when the heavy domain
 #'   is empty it is set to 0.01 and 0.01 is taken from the severe domain; it is 0 when the severe domain is empty, and
 #'   not computed (`NA`) when the severe domain exceeds the moderate one. A distribution is `"polarized"` when the
 #'   index is above 2.00 and moderate > severe > heavy (Treff et al., 2019). Otherwise it is labeled `"pyramidal"`
@@ -21,10 +21,10 @@
 #'
 #' @param data A data frame with one row per sample, or a numeric vector of samples.
 #' @param zones The result of [lactate_zones()], with three or five zones.
-#' @param column The column of `data` with the samples. Default to `"heart_rate"`.
+#' @param column The column of `data` with the samples. Defaults to the name of `measure`.
 #' @param measure What the samples are: `"heart_rate"` (bpm; uses the heart rate at the zone boundaries) or
 #' `"intensity"` (power or speed in the unit of the test).
-#' @param interval The time between two samples, in seconds. Default to `1`.
+#' @param interval The time between two samples, in seconds. Defaults to `1`.
 #' @param .by Names of columns that group the samples (e.g. `"session"` or `"week"`), kept in the order they appear.
 #'
 #' @return a `lactate_load` tibble with one row per group: `minutes`, the minutes in each zone (`zone_1`, ...), the
@@ -52,7 +52,7 @@
 #' load <- training_load(sessions, zones, interval = 5, .by = "session")
 #' load
 #' autoplot(load)
-training_load <- function(data, zones, column = "heart_rate", measure = c("heart_rate", "intensity"),
+training_load <- function(data, zones, column = measure, measure = c("heart_rate", "intensity"),
                           interval = 1, .by = NULL) {
   measure <- match.arg(measure)
   if(!inherits(zones, "lactate_zones")) stop("`zones` must be the result of `lactate_zones()`.", call. = FALSE)

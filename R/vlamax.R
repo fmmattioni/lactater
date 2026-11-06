@@ -30,8 +30,8 @@
 #'
 #' @param lactate_pre Blood lactate before the sprint (mmol/L).
 #' @param lactate_post Blood lactate samples after the sprint (mmol/L); the highest is used.
-#' @param test_duration Sprint duration in seconds. Default to `15`.
-#' @param alactic_time Alactic time in seconds. Default to `3.5` (Meixner et al., 2024).
+#' @param test_duration Sprint duration in seconds. Defaults to `15`.
+#' @param alactic_time Alactic time in seconds. Defaults to `3.5` (Meixner et al., 2024).
 #'
 #' @return a tibble with `vlamax` and `vlapeak` (mmol/L/s), `lactate_peak` and `delta_lactate` (mmol/L), and
 #' `glycolytic_time` (s).

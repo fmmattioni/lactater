@@ -16,9 +16,9 @@ compare_tests(before, after, cv = NULL, swc = 0, level = 0.9)
 named vector (e.g. \code{c("LTP2" = 3)}) that adds to or replaces the defaults, or the result of \code{\link[=lactate_reliability]{lactate_reliability()}}
 for your own tests.}
 
-\item{swc}{The smallest worthwhile change, in \% of the intensity before. Default to \code{0}.}
+\item{swc}{The smallest worthwhile change, in \% of the intensity before. Defaults to \code{0}.}
 
-\item{level}{The probability of the interval. Default to \code{0.9}.}
+\item{level}{The probability of the interval. Defaults to \code{0.9}.}
 
 \item{object}{The result of \code{\link[=compare_tests]{compare_tests()}}.}
 
@@ -38,7 +38,7 @@ notes on what could make the comparison unfair.
 }
 \details{
 A threshold moves between two tests even without any change in fitness, by the day-to-day variation of
-the athlete and the error of the analyser and the method. Each change is therefore given with an
+the athlete and the error of the analyzer and the method. Each change is therefore given with an
 interval, change +/- z * sqrt(2) * typical error, where the typical error is the coefficient of
 variation (\code{cv}) times the intensity before (Hopkins, 2000; Swinton et al., 2018). The change is called
 an \code{"increase"} or a \code{"decrease"} when the whole interval lies beyond the smallest worthwhile change
@@ -47,7 +47,7 @@ an \code{"increase"} or a \code{"decrease"} when the whole interval lies beyond 
 The default \code{cv} comes from test-retest studies of trained male cyclists: 3.6\% for IAT, 3.8\% for OBLA 4.0,
 3.4\% for Dmax and 4.3\% for ModDmax (Heuberger et al., 2018), and 3.4-3.7\% for Bsln+ (Pallares et al.,
 2016, ramp test). Other methods have no published value, so their \code{verdict} is \code{NA} unless you give one.
-The best \code{cv} is the one of your own athletes, measured with your protocol and analyser.
+The best \code{cv} is the one of your own athletes, measured with your protocol and analyzer.
 }
 \examples{
 series <- subset(lactate_tests, athlete == "cyclist_series")

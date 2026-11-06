@@ -15,9 +15,9 @@ test), \code{time} (minutes from the start of the bout) and \code{lactate} (mmol
 
 \item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}} for a step test of the same athlete, or \code{NULL}.}
 
-\item{rise}{The largest rise in lactate (mmol/L) from minute \code{from} to minute 30 of a steady bout. Default to \code{1}.}
+\item{rise}{The largest rise in lactate (mmol/L) from minute \code{from} to minute 30 of a steady bout. Defaults to \code{1}.}
 
-\item{from}{The minute the rise is measured from, to minute 30. Default to \code{10} (Heck et al., 1985; Beneke, 2003);
+\item{from}{The minute the rise is measured from, to minute 30. Defaults to \code{10} (Heck et al., 1985; Beneke, 2003);
 \code{15} or \code{20} agreed best with the highest steady oxygen uptake in Iannetta et al. (2022).}
 
 \item{object}{The result of \code{\link[=lactate_mlss]{lactate_mlss()}}.}
@@ -35,8 +35,8 @@ when the threshold lies above it). Plot it with \code{\link[=autoplot]{autoplot(
 \description{
 Finds the maximal lactate steady state (MLSS) from two or more constant-load bouts of at least 30 min on separate
 days: a bout is steady when blood lactate rises by no more than 1.0 mmol/L from minute 10 to minute 30, and the MLSS
-is the highest steady bout. This is the criterion of Heck et al. (1985), who introduced the test and the term, and of
-Beneke (2003). Against the highest steady oxygen uptake, a window from minute 15 or 20 to minute 30 was more accurate
+is the highest steady bout. Heck et al. (1985), who introduced the test and the term, allowed a rise of 1 mmol/L over
+the last 20 min of 3 + 25-min runs; the minute 10 to 30 window is that of Beneke (2003). Against the highest steady oxygen uptake, a window from minute 15 or 20 to minute 30 was more accurate
 (Iannetta et al., 2022); set it with \code{from}. With the result of \code{\link[=lactate_threshold]{lactate_threshold()}} for a step test of the same
 athlete, it also gives how far each threshold lies from the MLSS, your own check of which threshold estimates it.
 }

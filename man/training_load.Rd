@@ -8,7 +8,7 @@
 training_load(
   data,
   zones,
-  column = "heart_rate",
+  column = measure,
   measure = c("heart_rate", "intensity"),
   interval = 1,
   .by = NULL
@@ -21,12 +21,12 @@ training_load(
 
 \item{zones}{The result of \code{\link[=lactate_zones]{lactate_zones()}}, with three or five zones.}
 
-\item{column}{The column of \code{data} with the samples. Default to \code{"heart_rate"}.}
+\item{column}{The column of \code{data} with the samples. Defaults to the name of \code{measure}.}
 
 \item{measure}{What the samples are: \code{"heart_rate"} (bpm; uses the heart rate at the zone boundaries) or
 \code{"intensity"} (power or speed in the unit of the test).}
 
-\item{interval}{The time between two samples, in seconds. Default to \code{1}.}
+\item{interval}{The time between two samples, in seconds. Defaults to \code{1}.}
 
 \item{.by}{Names of columns that group the samples (e.g. \code{"session"} or \code{"week"}), kept in the order they appear.}
 
@@ -51,7 +51,7 @@ out. Heart rate lags behind intensity in short intervals, so heart-rate time in 
 zones in interval sessions; power or speed samples avoid that (Seiler, 2010).
 \item \strong{Intensity distribution} across the three domains (moderate below LT1, heavy from LT1 to LT2, severe above
 LT2; with five zones, zones 1-2 and 4-5 are added up). The polarization index is
-\code{log10(moderate / heavy * severe * 100)}, with each domain as a fraction of the total time; when the heavy domain
+\code{log10((moderate / heavy) * severe * 100)}, with each domain as a fraction of the total time; when the heavy domain
 is empty it is set to 0.01 and 0.01 is taken from the severe domain; it is 0 when the severe domain is empty, and
 not computed (\code{NA}) when the severe domain exceeds the moderate one. A distribution is \code{"polarized"} when the
 index is above 2.00 and moderate > severe > heavy (Treff et al., 2019). Otherwise it is labeled \code{"pyramidal"}

@@ -43,7 +43,10 @@ lactate_checks <- function(x) {
   distance_to_end <- pmin(abs(intensity - min(stages$intensity)), abs(intensity - max(stages$intensity)))
   at_edge <- methods[!is.na(intensity) & distance_to_end < 0.01 * span]
   ## ModDmax only relies on a blood value when its 0.4 mmol/L default rise is kept
-  absolute <- methods[grepl("^OBLA|^Bsln|^IAT$", methods) | (methods == "ModDmax" & info$settings$moddmax_rise == 0.4)]
+  absolute <- methods[
+    as.character(x$method_category) %in% c("OBLA", "Bsln+", "IAT") |
+      (methods == "ModDmax" & abs(info$settings$moddmax_rise - 0.4) < 1e-9)
+  ]
   first_lowest <- stages$lactate[1] - min(stages$lactate[-1])
   ## the LTP fit has 2 + 2 per breakpoint parameters; two degrees of freedom left keep it from following single stages
   ltp_parameters <- 2 + 2 * info$settings$ltp_breakpoints - info$settings$ltp_fix_first_slope
@@ -124,6 +127,28 @@ lactate_checks <- function(x) {
       fine = sprintf("%s lactate.", info$settings$sample)
     )
   )
+  ## the methods aimed at one boundary land close together in most tests (within 10% of the peak intensity on
+  ## `lactate_tests`, 15% on `demo_data`); further apart, the choice of method decides the zones, so it should be a
+  ## choice. shortcut: 15% is a judgement call from those 17 tests, not a published cut-off
+  agreement <- function(name, members) {
+    values <- intensity[match(members, methods)]
+    members <- members[!is.na(values)]
+    values <- values[!is.na(values)]
+    if(length(values) < 2) return(NULL)
+    spread <- 100 * diff(range(values)) / max(stages$intensity)
+    listed <- paste(members, format_intensity(values, info$settings$sport), collapse = ", ")
+    check(
+      name, spread <= 15,
+      sprintf("%.0f%% of peak apart (%s): the choice of %s decides the zones, so look at the overview before choosing.",
+              spread, listed, name),
+      fine = sprintf("Within %.0f%% of peak (%s).", spread, listed)
+    )
+  }
+  out <- rbind(
+    out,
+    agreement("LT1", c("Bsln + 0.5", "Log-log", "LTP1")),
+    agreement("LT2", c("Log-Poly-ModDmax", "OBLA 4.0", "LTP2"))
+  )
   out <- tibble::as_tibble(out)
   class(out) <- c("lactate_checks", class(out))
   out
@@ -172,9 +197,15 @@ lactate_fit_quality <- function(x) {
   points <- modeling_data(info$data, info$settings$include_baseline)
   fits <- c("3rd degree polynomial", "4th degree polynomial", "B-spline", "Exponential")
   rows <- lapply(fits, function(fit) {
-    curve <- fit_curve(points, fit)
+    curve <- tryCatch(fit_curve(points, fit), error = function(e) NULL)
+    n <- nrow(points)
+    if(is.null(curve)) {
+      return(data.frame(
+        fit = fit, used = fit == info$settings$fit, n_points = n, parameters = NA_integer_, r_squared = NA_real_,
+        rmse = NA_real_, see = NA_real_, max_abs_residual = NA_real_, prediction_error = NA_real_
+      ))
+    }
     residuals <- points$lactate - curve$predict(points$intensity)
-    n <- length(residuals)
     p <- length(curve$coefficients)
     rss <- sum(residuals^2)
     data.frame(

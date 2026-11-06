@@ -9,7 +9,7 @@ before <- run(curve(stages) + noise)
 
 test_that("curve_shape recovers a pure shift", {
   shifted <- curve_shape(before, run(curve(stages - 20) + rev(noise)))
-  expect_equal(shifted$shift, 20, tolerance = 0.1)
+  expect_lt(abs(shifted$shift - 20), 2)
   expect_lt(shifted$shift_low, 20)
   expect_gt(shifted$shift_high, 20)
   expect_identical(shifted$verdict, "shift")
