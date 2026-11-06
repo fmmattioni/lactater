@@ -55,14 +55,12 @@ navbar:
       - text: Running the test
       - text: Best practices for a step test
         href: articles/best-practices.html
-      - text: The methods and the evidence
-        href: articles/methods.html
       - text: -------
       - text: Analyzing it
+      - text: The methods and the evidence
+        href: articles/methods.html
       - text: Checking the analysis
         href: articles/checking.html
-      - text: The example data
-        href: articles/example-data.html
       - text: -------
       - text: Using the thresholds
       - text: Training zones
@@ -73,8 +71,11 @@ navbar:
         href: articles/compare.html
       - text: Predicting performance
         href: articles/performance.html
+      - text: -------
       - text: "Beyond the step test: MLSS and VLamax"
         href: articles/beyond-the-step-test.html
+      - text: The example data
+        href: articles/example-data.html
       - text: -------
       - text: What's new in lactater 1.0
         href: articles/whats-new.html
@@ -140,12 +141,11 @@ reference:
   - vlamax
 - title: Record a test
   desc: >
-    A printable sheet and a CSV template to record a test the same way every time, and an RStudio gadget that
-    writes the test protocol for you, so you only type in the lactate values.
+    A web form that records a test and downloads it for lactater, with a printable sheet and a CSV template, to
+    record every test the same way.
   contents:
   - recording_sheet
   - read_recording
-  - run_data_input
 - title: Re-exported functions
   contents:
   - reexports

@@ -84,7 +84,7 @@ training_load(week, five, interval = 5)
 The share of time in the moderate, heavy and severe domains is the training intensity distribution. [Treff et al.
 (2019)](https://doi.org/10.3389/fphys.2019.00707) proposed a polarization index to tell the common distributions apart:
 
-`polarization index = log10(moderate / heavy * severe * 100)`
+`polarization index = log10((moderate / heavy) * severe * 100)`
 
 with each domain as a fraction of the total time. A distribution is labeled:
 

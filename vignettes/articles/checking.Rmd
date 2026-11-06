@@ -10,7 +10,7 @@ plex <- requireNamespace("systemfonts", quietly = TRUE) &&
 if (plex) options(lactater.font = "IBM Plex Sans")
 ```
 
-A step test gives 6 to 12 lactate samples, each with an analyzer error of a few percent, and every threshold is read
+A step test gives 6 to 10 stages, each a lactate sample with an analyzer error of a few percent, and every threshold is read
 off a curve fitted to them. Before trusting a number, ask three questions:
 
 1. **Is the test sound?** A missing resting sample, a lactate dip, a last stage that was not completed.
@@ -250,7 +250,6 @@ Davidson R, Flachaire E. The wild bootstrap, tamed at last. Journal of Econometr
 [doi:10.1016/j.jeconom.2008.08.003](https://doi.org/10.1016/j.jeconom.2008.08.003)
 
 Efron B. The Jackknife, the Bootstrap and Other Resampling Plans. Philadelphia: SIAM; 1982.
-[doi:10.1137/1.9781611970319](https://doi.org/10.1137/1.9781611970319)
 [doi:10.1137/1.9781611970319](https://doi.org/10.1137/1.9781611970319)
 
 Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive

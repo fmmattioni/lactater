@@ -50,7 +50,7 @@ comparison |>
 ```
 
 The default test-retest variation comes from trained male cyclists ([Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846); [Pallares et al., 2016](https://doi.org/10.1371/journal.pone.0163389))
-and exists only for some methods; the others get a verdict once you give their `cv`, best measured on your own
+and exists only for some methods (the Bsln+ values come from a 25 W/min ramp test, not a step test); the others get a verdict once you give their `cv`, best measured on your own
 athletes with your own protocol. `attr(comparison, "notes")` lists what could make two tests hard to compare: a
 different protocol, sample type or resting sample, or a fall in peak lactate, which also moves the curve to the
 right.

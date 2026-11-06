@@ -45,7 +45,7 @@ within 5 W of the MLSS, while ModD<sub>max</sub> and OBLA 4.0 overestimated it b
 If you do not choose, lactater uses Bsln + 0.5 for LT1 and Log-Poly-ModD<sub>max</sub> for LT2. Both have support in the
 studies above, and both depend little on any single stage: leaving out one stage at a time on the cycling tests of
 `lactate_tests` moved Bsln + 0.5 by a median of 1.7% and Log-Poly-ModD<sub>max</sub> by 8.6%, against 23% for LTP1,
-whose three straight segments have few stages to spare in a test of 6 to 8 stages. The weak point of Bsln + 0.5 is
+whose three straight segments have few stages to spare in a test of 6 to 10 stages. The weak point of Bsln + 0.5 is
 that it rests on a single baseline sample; the leave-one-out grid of `lactate_diagnostics()` shows how much.
 
 ```{r, message = FALSE}
@@ -116,11 +116,11 @@ heavy domain. Other five-level scales put LT1 at a different cut altogether ([Ja
 which scale a coach means. The cut inside each domain is a convention, set with `split`:
 
 * `"relative"` (default): zone 1|2 at 75% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of the
-  test. In Seiler's (2010) scale zone 2 starts at 66% of the maximal oxygen uptake and zone 3 at 81%, which, with the
-  oxygen cost of cycling and running (Glass & Dwyer, 2007), is about 77% of the power at LT1 and 80% of the running
-  speed. Sitko et al. ([2025](https://doi.org/10.1123/ijspp.2024-0303)) place zone 2 "immediately below" LT1, at about
-  80% to 90% of the heart rate at LT1, which starts it at a median of about 65% of the power at LT1 on the cycling tests
-  of `lactate_tests`. 75% lies between the two and needs no heart rate. Zone 5 starts halfway between the start of zone
+  test. In Seiler's (2010) scale zone 2 starts at 66% of the maximal oxygen uptake and zone 3 at 81%, which, converted
+  with the oxygen cost of cycling and running (Glass & Dwyer, 2007; our own calculation), is about 77% of the power at
+  LT1 and 80% of the running speed. Sitko et al. ([2025](https://doi.org/10.1123/ijspp.2024-0303)) place zone 2
+  "immediately below" LT1, at about 80% to 90% of the heart rate at LT1, which starts it at a median of about 65% of the
+  power at LT1 on the cycling tests of `lactate_tests` (our count). 75% lies between the two and needs no heart rate. Zone 5 starts halfway between the start of zone
   4 (88% of the maximal oxygen uptake) and the maximum. No physiological marker separates zones 1 and 2 ([Bishop et al.,
   2025](https://doi.org/10.1249/MSS.0000000000003795)), so both cuts are approximations.
 * `"seiler"`: where the fitted curve reaches 1.5 mmol/L (zone 1|2) and 6.0 mmol/L (zone 4|5), the lactate limits of

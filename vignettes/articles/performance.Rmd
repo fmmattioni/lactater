@@ -83,7 +83,7 @@ differ from the source protocol, and the IAT (20.4 km/h) lies above the runners 
   anaerobic threshold by 6% ([Coen et al., 2001](https://doi.org/10.1055/s-2001-11332)), and 6- instead of 3-min stages lowered the speed at 4 mmol/L from
   14.4 to 12.9 km/h ([Kuipers et al., 2003](https://doi.org/10.1055/s-2003-42020)).
 * **Outside the sample, a straight line is a guess.** At an IAT this high, the half-marathon equation even predicts
-  a faster pace than the 10 km one.
+  a faster speed than the 10 km one.
 
 lactater can read the steps from the data, but not the stage duration, the treadmill grade or the blood sample:
 compare them with the protocol in the header yourself.

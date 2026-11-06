@@ -42,7 +42,7 @@ tribble(
   "Bsln+ 0.5-1.5", "Intensity at 0.5 to 1.5 mmol/L above baseline", "your choice",
   "[Berg et al., 1990](https://pubmed.ncbi.nlm.nih.gov/2408033/); [Zoladz et al.,
   1995](https://doi.org/10.1113/jphysiol.1995.sp020959)",
-  "D<sub>max</sub>", "Point of the curve furthest from the line between the first and last stage",
+  "D<sub>max</sub>", "Point of the curve furthest below the line between the first and last stage",
   "3rd degree polynomial", "[Cheng et al., 1992](https://doi.org/10.1055/s-2007-1021309)",
   "ModD<sub>max</sub>", "As D<sub>max</sub>, from the stage before the first rise of at least 0.4 mmol/L",
   "3rd degree polynomial", "[Bishop et al., 1998](https://doi.org/10.1097/00005768-199808000-00014)",

@@ -1,5 +1,5 @@
 ---
-title: "Sixteen tests, four sports: the example data"
+title: "The example data"
 ---
 
 ```{r, include = FALSE}
@@ -181,7 +181,7 @@ submaximal |>
   select(method, intensity, lactate)
 ```
 
-## One athlete over five years
+## One athlete over five and a half years
 
 The six `cycling_series` tests come from one rider. See [Comparing tests](compare.html)
 for how to tell a real change from noise.

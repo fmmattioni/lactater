@@ -67,9 +67,10 @@ one, is the row with intensity 0.
 demo_data
 ```
 
-Rows with a missing lactate (a missed sample) are dropped with a warning. If the last stage was not completed,
-enter its time-weighted intensity (as `demo_data` does for its 2-min last stage at 191 W), or leave it out with
-`max_intensity`. How to collect data that does the methods justice is in [Best practices for a step
+Your own test comes in with `read.csv("test.csv")` in those columns, or with `read_recording()` from the .xlsx of
+the [web form](https://fmmattioni.github.io/lactater/step-test-form.html). Rows with a missing lactate (a missed
+sample) are dropped with a warning. If the last stage was not completed, enter its time-weighted intensity (as
+`demo_data` does for its 2-min last stage at 191 W), or leave it out with `max_intensity`. How to collect data that does the methods justice is in [Best practices for a step
 test](https://fmmattioni.github.io/lactater/articles/best-practices.html).
 
 ## Estimate the thresholds
@@ -81,14 +82,23 @@ results <- lactate_threshold(
   lactate_column = lactate,
   heart_rate_column = heart_rate,
   rpe_column = rpe,
-  sport = "cycling",
   plot = FALSE
 )
 results
 ```
 
-Every method runs by default. Pick some with `method`, e.g. `method = c("Dmax", "LTP")`. `rpe_column` gives the RPE
-at each threshold (add `rpe_scale = "CR10"` for the 0-10 scale; the RPE of `demo_data` is simulated).
+The column arguments can also go by position, as in the calls below: `lactate_threshold(demo_data, intensity,
+lactate, heart_rate)`. Every method runs by default; pick some with `method`, e.g. `method = c("Dmax", "LTP")`, and
+set `sport` for running, swimming or rowing. `rpe_column` gives the RPE at each threshold (add `rpe_scale = "CR10"`
+for the 0-10 scale; the RPE of `demo_data` is simulated).
+
+Two of these thresholds are what training needs. LT1 is the first rise of lactate above resting values, the top of
+the moderate intensity domain; LT2 is the second, abrupt rise, the top of the heavy domain. Each family of methods
+aims at one of them (Log-log, Bsln+, LTP1 and LT<sub>ratio</sub> at LT1; OBLA 4.0, the D<sub>max</sub> family, LTP2
+and IAT at LT2), and [The methods and the evidence](https://fmmattioni.github.io/lactater/articles/methods.html) says
+which to trust. A threshold is `NA` when its method found nothing in the tested range: the Log-log lines crossing
+outside the stages, a D<sub>max</sub> curve never below its line, LTP2 in a test that stopped early.
+`lactate_checks()` names them and says what to do.
 
 ## Look at them
 
@@ -122,7 +132,7 @@ autoplot(diagnostics)
 
 ## How sure are we?
 
-With 7 to 10 samples, a threshold reported to 0.1 W is false precision. `ci = TRUE` adds bootstrap confidence
+With 6 to 10 stages, a threshold reported to 0.1 W is false precision. `ci = TRUE` adds bootstrap confidence
 intervals (this takes a few seconds; use more replicates than this for real work):
 
 ```{r}
@@ -139,10 +149,12 @@ with_ci |>
 
 ## Training zones
 
-Choose which thresholds mark LT1 and LT2, and three or five zones:
+By default LT1 is Bsln + 0.5 and LT2 Log-Poly-ModD<sub>max</sub>, the pair with the best evidence for each boundary
+([Training zones](https://fmmattioni.github.io/lactater/articles/zones.html) says why); choose others with `lt1` and
+`lt2`, and three or five zones with `model`:
 
 ```{r, fig.height = 6.5}
-zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "Log-Poly-ModDmax", model = 5)
+zones <- lactate_zones(results, model = 5)
 zones
 autoplot(zones)
 ```
@@ -174,7 +186,7 @@ lactate_tests |>
 ## Learn more
 
 * [Best practices for a step test](https://fmmattioni.github.io/lactater/articles/best-practices.html): how to run
-  a test and analyze it, as a checklist with sources.
+  a test, as a checklist with sources.
 * [The methods and the evidence](https://fmmattioni.github.io/lactater/articles/methods.html): how each method is
   defined and what the evidence says.
 * [Checking the analysis](https://fmmattioni.github.io/lactater/articles/checking.html): checks, regression
@@ -187,6 +199,6 @@ lactate_tests |>
   shift or change shape, and trends.
 * [Predicting performance](https://fmmattioni.github.io/lactater/articles/performance.html): race times from a step
   test, how sure they are, and your own equation.
+* [Beyond the step test](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html): the maximal lactate
+  steady state from constant-load bouts, and the maximal lactate accumulation rate (V̇La<sub>max</sub>) from a sprint test.
 * [The example data](https://fmmattioni.github.io/lactater/articles/example-data.html): 16 tests across sports.
-* [Beyond the step test](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html): the maximal lactate steady
-  state from constant-load bouts, and the maximal lactate accumulation rate (V̇La<sub>max</sub>) from a sprint test.
