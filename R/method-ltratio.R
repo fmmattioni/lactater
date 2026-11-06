@@ -40,7 +40,7 @@ method_iat <- function(data, curve, settings) {
     lactate = round(target, 1),
     plot_data = list(
       curve = curve_points(minimum$spline), from = c(intensity = minimum$intensity, lactate = start),
-      fitting = "B-spline"
+      rise = settings$iat_rise, fitting = "B-spline"
     )
   )
 }

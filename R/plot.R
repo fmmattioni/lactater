@@ -148,7 +148,10 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
   p <- p +
     drawn$layers +
     stage_layers(points, data, colours, label_rest = !ratio && !log_axes) +
-    marker_layers(intensity, drawn$y, label, x_range, y_range, log_axes, colours, below = isTRUE(drawn$below)) +
+    marker_layers(
+      intensity, drawn$y, label, x_range, y_range, log_axes, colours, below = isTRUE(drawn$below),
+      avoid = plot_data$line
+    ) +
     ggplot2::labs(
       title = method_label(method, bold = TRUE),
       subtitle = method_note(method, settings),
@@ -186,7 +189,7 @@ curve_layers <- function(plot_data, intensity, lactate, colours, sport) {
   layers <- list()
   top <- max(plot_data$curve$lactate)
   ## notes sit just beside the threshold, clear of its dotted guide
-  beside <- intensity + 0.012 * diff(range(plot_data$curve$intensity))
+  beside <- intensity + 0.03 * diff(range(plot_data$curve$intensity))
   if(!is.null(plot_data$line)) {
     ## Dmax: the line; the distance to it is perpendicular, and how a perpendicular looks depends on the aspect
     ## ratio of the plot, so it is not drawn
@@ -205,7 +208,7 @@ curve_layers <- function(plot_data, intensity, lactate, colours, sport) {
   if(!is.null(from)) {
     ## Bsln+ and IAT: the rise from the baseline or from LTratio
     base <- as.numeric(from[["lactate"]])
-    rise <- paste0("  +", format(round(lactate - base, 2), nsmall = 1))
+    rise <- paste0("  +", format(plot_data$rise, nsmall = 1))
     layers <- c(layers, list(
       ggplot2::annotate(
         "segment", x = -Inf, xend = intensity, y = base, yend = base, colour = colours[["faint"]],
@@ -422,7 +425,8 @@ stage_points <- function(points, colours, outline = colours[["curve"]]) {
 #' The threshold: dot, dotted guides to both axes, and the label joined by a curved arrow
 #'
 #' The label sits above the threshold, to the left when there is room (above a rising curve the plot is
-#' empty) and to the right otherwise; with `below`, below the curve and to the right. For internal use only.
+#' empty) and to the right otherwise; with `below`, below the curve and to the right, when the threshold leaves room
+#' under it. A label above steps over `avoid`, the Dmax line, when that line would cross it. For internal use only.
 #'
 #' @param x,y Where the threshold sits.
 #' @param label A list with the `value` and the `detail` lines.
@@ -430,8 +434,9 @@ stage_points <- function(points, colours, outline = colours[["curve"]]) {
 #' @param log_axes Whether both axes are logarithmic.
 #' @param colours The plot colours.
 #' @param below Whether to put the label below the curve.
+#' @param avoid A line (`intensity`, `lactate`) the label above must not cross, or `NULL`.
 #' @keywords internal
-marker_layers <- function(x, y, label, x_range, y_range, log_axes, colours, below = FALSE) {
+marker_layers <- function(x, y, label, x_range, y_range, log_axes, colours, below = FALSE, avoid = NULL) {
   to <- if(log_axes) log10 else identity
   from <- if(log_axes) function(v) 10^v else identity
   xs <- to(x_range)
@@ -439,6 +444,8 @@ marker_layers <- function(x, y, label, x_range, y_range, log_axes, colours, belo
   width <- diff(xs)
   height <- diff(ys)
   position <- (to(x) - xs[1]) / width
+  ## a threshold low in the panel has no room below it: its label goes above like the others
+  below <- below && (to(y) - ys[1]) / height > 0.45
   left <- !below && position > 0.4
   side <- if(left) -1 else 1
   label_x <- to(x) + side * 0.1 * width
@@ -448,9 +455,16 @@ marker_layers <- function(x, y, label, x_range, y_range, log_axes, colours, belo
   hjust <- if(left || flush_right) 1 else 0
   arrow_x <- if(flush_right) to(x) + 0.12 * width else label_x
   label_y <- if(below) {
-    max(to(y) - 0.22 * height, ys[1] + 0.16 * height)
+    max(to(y) - 0.26 * height, ys[1] + 0.12 * height)
   } else {
     min(to(y) + 0.26 * height, ys[2] - 0.08 * height)
+  }
+  if(!below && !is.null(avoid)) {
+    ## the line under the text: when it runs through the label, the label moves up over it
+    span <- label_x + c(-0.3, 0) * width * (if(left) 1 else -1)
+    under <- stats::approx(avoid$intensity, avoid$lactate, xout = seq(min(span), max(span), length.out = 20))$y
+    crossed <- any(under > label_y - 0.05 * height & under < label_y + 0.12 * height, na.rm = TRUE)
+    if(crossed) label_y <- min(max(under, na.rm = TRUE) + 0.06 * height, ys[2] - 0.08 * height)
   }
   ## the arrow leaves the label from its side nearest the threshold
   arrow_from <- if(below) label_y + 0.11 * height else label_y - 0.09 * height
@@ -500,7 +514,7 @@ threshold_text <- function(intensity, lactate, heart_rate, sport, interval = NUL
     if(sport != "cycling") format_pace(convert_to_pace(intensity, sport), sport),
     sprintf("%.1f mmol/L", lactate),
     if(!is.null(heart_rate) && !is.na(heart_rate)) paste(heart_rate, "bpm"),
-    if(!is.null(rpe) && !is.na(rpe)) paste("RPE", format(rpe))
+    if(!is.null(rpe) && !is.na(rpe)) sprintf("RPE %.1f", rpe)
   )
   list(value = paste(format_intensity(intensity, sport), unit), detail = paste(detail, collapse = " \u00b7 "))
 }

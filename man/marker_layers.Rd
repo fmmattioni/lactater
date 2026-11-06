@@ -4,7 +4,17 @@
 \alias{marker_layers}
 \title{The threshold: dot, dotted guides to both axes, and the label joined by a curved arrow}
 \usage{
-marker_layers(x, y, label, x_range, y_range, log_axes, colours, below = FALSE)
+marker_layers(
+  x,
+  y,
+  label,
+  x_range,
+  y_range,
+  log_axes,
+  colours,
+  below = FALSE,
+  avoid = NULL
+)
 }
 \arguments{
 \item{x, y}{Where the threshold sits.}
@@ -18,9 +28,12 @@ marker_layers(x, y, label, x_range, y_range, log_axes, colours, below = FALSE)
 \item{colours}{The plot colours.}
 
 \item{below}{Whether to put the label below the curve.}
+
+\item{avoid}{A line (\code{intensity}, \code{lactate}) the label above must not cross, or \code{NULL}.}
 }
 \description{
 The label sits above the threshold, to the left when there is room (above a rising curve the plot is
-empty) and to the right otherwise; with \code{below}, below the curve and to the right. For internal use only.
+empty) and to the right otherwise; with \code{below}, below the curve and to the right, when the threshold leaves room
+under it. A label above steps over \code{avoid}, the Dmax line, when that line would cross it. For internal use only.
 }
 \keyword{internal}

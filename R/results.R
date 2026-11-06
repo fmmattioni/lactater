@@ -46,7 +46,8 @@ tbl_sum.lactate_thresholds <- function(x, ...) {
 #'
 #' Plots the result of [lactate_threshold()]. Without `method`, an overview: the fitted lactate
 #' curve on top and every threshold below, grouped by method family, on the same intensity axis, so
-#' you can see at a glance how much the methods agree. With `method`, the plot of that one method:
+#' you can see at a glance how much the methods agree; the two that mark LT1 and LT2 (`lt1`, `lt2`, the
+#' defaults of [lactate_zones()]) are drawn in green. With `method`, the plot of that one method:
 #' what the method fitted, the measured stages, and the threshold with its intensity, lactate and
 #' heart rate.
 #'
@@ -55,6 +56,7 @@ tbl_sum.lactate_thresholds <- function(x, ...) {
 #'
 #' @param object,x The result of [lactate_threshold()].
 #' @param method A method to plot (one of `object$method`), or `NULL` for the overview.
+#' @param lt1,lt2 The thresholds that mark LT1 and LT2, drawn in green in the overview, as in [lactate_zones()].
 #' @param ... Not used.
 #'
 #' @return a `ggplot2` (one method) or `patchwork` (overview) object.
@@ -70,10 +72,10 @@ tbl_sum.lactate_thresholds <- function(x, ...) {
 #' )
 #' autoplot(results)
 #' autoplot(results, method = "Dmax")
-autoplot.lactate_thresholds <- function(object, method = NULL, ...) {
+autoplot.lactate_thresholds <- function(object, method = NULL, lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax", ...) {
   info <- lactater_info(object)
 
-  if(is.null(method)) return(plot_overview(object, info))
+  if(is.null(method)) return(plot_overview(object, info, chosen = c(lt1, lt2)))
 
   i <- match(method, as.character(object$method))
   if(is.na(i))
@@ -94,7 +96,7 @@ autoplot.lactate_thresholds <- function(object, method = NULL, ...) {
 #' @rdname autoplot.lactate_thresholds
 #' @export
 plot.lactate_thresholds <- function(x, method = NULL, ...) {
-  print(autoplot(x, method = method))
+  print(autoplot(x, method = method, ...))
   invisible(x)
 }
 
@@ -103,12 +105,13 @@ plot.lactate_thresholds <- function(x, method = NULL, ...) {
 #' Every threshold of the test on one intensity axis: the fitted curve on top, and below it one row per method,
 #' grouped by family, with the threshold as a dot and its confidence interval as a line (when computed). A table on
 #' the right prints the lactate, heart rate, RPE, percentage of the peak intensity and of the highest heart rate at
-#' each threshold, with the lactate shaded by its value and, with intervals, their width shaded by how wide they are.
+#' each threshold, with the lactate shaded by its value.
 #'
 #' @param object The result of [lactate_threshold()].
 #' @param info Its `lactater` attribute.
+#' @param chosen The methods that mark LT1 and LT2, drawn in green.
 #' @keywords internal
-plot_overview <- function(object, info) {
+plot_overview <- function(object, info, chosen = character()) {
   colours <- lactater_colours()
   sport <- info$settings$sport
   points <- position_rest(info$data)
@@ -127,6 +130,7 @@ plot_overview <- function(object, info) {
   }
   rows <- rows[!is.na(rows$intensity), ]
   rows$row <- rev(seq_len(nrow(rows)))
+  rows$chosen <- rows$method %in% chosen
   rows$peak <- 100 * rows$intensity / max(info$data$intensity)
   if(!is.null(rows$heart_rate)) rows$hr_max <- 100 * rows$heart_rate / max(info$data$heart_rate, na.rm = TRUE)
   family_end <- which(rows$family[-1] != rows$family[-nrow(rows)])
@@ -161,8 +165,8 @@ plot_overview <- function(object, info) {
   }
   dots <- dots +
     ggplot2::geom_point(
-      ggplot2::aes(intensity, row), shape = 21, size = 2.8, stroke = 0.7, fill = colours[["curve"]],
-      colour = colours[["paper"]]
+      ggplot2::aes(intensity, row), shape = 21, size = 2.8, stroke = 0.7,
+      fill = ifelse(rows$chosen, colours[["accent"]], colours[["curve"]]), colour = colours[["paper"]]
     ) +
     x_scale + y_rows +
     ggplot2::labs(x = intensity_label(sport), y = NULL) +
@@ -189,7 +193,10 @@ plot_overview <- function(object, info) {
       ),
       subtitle = paste0(
         "Each method as a dot", if(!is.null(rows$low)) " with its confidence interval" else "",
-        ", grouped by family; the table gives the values at each threshold"
+        ", grouped by family; the table gives the values at each threshold",
+        if(any(rows$chosen)) {
+          sprintf(". Green: %s", paste(method_html(chosen[chosen %in% rows$method]), collapse = " and "))
+        }
       ),
       caption = paste("Fit:", info$settings$fit),
       theme = theme_lactater()
@@ -211,8 +218,8 @@ overview_table <- function(rows, colours, sport, intervals) {
     if(!is.null(rows$rpe)) list("rpe", "RPE", "%.1f", shade = FALSE),
     list("peak", bquote(atop("% peak", .(if(sport %in% c("cycling", "rowing")) "PO" else "speed"))), "%.0f",
          shade = FALSE),
-    if(!is.null(rows$hr_max)) list("hr_max", quote(atop("%", HR[max])), "%.0f", shade = FALSE),
-    if(intervals) list("width", bquote(atop("CI width", .(intensity_unit(sport)))), "%.0f", shade = TRUE)
+    if(!is.null(rows$hr_max)) list("hr_max", quote(atop("% of", HR[max])), "%.0f", shade = FALSE),
+    if(intervals) list("width", bquote(atop("CI width", .(intensity_unit(sport)))), "%.0f", shade = FALSE)
   )
   columns <- Filter(Negate(is.null), columns)
   if(intervals) rows$width <- rows$high - rows$low

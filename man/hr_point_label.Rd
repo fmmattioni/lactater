@@ -2,7 +2,7 @@
 % Please edit documentation in R/zones.R
 \name{hr_point_label}
 \alias{hr_point_label}
-\title{The heart rate at a threshold, labelled beside its point}
+\title{The heart rate at a threshold, labeled beside its point}
 \usage{
 hr_point_label(x, y, lt, xlim, ylim, colours)
 }

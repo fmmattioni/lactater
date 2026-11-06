@@ -157,13 +157,14 @@ autoplot.lactate_shape <- function(object, ...) {
   points <- rbind(stages(object$curves$before, "Before"), stages(object$curves$after, "After"))
   points$test <- factor(points$test, levels = levels(curves$test))
   ends <- do.call(rbind, lapply(split(curves, curves$test), function(d) d[nrow(d), ]))
+  ends$hjust <- ifelse(ends$test == "Before", 1.15, -0.1)
   palette <- c("Before" = colours[["muted"]], "Before, shifted" = colours[["accent"]], "After" = colours[["curve"]])
   top <- max(points$lactate, curves$lactate) * 1.05
 
   ggplot2::ggplot(curves, ggplot2::aes(intensity, lactate, colour = test)) +
     ggplot2::geom_line(ggplot2::aes(linetype = test), linewidth = 0.85) +
     ggplot2::geom_point(data = points, shape = 21, fill = colours[["paper"]], size = 2.2, stroke = 0.7) +
-    ggplot2::geom_text(ggplot2::aes(label = test), ends, hjust = -0.1, size = 3) +
+    ggplot2::geom_text(ggplot2::aes(label = test, hjust = hjust), ends, size = 3) +
     ggplot2::scale_colour_manual(values = palette, guide = "none") +
     ggplot2::scale_linetype_manual(values = c("Before" = "solid", "Before, shifted" = "22", "After" = "solid"),
                                    guide = "none") +

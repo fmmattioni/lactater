@@ -367,6 +367,7 @@ lactate_trend <- function(..., day) {
   if(length(tests) < 3) stop("A trend needs at least three tests.", call. = FALSE)
   if(inherits(day, "POSIXt")) day <- as.Date(day)
   labels <- date_labels(day)
+  dates <- if(inherits(day, "Date")) day
   if(inherits(day, "Date")) day <- as.numeric(day - min(day))
   if(!is.numeric(day) || length(day) != length(tests) || anyNA(day) || anyDuplicated(day))
     stop("`day` must give one distinct day per test.", call. = FALSE)
@@ -393,7 +394,8 @@ lactate_trend <- function(..., day) {
   out <- tibble::as_tibble(do.call(rbind, rows))
   out$method <- factor(out$method, levels = methods)
   attr(out, "lactater_trend") <- list(
-    tests = tests, labels = labels, values = values, methods = methods, day = day, sport = infos[[1]]$settings$sport,
+    tests = tests, labels = labels, values = values, methods = methods, day = day, dates = dates,
+    sport = infos[[1]]$settings$sport,
     intervals = lapply(infos, `[[`, "intervals"), curves = lapply(infos, `[[`, "curve"),
     data = lapply(infos, `[[`, "data")
   )
@@ -407,15 +409,13 @@ lactate_trend <- function(..., day) {
 #' @export
 autoplot.lactate_comparison <- function(object, ...) {
   tests <- attr(object, "lactater_comparison")
-  labelled <- function(.data, label) transform(.data, test = factor(label, levels = c("Before", "After")))
+  labeled <- function(.data, label) transform(.data, test = factor(label, levels = c("Before", "After")))
   curves <- rbind(
-    labelled(curve_points(tests$before$curve), "Before"),
-    labelled(curve_points(tests$after$curve), "After")
+    labeled(curve_points(tests$before$curve), "Before"),
+    labeled(curve_points(tests$after$curve), "After")
   )
-  points <- rbind(
-    labelled(position_rest(tests$before$data)[c("intensity", "lactate")], "Before"),
-    labelled(position_rest(tests$after$data)[c("intensity", "lactate")], "After")
-  )
+  stages <- function(info) info$data[info$data$intensity > 0, c("intensity", "lactate")]
+  points <- rbind(labeled(stages(tests$before), "Before"), labeled(stages(tests$after), "After"))
   colours <- lactater_colours()
   test_colours <- c("Before" = colours[["faint"]], "After" = colours[["curve"]])
   ## the test names sit at the end of each curve instead of a legend: before on its left, after on its right
@@ -514,10 +514,19 @@ autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL
     first$half[match(points$method, first$method)]
   points$outside[is.na(points$outside)] <- FALSE
   first <- first[!is.na(first$half), ]
+  ## the tests on their dates when the trend has them, with few labels, so they stay apart in narrow panels
+  points$at <- if(is.null(trend$dates)) points$day else trend$dates[match(points$day, trend$day)]
+  ## the band spans the panel; a date scale wants its infinities as dates
+  span <- if(is.null(trend$dates)) c(-Inf, Inf) else structure(c(-Inf, Inf), class = "Date")
+  x_scale <- if(is.null(trend$dates)) {
+    ggplot2::scale_x_continuous(n.breaks = 3)
+  } else {
+    ggplot2::scale_x_date(breaks = pretty(trend$dates, n = 3), labels = function(d) format(d, "%b\n%Y"))
+  }
 
-  ggplot2::ggplot(points, ggplot2::aes(day, intensity)) +
+  ggplot2::ggplot(points, ggplot2::aes(at, intensity)) +
     ggplot2::geom_rect(
-      ggplot2::aes(xmin = -Inf, xmax = Inf, ymin = intensity - half, ymax = intensity + half), first,
+      ggplot2::aes(xmin = span[1], xmax = span[2], ymin = intensity - half, ymax = intensity + half), first,
       inherit.aes = FALSE, fill = colours[["faint"]], alpha = 0.35
     ) +
     ggplot2::geom_hline(ggplot2::aes(yintercept = intensity), first, colour = colours[["muted"]], linetype = "22",
@@ -529,8 +538,7 @@ autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL
       ggplot2::aes(fill = outside), shape = 21, size = 2.8, stroke = 0.7, colour = colours[["paper"]]
     ) +
     ggplot2::scale_fill_manual(values = c(`FALSE` = colours[["faint"]], `TRUE` = colours[["curve"]]), guide = "none") +
-    ## few day labels, so they stay apart in narrow panels
-    ggplot2::scale_x_continuous(n.breaks = 3) +
+    x_scale +
     ggplot2::facet_wrap(
       ggplot2::vars(method), nrow = 1, scales = "free_y",
       labeller = ggplot2::as_labeller(function(x) sprintf("bold(%s)", method_plotmath(x)), ggplot2::label_parsed)
@@ -541,7 +549,7 @@ autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL
         "Each test as a dot; gray band: the noise of the method around the first test, where 90% of changes fall",
         "when nothing changed. Dark dots lie outside it"
       ),
-      x = "Day", y = intensity_label(trend$sport)
+      x = if(is.null(trend$dates)) "Day" else NULL, y = intensity_label(trend$sport)
     ) +
     theme_lactater()
 }
@@ -577,6 +585,7 @@ plot_series <- function(tests, labels, lt1, lt2) {
   ## the name of each test at the end of its curve, pushed up until it clears the names already placed near it
   ends <- do.call(rbind, lapply(split(curves, curves$test), function(d) d[nrow(d), ]))
   gap <- 0.07 * max(curves$lactate)
+  ends$end <- ends$lactate
   placed <- integer()
   for(i in order(ends$lactate)) {
     repeat {
@@ -595,6 +604,10 @@ plot_series <- function(tests, labels, lt1, lt2) {
     ggplot2::geom_hline(yintercept = c(2, 4), colour = colours[["faint"]], linewidth = 0.3, linetype = "22") +
     ggplot2::geom_line(linewidth = 0.9) +
     ggplot2::geom_point(data = stages, shape = 21, fill = colours[["paper"]], size = 1.7, stroke = 0.7) +
+    ggplot2::geom_segment(
+      ggplot2::aes(x = intensity, xend = intensity + 0.015 * span, y = end, yend = lactate),
+      ends[ends$lactate != ends$end, ], inherit.aes = FALSE, colour = colours[["muted"]], linewidth = 0.3
+    ) +
     ggplot2::geom_label(
       ggplot2::aes(label = test), ends, hjust = -0.12, size = 3.1, fontface = "bold", colour = colours[["ink"]],
       fill = colours[["paper"]], border.colour = NA, label.padding = ggplot2::unit(0.08, "lines")
@@ -641,7 +654,7 @@ plot_series <- function(tests, labels, lt1, lt2) {
   plots <- list(lactate, zone_bars)
   heights <- c(3, 0.35 * n + 0.4)
   if(!is.null(hr) && nrow(hr) >= 2) {
-    ## the heart rate at LT1 and LT2 of each test on a filled point of its color, labelled for the latest test
+    ## the heart rate at LT1 and LT2 of each test on a filled point of its color, labeled for the latest test
     at <- do.call(rbind, lapply(seq_len(n), function(k) {
       z <- zones[[k]]
       if("heart_rate_from" %in% names(z)) {

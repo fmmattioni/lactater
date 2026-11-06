@@ -156,7 +156,8 @@ autoplot.lactate_load <- function(object, ...) {
   }))
   long$group <- factor(long$group, levels = rev(unique(labels)))
   long$zone <- factor(long$zone, levels = rev(paste("Zone", seq_len(n))))
-  long$text <- ifelse(long$share > 0.07, sprintf("%.0f%%", 100 * long$share), "")
+  percent_text <- sprintf("%.0f%%", 100 * long$share)
+  long$text <- ifelse(long$share > 0.18, paste(long$zone, percent_text), ifelse(long$share > 0.07, percent_text, ""))
   overall <- load$overall
   below_lt1 <- if(n > 3) overall$moderate_percent else overall$zone_1_percent
   title <- sprintf(
@@ -165,13 +166,12 @@ autoplot.lactate_load <- function(object, ...) {
   )
 
   ggplot2::ggplot(long, ggplot2::aes(share, group, fill = zone)) +
-    ggplot2::geom_col(width = 0.66, colour = colours[["paper"]], linewidth = 0.6) +
+    ggplot2::geom_col(width = 0.66, colour = colours[["paper"]], linewidth = 0.6, alpha = 0.55) +
     ggplot2::geom_text(
-      ggplot2::aes(label = text), position = ggplot2::position_stack(vjust = 0.5), size = 3, colour = "#22262d"
+      ggplot2::aes(label = text), position = ggplot2::position_stack(vjust = 0.5), size = 3, colour = colours[["ink"]]
     ) +
     ggplot2::scale_fill_manual(
-      values = stats::setNames(zone_colours[[as.character(n)]], paste("Zone", seq_len(n))),
-      breaks = paste("Zone", seq_len(n))
+      values = stats::setNames(zone_colours[[as.character(n)]], paste("Zone", seq_len(n))), guide = "none"
     ) +
     ggplot2::scale_x_continuous(labels = function(v) paste0(100 * v, "%"), expand = c(0, 0)) +
     ggplot2::labs(

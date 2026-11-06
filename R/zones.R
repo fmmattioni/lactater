@@ -179,7 +179,7 @@ lactate_zones <- function(x, lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax", model
   out
 }
 
-#' The heart rate at a threshold, labelled beside its point
+#' The heart rate at a threshold, labeled beside its point
 #'
 #' Its value over "at LT1", right of the point and under the line, where no stage sits, or left of it and above near
 #' the right edge or the bottom of the panel. The offsets are in points, so the label hugs its point at any plot size.
@@ -287,7 +287,6 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
   limits <- range(points$intensity, curve$intensity)
   limits <- limits + c(-0.03, 0.01) * diff(limits)
   sport <- info$settings$sport
-  unit <- intensity_unit(sport)
   value <- function(x) format_intensity(x, sport)
   n <- nrow(object)
   bands <- data.frame(
@@ -297,25 +296,18 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
     description = object$description,
     fill = zone_colours[[as.character(n)]]
   )
-  bands$range <- c(
-    paste0("< ", value(zones$bounds[1])),
-    paste0(value(zones$bounds[-length(zones$bounds)]), "-", value(zones$bounds[-1])),
-    paste0("> ", value(zones$bounds[length(zones$bounds)]))
-  )
   ## a zone beyond the test (zone 1 below the first stage of a swimmer) is cut to the plot, or left out when none of
   ## it is in the plot, so it cannot stretch the axis
   bands$from <- pmax(bands$from, limits[1])
   bands$to <- pmin(bands$to, limits[2])
   bands <- bands[bands$to > bands$from, ]
-  ## a narrow band drops the unit from its range, and a very narrow one keeps only its number, so neighboring labels
-  ## do not run into each other
+  ## a very narrow band keeps only its number, so neighboring labels do not run into each other
   width <- (bands$to - bands$from) / diff(limits)
-  bands$range <- ifelse(width < 0.14, bands$range, paste(bands$range, unit))
   bands$label <- ifelse(width < 0.09, sub("Zone ", "Z", bands$zone), toupper(bands$zone))
-  bands$range[width < 0.09] <- ""
   bands$description[width < 0.09] <- ""
   top <- max(points$lactate, curve$lactate) * 1.25
-  marks <- data.frame(intensity = zones$lt, label = sprintf('"%s"~~%s', c("LT1", "LT2"), method_plotmath(zones$labels)))
+  ## the lines carry only LT1 and LT2; the methods behind them are in the subtitle, clear of the curve
+  marks <- data.frame(intensity = zones$lt, label = c("LT1", "LT2"))
   ## the heart rate of the exercise stages; the resting value would squeeze them into the top of the scale
   hr <- if("heart_rate" %in% names(points)) {
     points[info$data$intensity > 0 & !is.na(points$heart_rate), ]
@@ -341,10 +333,13 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
     )
   }
   title <- sprintf("%d training zones", n)
-  subtitle <- "Zones at the intensity domains: moderate below LT1, heavy from LT1 to LT2, severe above LT2"
+  subtitle <- sprintf(
+    "Zones at the intensity domains: moderate below LT1 (%s), heavy from LT1 to LT2 (%s), severe above LT2",
+    method_html(zones$labels[1]), method_html(zones$labels[2])
+  )
 
-  ## the zone, its description and its range, set down from the top of the panel in points rather than in units of
-  ## the axis, so the three lines keep apart at any height of the plot
+  ## the zone and its description, set down from the top of the panel in points rather than in units of the axis,
+  ## so the two lines keep apart at any height of the plot; its boundaries are on the axis above
   zone_label <- function(k) {
     line <- function(label, from_top, size, ...) {
       grid::textGrob(label, y = grid::unit(1, "npc") - grid::unit(from_top, "pt"), vjust = 1, gp = grid::gpar(
@@ -357,8 +352,7 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
         ## an invisible bar on each side gives every description the same height, so "recovery" (no tall letter)
         ## sits on the same line as "endurance"
         line(parse(text = sprintf('phantom("|")*%s*phantom("|")', method_plotmath(bands$description[k]))), 16, 2.8,
-             col = colours[["muted"]]),
-        line(bands$range[k], 26.5, 2.8, col = colours[["muted"]])
+             col = colours[["muted"]])
       ),
       xmin = bands$from[k], xmax = bands$to[k], ymin = -Inf, ymax = Inf
     )
@@ -374,13 +368,17 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
       colour = colours[["ink"]], linewidth = 0.4, linetype = "22"
     ) +
     ggplot2::geom_text(
-      ggplot2::aes(x = intensity, y = 0, label = label), marks, parse = TRUE,
+      ggplot2::aes(x = intensity, y = 0, label = label), marks,
       angle = 90, hjust = -0.1, vjust = -0.6, size = 2.9, colour = colours[["muted"]]
     ) +
     hr_layers +
     ggplot2::geom_line(ggplot2::aes(intensity, lactate), curve, colour = colours[["curve"]], linewidth = 0.9) +
     stage_layers(points, info$data, colours) +
-    ggplot2::scale_x_continuous(expand = c(0, 0)) +
+    ## the zone boundaries read off the axis above the bands
+    ggplot2::scale_x_continuous(
+      expand = c(0, 0),
+      sec.axis = ggplot2::dup_axis(name = NULL, breaks = zones$bounds, labels = value(zones$bounds))
+    ) +
     ggplot2::scale_y_continuous(limits = c(0, top), breaks = lactate_breaks(top), expand = c(0, 0), sec.axis = y_axis) +
     ggplot2::labs(title = title, subtitle = subtitle, x = intensity_label(sport), y = "Blood lactate (mmol/L)") +
     theme_lactater()
@@ -419,8 +417,8 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
     theme_lactater()
   lactate <- lactate +
     ggplot2::labs(title = NULL, subtitle = NULL, x = NULL) +
-    ggplot2::theme(axis.text.x = ggplot2::element_blank(), axis.ticks.x = ggplot2::element_blank(),
-                   axis.line.x = ggplot2::element_blank())
+    ggplot2::theme(axis.text.x.bottom = ggplot2::element_blank(), axis.ticks.x.bottom = ggplot2::element_blank(),
+                   axis.line.x.bottom = ggplot2::element_blank())
   patchwork::wrap_plots(lactate, hr_panel, ncol = 1, heights = c(3, 1.6)) +
     patchwork::plot_annotation(
       title = title, subtitle = paste0(subtitle, ". Below: the heart rate of the stages, read at LT1 and LT2"),

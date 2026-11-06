@@ -15,5 +15,5 @@ plot_methods(plots, ...)
 a \code{patchwork} object
 }
 \description{
-Combine lactate threshold methods into one plot
+The one-line note under each title is dropped: it would crowd a grid of small panels.
 }
