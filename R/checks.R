@@ -61,10 +61,16 @@ lactate_checks <- function(x) {
       "Stages", n >= ltp_needs || !"LTP1" %in% methods,
       sprintf(
         paste(
-          "%d stages: the LTP fit has %d parameters, so %d degree(s) of freedom are left and LTP can move a lot with",
+          "%d stages: the LTP fit has %d parameters, so %s left and LTP can move a lot with",
           "one stage (at least %d stages are better); the fitted curves rest on few points too."
         ),
-        n, ltp_parameters, max(n - ltp_parameters, 0), ltp_needs
+        n, ltp_parameters,
+        switch(
+          as.character(max(n - ltp_parameters, 0)),
+          "0" = "no degrees of freedom are", "1" = "1 degree of freedom is",
+          sprintf("%d degrees of freedom are", n - ltp_parameters)
+        ),
+        ltp_needs
       ),
       ## a typical step test: a note, unless LTP cannot be fitted at all (two stages per segment)
       status = if(n < 2 * (info$settings$ltp_breakpoints + 1)) "warning" else "note",

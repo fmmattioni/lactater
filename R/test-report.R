@@ -484,7 +484,7 @@ html_figure <- function(zones) {
       "The lactate curve with the zones in the colors of their domain: green moderate, yellow heavy, red severe.",
       if(panel) "Below, the heart rate of the stages, read at LT1 and LT2."
     ),
-    height = if(panel) 5 else 3.2
+    height = if(panel) 4.4 else 3.2
   )
 }
 
@@ -598,7 +598,7 @@ html_progress <- function(r, cv) {
         "and below them the five training zones of each test, with LT1 and LT2 at their boundaries; dashed lines: 2",
         "and 4 mmol/L."
       ),
-      height = if(with_hr) 4.2 + 0.3 * n else 3.6 + 0.3 * n
+      height = if(with_hr) 5 + 0.35 * n else 3.6 + 0.3 * n
     ),
     tags$h2("Test by test"),
     html_table(by_test),
@@ -666,7 +666,8 @@ html_reference <- function(r) {
 html_zones <- function(zones, sport) {
   unit <- intensity_unit(sport)
   span <- function(from, to, digits, format = function(v) formatC(v, format = "f", digits = digits)) {
-    both <- paste0(format(from), "\u2013", format(to))
+    ## a range whose ends print the same (RPE 9.6 to 10.4) is one number
+    both <- ifelse(format(from) == format(to), format(from), paste0(format(from), "\u2013", format(to)))
     ifelse(is.na(from) & is.na(to), "", ifelse(
       is.na(from), paste("<", format(to)), ifelse(is.na(to), paste(">", format(from)), both)
     ))
@@ -804,7 +805,7 @@ html_checks <- function(x) {
   colours <- c(note = "#1f5fa8", warning = "#b45309")
   table <- data.frame(status = symbols[flagged$status], check = flagged$check, details = flagged$details)
   out <- gt::gt(table) |>
-    gt::cols_label(status = "", check = "", details = "") |>
+    gt::tab_options(column_labels.hidden = TRUE) |>
     gt::cols_width(status ~ gt::pct(4), check ~ gt::pct(22), details ~ gt::pct(74))
   for(s in names(symbols)) {
     out <- gt::tab_style(out, gt::cell_text(color = colours[[s]], weight = 600),
@@ -842,10 +843,11 @@ html_stages <- function(info) {
 html_methods <- function(x, info) {
   sport <- info$settings$sport
   family <- as.character(x$method_category)
-  ## the family named once, on its first row, so the table stays short
+  ## the family named once, on its first row, so the table stays short; a family of one method is named once too
+  method <- as.character(x$method)
   table <- data.frame(
     family = ifelse(duplicated(family), "", method_html(family)),
-    method = method_html(as.character(x$method)),
+    method = ifelse(method == family, "", method_html(method)),
     intensity = ifelse(is.na(x$intensity), "not found", format_intensity(x$intensity, sport)),
     ## one decimal, or two when needed (Bsln+ targets such as 1.43)
     lactate = ifelse(is.na(x$lactate), "", sprintf(
