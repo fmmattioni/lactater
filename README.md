@@ -266,8 +266,8 @@ lactate_zones(results, model = 5)
 #> # A tibble: 5 × 11
 #>   zone   domain  description intensity_from intensity_to lactate_from lactate_to
 #>   <chr>  <chr>   <chr>                <dbl>        <dbl>        <dbl>      <dbl>
-#> 1 Zone 1 modera… recovery                NA           66         NA          1.2
-#> 2 Zone 2 modera… endurance               66           83          1.2        1.4
+#> 1 Zone 1 modera… recovery                NA           62         NA          1.1
+#> 2 Zone 2 modera… endurance               62           83          1.1        1.4
 #> 3 Zone 3 heavy   tempo                   83          149          1.4        4.2
 #> 4 Zone 4 severe  threshold              149          170          4.2        6.1
 #> 5 Zone 5 severe  VO2max                 170           NA          6.1       NA  

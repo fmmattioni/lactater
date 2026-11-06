@@ -58,13 +58,16 @@ LT1 and LT2.
 where zones 1-2 lie below LT1, zone 3 between LT1 and LT2, and zones 4-5 above LT2. The two splits inside a
 domain are set by \code{split}:
 \itemize{
-\item \code{"relative"} (default): zone 1|2 at 80\% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of
+\item \code{"relative"} (default): zone 1|2 at 75\% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of
 the test. In the five-zone scale of Seiler (2010, Table 1), zone 2 starts at 66\% of the maximal oxygen uptake
-and zone 3 at 81\%, so zone 2 starts at about 80\% of the oxygen uptake of LT1; zone 5 starts at 94\%, halfway
-between the start of zone 4 (88\%) and the maximum. Zone 2 sits "immediately below" LT1 (Sitko et al., 2025).
-Both cuts are approximations: no physiological marker separates them (Bishop et al., 2025), the scale's zones
-are "somewhat arbitrary" (Seiler, 2010), and oxygen uptake is not proportional to power (pedaling at 0 W costs
-oxygen too), so in watts the same bands put the zone 1|2 cut nearer three quarters of LT1.
+and zone 3 at 81\%; with the oxygen cost of cycling and running (Glass & Dwyer, 2007), that puts zone 2 at about
+77\% of the power at LT1 and 80\% of the running speed. Sitko et al. (2025) place zone 2 "immediately below" LT1,
+at about 80\% to 90\% of the heart rate at LT1, which on the cycling tests of \link{lactate_tests} starts it at a median
+of about 65\% of the power at LT1 (where that heart rate falls within the stages). 75\% lies between the two and
+needs no heart rate. Zone 5 starts at 94\% of the maximal
+oxygen uptake, halfway between the start of zone 4 (88\%) and the maximum. Both cuts are approximations: no
+physiological marker separates them (Bishop et al., 2025), and the scale's zones are "somewhat arbitrary"
+(Seiler, 2010).
 \item \code{"seiler"}: where the fitted curve reaches 1.5 mmol/L (zone 1|2) and 6.0 mmol/L (zone 4|5), the blood lactate
 limits of the five-zone scale in Seiler (2010). A cut that falls outside its domain, or is not reached, uses
 the relative split instead, with a warning.
@@ -99,6 +102,8 @@ Physiology. 2017;8:337.
 Bishop DJ, Beck B, Biddle SJH, et al. Physical activity and exercise intensity terminology: a joint American
 College of Sports Medicine (ACSM) expert statement and Exercise and Sport Science Australia (ESSA) consensus
 statement. Medicine & Science in Sports & Exercise. 2025;57(11):2599-2613. doi:10.1249/MSS.0000000000003795
+
+Glass S, Dwyer GB, editors. ACSM's metabolic calculations handbook. Baltimore: Lippincott Williams & Wilkins; 2007.
 
 Hauser T, Adam J, Schulz H. Comparison of selected lactate threshold parameters with maximal lactate steady state in
 cycling. International Journal of Sports Medicine. 2014;35(6):517-521.

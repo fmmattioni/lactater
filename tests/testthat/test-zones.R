@@ -8,10 +8,10 @@ grob_labels <- function(plot) {
 lt1 <- attr(results, "lactater")$intensity[["Log-log"]]
 lt2 <- attr(results, "lactater")$intensity[["ModDmax"]]
 
-test_that("five zones split the moderate domain at 80% of LT1 and the severe domain halfway by default", {
+test_that("five zones split the moderate domain at 75% of LT1 and the severe domain halfway by default", {
   zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5)
   expect_equal(zones$domain, c("moderate", "moderate", "heavy", "severe", "severe"))
-  expect_equal(attr(zones, "lactater_zones")$bounds, c(0.8 * lt1, lt1, lt2, (lt2 + 191) / 2))
+  expect_equal(attr(zones, "lactater_zones")$bounds, c(0.75 * lt1, lt1, lt2, (lt2 + 191) / 2))
   expect_s3_class(autoplot(zones), "ggplot")
 })
 
@@ -25,7 +25,7 @@ test_that("Seiler's cuts sit at 1.5 and 6.0 mmol/L, and fall back to the relativ
     low <- lactate_zones(results, lt1 = "Bsln + 0.5", lt2 = "ModDmax", model = 5, split = "seiler"),
     "1.5 mmol/L"
   )
-  expect_equal(attr(low, "lactater_zones")$bounds[1], attr(results, "lactater")$intensity[["Bsln + 0.5"]] * 0.8)
+  expect_equal(attr(low, "lactater_zones")$bounds[1], attr(results, "lactater")$intensity[["Bsln + 0.5"]] * 0.75)
 })
 
 test_that("own cuts are checked against their domains", {

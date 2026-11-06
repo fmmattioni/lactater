@@ -183,9 +183,9 @@ lactater 1.0" on the website for how the numbers compare with 0.3.0.
   (moderate below LT1, heavy from LT1 to LT2, severe above LT2). By default LT1
   is Bsln + 0.5 and LT2 Log-Poly-ModDmax, the pair with the best evidence for
   each boundary (Jamnick et al., 2020, 2018) that also moves least with a
-  single stage. Five zones split the moderate domain at 80% of LT1 and the
+  single stage. Five zones split the moderate domain at 75% of LT1 and the
   severe domain halfway between LT2 and the peak, from the oxygen uptake bands
-  of Seiler (2010), at Seiler's 1.5 and 6.0 mmol/L, or at your own
+  of Seiler (2010) and the heart rates of Sitko et al. (2025), at Seiler's 1.5 and 6.0 mmol/L, or at your own
   intensities. Each zone comes with intensity,
   pace, lactate, heart-rate and RPE ranges, and the plot colors the zones
   green, yellow and red by domain. When the test has heart rate, the plot shows

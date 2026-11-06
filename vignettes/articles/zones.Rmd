@@ -115,11 +115,14 @@ averages: Seiler's scale, for example, puts zone 3 at 2.5 to 4 mmol/L, while lac
 heavy domain. Other five-level scales put LT1 at a different cut altogether ([Jamnick et al., 2020](https://doi.org/10.1007/s40279-020-01322-8), Table 1), so check
 which scale a coach means. The cut inside each domain is a convention, set with `split`:
 
-* `"relative"` (default): zone 1|2 at 80% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of the
-  test. In Seiler's (2010) scale zone 2 starts at 66% of the maximal oxygen uptake and zone 3 at 81%, about 80% of it,
-  and zone 5 starts halfway between the start of zone 4 (88%) and the maximum. Zone 2 sits "immediately below" LT1
-  ([Sitko et al., 2025](https://doi.org/10.1123/ijspp.2024-0303)), and no physiological marker separates zones 1 and 2
-  ([Bishop et al., 2025](https://doi.org/10.1249/MSS.0000000000003795)), so both cuts are approximations.
+* `"relative"` (default): zone 1|2 at 75% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of the
+  test. In Seiler's (2010) scale zone 2 starts at 66% of the maximal oxygen uptake and zone 3 at 81%, which, with the
+  oxygen cost of cycling and running (Glass & Dwyer, 2007), is about 77% of the power at LT1 and 80% of the running
+  speed. Sitko et al. ([2025](https://doi.org/10.1123/ijspp.2024-0303)) place zone 2 "immediately below" LT1, at about
+  80% to 90% of the heart rate at LT1, which starts it at a median of about 65% of the power at LT1 on the cycling tests
+  of `lactate_tests`. 75% lies between the two and needs no heart rate. Zone 5 starts halfway between the start of zone
+  4 (88% of the maximal oxygen uptake) and the maximum. No physiological marker separates zones 1 and 2 ([Bishop et al.,
+  2025](https://doi.org/10.1249/MSS.0000000000003795)), so both cuts are approximations.
 * `"seiler"`: where the fitted curve reaches 1.5 mmol/L (zone 1|2) and 6.0 mmol/L (zone 4|5), the lactate limits of
   Seiler's (2010) scale. A cut outside its domain, or never reached, falls back to the relative split, with a warning.
 * Two intensities of your own, `c(zone 1|2, zone 4|5)`.
@@ -164,6 +167,12 @@ thresholds, and the top zones of the scales with more than five zones are define
 
 ## References
 
+Bishop DJ, Beck B, Biddle SJH, et al. Physical activity and exercise intensity terminology: a joint American College of
+Sports Medicine (ACSM) expert statement and Exercise and Sport Science Australia (ESSA) consensus statement. Med Sci
+Sports Exerc. 2025;57(11):2599-613. [doi:10.1249/MSS.0000000000003795](https://doi.org/10.1249/MSS.0000000000003795)
+
+Glass S, Dwyer GB, editors. ACSM's metabolic calculations handbook. Baltimore: Lippincott Williams & Wilkins; 2007.
+
 Hauser T, Adam J, Schulz H. Comparison of selected lactate threshold parameters with maximal lactate steady state in
 cycling. Int J Sports Med. 2014;35(6):517-21. [doi:10.1055/s-0033-1353176](https://doi.org/10.1055/s-0033-1353176)
 
@@ -203,6 +212,10 @@ perceived exertion and physiological measures of exercise intensity. Eur J Appl 
 
 Seiler S. What is best practice for training intensity and duration distribution in endurance athletes? Int J Sports
 Physiol Perform. 2010;5(3):276-91. [doi:10.1123/ijspp.5.3.276](https://doi.org/10.1123/ijspp.5.3.276)
+
+Sitko S, Artetxe X, Bonnevie-Svendsen M, et al. What is "zone 2 training"?: experts' viewpoint on definition, training
+methods, and expected adaptations. Int J Sports Physiol Perform. 2025;20(11):1614-7.
+[doi:10.1123/ijspp.2024-0303](https://doi.org/10.1123/ijspp.2024-0303)
 
 Tønnessen E, Sylta Ø, Haugen TA, Hem E, Svendsen IS, Seiler S. The road to gold: training and peaking
 characteristics in the year prior to a gold medal endurance performance. PLOS ONE. 2014;9(7):e101796.
