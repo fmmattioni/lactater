@@ -123,7 +123,8 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
         ggplot2::aes(intensity, ratio), plot_data$ratio, colour = colours[["curve"]], linewidth = 0.9
       )),
       y = plot_data$ratio_min,
-      top = max(plot_data$ratio$ratio)
+      top = max(plot_data$ratio$ratio),
+      path = data.frame(intensity = plot_data$ratio$intensity, lactate = plot_data$ratio$ratio)
     )
   } else if(!is.null(plot_data$breakpoints)) {
     if(log_axes) points <- points[data$intensity > 0, ]
@@ -135,7 +136,15 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
   }
 
   x_range <- range(points$intensity, drawn$x_range)
-  y_range <- c(if(log_axes) min(points$lactate) else 0, max(points$lactate, drawn$top, drawn$y) * 1.06)
+  ## lactate starts at zero; a lactate / intensity ratio has no reason to, so its axis starts a little under the data
+  lowest <- if(log_axes) {
+    min(points$lactate)
+  } else if(ratio) {
+    max(0, min(points$lactate, drawn$y) - 0.3 * diff(range(points$lactate, drawn$top, drawn$y)))
+  } else {
+    0
+  }
+  y_range <- c(lowest, max(points$lactate, drawn$top, drawn$y) * 1.06)
   label <- threshold_text(intensity, lactate, heart_rate, settings$sport, interval, rpe)
 
   p <- ggplot2::ggplot()
@@ -145,15 +154,17 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
       fill = colours[["accent"]], alpha = 0.12
     )
   }
-  ## the guide of a low threshold (Bsln + 0.5) runs just over the resting sample: its label goes under the dot then
+  ## the guide of a low threshold (Bsln + 0.5), or the line from LTratio of IAT, runs just over the resting sample:
+  ## its label goes under the dot then
   rest_lactate <- if(nrow(points) == nrow(data)) points$lactate[data$intensity == 0][1] else NA
-  guide_over_rest <- isTRUE(drawn$y > rest_lactate && drawn$y < rest_lactate + 0.12 * diff(y_range))
+  over <- c(drawn$y, if(!is.null(plot_data$from)) as.numeric(plot_data$from[["lactate"]]))
+  guide_over_rest <- isTRUE(any(over > rest_lactate & over < rest_lactate + 0.12 * diff(y_range)))
   p <- p +
     drawn$layers +
     stage_layers(points, data, colours, label_rest = !ratio && !log_axes, rest_below = guide_over_rest) +
     marker_layers(
       intensity, drawn$y, label, x_range, y_range, log_axes, colours, below = isTRUE(drawn$below),
-      avoid = plot_data$line
+      avoid = list(plot_data$line, drawn$path)
     ) +
     ggplot2::labs(
       title = method_label(method, bold = TRUE),
@@ -171,7 +182,7 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
   }
   p +
     ggplot2::scale_y_continuous(
-      limits = c(0, y_range[2]), breaks = if(ratio) ggplot2::waiver() else lactate_breaks(y_range[2]),
+      limits = y_range, breaks = if(ratio) ggplot2::waiver() else lactate_breaks(y_range[2]),
       expand = ggplot2::expansion(mult = c(0, 0.02))
     ) +
     ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = 0.03)) +
@@ -239,6 +250,7 @@ curve_layers <- function(plot_data, intensity, lactate, colours, sport) {
     ),
     y = lactate,
     top = top,
+    path = plot_data$curve,
     ## the Dmax line runs above the curve, so the label goes below it
     below = !is.null(plot_data$line)
   )
@@ -291,7 +303,8 @@ breakpoint_layers <- function(fit, method, intensity, log_axes, colours, sport) 
     layers = layers,
     y = back(predict_breakpoints(fit, at)),
     top = back(y_range[2]),
-    x_range = range(back(fit$x))
+    x_range = range(back(fit$x)),
+    path = data.frame(intensity = segments$x[segments$fitted], lactate = segments$y[segments$fitted])
   )
 }
 
@@ -346,6 +359,7 @@ stegmann_layers <- function(plot_data, colours) {
     y = y,
     top = max(curve$lactate, recovery$lactate),
     x_range = range(curve$intensity, recovery$intensity),
+    path = curve,
     below = TRUE
   )
 }
@@ -430,7 +444,8 @@ stage_points <- function(points, colours, outline = colours[["curve"]]) {
 #'
 #' The label sits above the threshold, to the left when there is room (above a rising curve the plot is
 #' empty) and to the right otherwise; with `below`, below the curve and to the right, when the threshold leaves room
-#' under it. A label above steps over `avoid`, the Dmax line, when that line would cross it. For internal use only.
+#' under it. A label steps over (or, below the curve, under) the lines of `avoid`, the Dmax line and the drawn curve, when one
+#' would cross it. For internal use only.
 #'
 #' @param x,y Where the threshold sits.
 #' @param label A list with the `value` and the `detail` lines.
@@ -438,9 +453,9 @@ stage_points <- function(points, colours, outline = colours[["curve"]]) {
 #' @param log_axes Whether both axes are logarithmic.
 #' @param colours The plot colours.
 #' @param below Whether to put the label below the curve.
-#' @param avoid A line (`intensity`, `lactate`) the label above must not cross, or `NULL`.
+#' @param avoid The lines (`intensity`, `lactate`) the label must not cross: the Dmax line and the drawn curve.
 #' @keywords internal
-marker_layers <- function(x, y, label, x_range, y_range, log_axes, colours, below = FALSE, avoid = NULL) {
+marker_layers <- function(x, y, label, x_range, y_range, log_axes, colours, below = FALSE, avoid = list()) {
   to <- if(log_axes) log10 else identity
   from <- if(log_axes) function(v) 10^v else identity
   xs <- to(x_range)
@@ -463,16 +478,49 @@ marker_layers <- function(x, y, label, x_range, y_range, log_axes, colours, belo
   } else {
     min(to(y) + 0.26 * height, ys[2] - 0.08 * height)
   }
-  if(!below && !is.null(avoid)) {
-    ## the line under the text: when it runs through the label, the label moves up over it
-    span <- label_x + c(-0.3, 0) * width * (if(left) 1 else -1)
-    under <- stats::approx(avoid$intensity, avoid$lactate, xout = seq(min(span), max(span), length.out = 20))$y
-    crossed <- any(under > label_y - 0.05 * height & under < label_y + 0.12 * height, na.rm = TRUE)
-    if(crossed) label_y <- min(max(under, na.rm = TRUE) + 0.06 * height, ys[2] - 0.08 * height)
+  ## the lines behind the text: when one runs through the label, a label above moves up over it, and a label below
+  ## moves down under it. The text is about as wide as its detail line is long (at the 7 inches of a default figure)
+  text_width <- max(0.3, 0.011 * nchar(label$detail)) * width
+  clear <- function(label_x, hjust) {
+    span <- label_x + c(-1, 0) * text_width * (if(hjust == 1) 1 else -1)
+    for(line in Filter(Negate(is.null), avoid)) {
+      line <- line[line$intensity > 0 & line$lactate > 0, ]
+      behind <- stats::approx(
+        to(line$intensity), to(line$lactate), xout = seq(min(span), max(span), length.out = 20), ties = mean
+      )$y
+      if(any(behind > label_y - 0.08 * height & behind < label_y + 0.12 * height, na.rm = TRUE)) {
+        label_y <- if(below) {
+          max(min(behind, na.rm = TRUE) - 0.14 * height, ys[1] + 0.1 * height)
+        } else {
+          min(max(behind, na.rm = TRUE) + 0.09 * height, ys[2] - 0.08 * height)
+        }
+      }
+    }
+    label_y
   }
+  cleared <- clear(label_x, hjust)
+  if(!below && cleared > label_y) {
+    ## rather than a long arrow up, the label on the other side of the threshold when the lines leave it lower there:
+    ## to the right, or to the left, slid in from the axis when it does not fit between the axis and the threshold
+    other <- if(left) {
+      list(x = to(x) + 0.1 * width, hjust = 0)
+    } else {
+      list(x = max(to(x) - 0.1 * width, xs[1] + 0.02 * width + text_width), hjust = 1)
+    }
+    other_y <- if(other$hjust == 1 || other$x + text_width <= xs[2]) clear(other$x, other$hjust) else Inf
+    if(other_y < cleared) {
+      cleared <- other_y
+      label_x <- other$x
+      hjust <- other$hjust
+      left <- hjust == 1
+      ## under the text, short of the threshold, when the label reaches over it
+      arrow_x <- if(left) min(label_x, to(x) - 0.06 * width) else label_x
+    }
+  }
+  label_y <- cleared
   ## the arrow leaves the label from its side nearest the threshold
   arrow_from <- if(below) label_y + 0.11 * height else label_y - 0.09 * height
-  guide_from <- if(log_axes) c(x_range[1], y_range[1]) else c(-Inf, 0)
+  guide_from <- if(log_axes) c(x_range[1], y_range[1]) else c(-Inf, y_range[1])
   list(
     ggplot2::annotate(
       "segment", x = x, xend = x, y = guide_from[2], yend = y, colour = colours[["accent"]], linewidth = 0.45,

@@ -87,6 +87,8 @@ test_that("labels keep clear of the lines beside them, and the zones table leave
   }
   expect_equal(rest_vjust("Bsln + 0.5"), 2)
   expect_equal(rest_vjust("Dmax"), -1.2)
+  ## the dashed line from LTratio of the IAT plot runs over it too
+  expect_equal(rest_vjust("IAT"), 2)
   skip_if_not_installed("gt")
   running <- lactate_tests[lactate_tests$test == "running_recreational", ]
   runner <- lactate_threshold(running, intensity, lactate, heart_rate, rpe_column = rpe, sport = "running",
@@ -96,4 +98,26 @@ test_that("labels keep clear of the lines beside them, and the zones table leave
   expect_match(html, "&lt; 9.9", fixed = TRUE)
   expect_match(html, "9.9\u201310.4", fixed = TRUE)
   expect_match(html, ">\u2013</td>")
+})
+
+test_that("the label of a low threshold goes left of it, near it, when the curve would run through it on the right", {
+  value <- function(method) {
+    layers <- autoplot(results, method = method)$layers
+    label <- Filter(function(l) identical(l$aes_params$size, 6), layers)[[1]]
+    c(label$aes_params, as.list(label$data))
+  }
+  bsln <- value("Bsln + 0.5")
+  ## right-aligned, ending near the threshold (83 W), and no more than the usual step above it
+  expect_equal(bsln$hjust, 1)
+  expect_lt(bsln$x, 95)
+  expect_lt(bsln$y, 1.4 + 0.3 * 9.2)
+  ## a threshold with room on its side keeps its place: OBLA 4.0 has its label on the left as before
+  expect_equal(value("OBLA 4.0")$hjust, 1)
+})
+
+test_that("the axis of the LTratio plot starts under its data, not at zero", {
+  plot <- autoplot(results, method = "LTratio")
+  limits <- plot$scales$get_scales("y")$limits
+  expect_gt(limits[1], 0)
+  expect_lt(limits[1], min(demo_data$lactate[-1] / demo_data$intensity[-1]))
 })
