@@ -45,8 +45,9 @@ tbl_sum.lactate_thresholds <- function(x, ...) {
 #' Plot lactate thresholds
 #'
 #' Plots the result of [lactate_threshold()]. Without `method`, an overview: the fitted lactate
-#' curve on top and every threshold below, grouped by what the method aims at, on the same intensity axis, so
-#' you can see at a glance how much the methods agree; the two that mark LT1 and LT2 (`lt1`, `lt2`, the
+#' curve on top and every threshold below, grouped by what the method aims at, on the same intensity axis, with a
+#' shaded band for how far the methods aimed at LT1 and at LT2 lie apart, so you can see at a glance how much the
+#' methods agree; the two that mark LT1 and LT2 (`lt1`, `lt2`, the
 #' defaults of [lactate_zones()]) are drawn in green. With `method`, the plot of that one method:
 #' what the method fitted, the measured stages, and the threshold with its intensity, lactate and
 #' heart rate.
@@ -103,10 +104,11 @@ plot.lactate_thresholds <- function(x, method = NULL, ...) {
 #' Overview plot
 #'
 #' Every threshold of the test on one intensity axis: the fitted curve on top, and below it one row per method,
-#' grouped by what it aims at (the first rise, the second rise, or a fixed lactate), with the threshold as a dot and
-#' its confidence interval as a line (when computed). A table on the right prints the lactate, heart rate, RPE,
-#' percentage of the peak intensity and of the highest heart rate at each threshold, with the lactate shaded by its
-#' value.
+#' grouped by what it aims at (the first rise, the second rise, or a fixed lactate), with the threshold as a dot, its
+#' value beside it, and its confidence interval as a line (when computed). Two shaded bands, through the curve and the
+#' rows, show how far the methods aimed at LT1 and at LT2 lie apart. The title gives LT1 and LT2 when both `chosen`
+#' methods were computed. A table on the right prints the lactate, heart rate, RPE, percentage of the peak intensity
+#' and of the highest heart rate at each threshold, with the lactate shaded by its value.
 #'
 #' @param object The result of [lactate_threshold()].
 #' @param info Its `lactater` attribute.
@@ -140,7 +142,20 @@ plot_overview <- function(object, info, chosen = character()) {
   if(!is.null(rows$heart_rate)) rows$hr_max <- 100 * rows$heart_rate / max(info$data$heart_rate, na.rm = TRUE)
   curve <- curve_points(info$curve)
   limits <- range(points$intensity, curve$intensity, rows$intensity, rows$low, rows$high, na.rm = TRUE)
-  x_scale <- ggplot2::scale_x_continuous(limits = limits, expand = ggplot2::expansion(mult = 0.03))
+  ## room on the right for the value beside the last dot
+  x_scale <- ggplot2::scale_x_continuous(limits = limits, expand = ggplot2::expansion(mult = c(0.03, 0.09)))
+  ## how far the methods aimed at LT1 and at LT2 lie apart, shaded through the curve and the dots
+  spans <- do.call(rbind, lapply(1:2, function(k) {
+    values <- rows$intensity[as.integer(method_aim(rows$method)) == k]
+    if(length(values) > 1) {
+      data.frame(name = paste0("LT", k), low = min(values), high = max(values))
+    }
+  }))
+  apart <- if(!is.null(spans)) {
+    ggplot2::annotate(
+      "rect", xmin = spans$low, xmax = spans$high, ymin = -Inf, ymax = Inf, fill = colours[["accent"]], alpha = 0.12
+    )
+  }
   y_rows <- ggplot2::scale_y_continuous(
     breaks = c(rows$row, heads),
     labels = c(method_label(rows$method), parse(text = sprintf('bold("%s")', names(heads)))),
@@ -151,18 +166,23 @@ plot_overview <- function(object, info, chosen = character()) {
     ymax = rows$row[rows$row %% 2 == 0] + 0.5, fill = colours[["faint"]], alpha = 0.18
   )
 
-  top <- ggplot2::ggplot() +
+  top_y <- max(points$lactate, curve$lactate) * 1.08
+  top <- ggplot2::ggplot() + apart +
     ggplot2::geom_line(ggplot2::aes(intensity, lactate), curve, colour = colours[["curve"]], linewidth = 0.9) +
     stage_layers(points, info$data, colours) +
     x_scale +
-    ggplot2::scale_y_continuous(
-      limits = c(0, max(points$lactate, curve$lactate) * 1.08),
-      breaks = lactate_breaks(max(points$lactate, curve$lactate) * 1.08), expand = c(0, 0)
-    ) +
-    ggplot2::labs(x = NULL, y = "Lactate (mmol/L)") +
+    ggplot2::scale_y_continuous(limits = c(0, top_y), breaks = lactate_breaks(top_y), expand = c(0, 0)) +
+    ggplot2::labs(x = NULL, y = "Blood lactate (mmol/L)") +
     theme_lactater()
+  if(!is.null(spans)) {
+    top <- top + ggplot2::annotate(
+      "text", x = (spans$low + spans$high) / 2, y = top_y, label = spans$name, vjust = 1.4, fontface = "bold",
+      size = 4.2, colour = colours[["ink"]]
+    )
+  }
 
-  dots <- ggplot2::ggplot(rows) + bands
+  rows$beside <- if(is.null(rows$high)) rows$intensity else pmax(rows$intensity, rows$high, na.rm = TRUE)
+  dots <- ggplot2::ggplot(rows) + bands + apart
   if(!is.null(rows$low)) {
     dots <- dots + ggplot2::geom_segment(
       ggplot2::aes(x = low, xend = high, y = row, yend = row), colour = colours[["muted"]], alpha = 0.55,
@@ -173,6 +193,12 @@ plot_overview <- function(object, info, chosen = character()) {
     ggplot2::geom_point(
       ggplot2::aes(intensity, row), shape = 21, size = 2.8, stroke = 0.7,
       fill = ifelse(rows$chosen, colours[["accent"]], colours[["curve"]]), colour = colours[["paper"]]
+    ) +
+    ## the value beside its dot, past the confidence interval when there is one
+    ggplot2::geom_text(
+      ggplot2::aes(beside, row, label = format_intensity(intensity, sport)),
+      hjust = 0, nudge_x = 0.035 * diff(limits), size = 2.9, colour = colours[["ink"]],
+      fontface = ifelse(rows$chosen, "bold", "plain")
     ) +
     x_scale + y_rows +
     ggplot2::labs(x = intensity_label(sport), y = NULL) +
@@ -187,22 +213,32 @@ plot_overview <- function(object, info, chosen = character()) {
   ## that two-word headers such as "Heart rate" keep apart
   columns <- 2 + 2 * (!is.null(rows$heart_rate)) + (!is.null(rows$rpe)) + (!is.null(rows$low))
   design <- "AB\nCD"
+  ## the corner above the table, empty but in the paper color (a spacer stays white in the night style)
+  corner <- ggplot2::ggplot() + theme_lactater() + ggplot2::theme(axis.line = ggplot2::element_blank())
+  counted <- sprintf("%d thresholds from %d methods", nrow(rows), length(unique(rows$family)))
+  both <- length(chosen) == 2 && all(chosen %in% rows$method)
   patchwork::wrap_plots(
-    A = top, B = patchwork::plot_spacer(), C = dots, D = table, design = design,
-    widths = c(2, 0.37 * columns), heights = c(0.75, max(1.4, max(heads) / 7))
+    A = top, B = corner, C = dots, D = table, design = design,
+    widths = c(2, 0.37 * columns), heights = c(1.1, max(1.4, max(heads) / 7))
   ) +
     patchwork::plot_annotation(
-      title = sprintf(
-        "%d thresholds from %d methods, %s to %s %s", nrow(rows), length(unique(rows$family)),
-        format_intensity(min(rows$intensity), sport), format_intensity(max(rows$intensity), sport),
-        intensity_unit(sport)
-      ),
+      ## the answer when both thresholds of the zones are there, otherwise the count
+      title = if(both) {
+        sprintf(
+          "LT1 at %s, LT2 at %s", intensity_text(rows$intensity[match(chosen[1], rows$method)], sport),
+          intensity_text(rows$intensity[match(chosen[2], rows$method)], sport)
+        )
+      } else {
+        sprintf(
+          "%s, %s to %s", counted, format_intensity(min(rows$intensity), sport),
+          intensity_text(max(rows$intensity), sport)
+        )
+      },
       subtitle = paste0(
-        "Each method as a dot", if(!is.null(rows$low)) " with its confidence interval" else "",
-        ", grouped by what it aims at; the table gives the values at each threshold",
-        if(any(rows$chosen)) {
-          sprintf(". Green: %s", paste(method_html(chosen[chosen %in% rows$method]), collapse = " and "))
-        }
+        if(both) counted else "Every method", if(!is.null(rows$low)) ", with confidence intervals",
+        ", grouped by what it aims at",
+        if(!is.null(spans)) ". Shaded: how far the methods for one threshold lie apart",
+        if(any(rows$chosen)) ". Green: what marks LT1 and LT2 in the zones"
       ),
       caption = paste("Fit:", info$settings$fit),
       theme = theme_lactater()
@@ -238,7 +274,7 @@ overview_table <- function(rows, colours, sport, intervals) {
       shade = if(column$shade && span > 0) (values - min(values, na.rm = TRUE)) / span else NA_real_
     )
   }))
-  tint <- if(identical(colours[["paper"]], "#ffffff")) colours[["curve"]] else colours[["accent"]]
+  tint <- colours[["curve"]]
   shaded <- cells[!is.na(cells$shade), ]
   ggplot2::ggplot(cells, ggplot2::aes(column, row)) +
     ggplot2::geom_tile(

@@ -29,8 +29,9 @@ a \code{ggplot2} (one method) or \code{patchwork} (overview) object.
 }
 \description{
 Plots the result of \code{\link[=lactate_threshold]{lactate_threshold()}}. Without \code{method}, an overview: the fitted lactate
-curve on top and every threshold below, grouped by what the method aims at, on the same intensity axis, so
-you can see at a glance how much the methods agree; the two that mark LT1 and LT2 (\code{lt1}, \code{lt2}, the
+curve on top and every threshold below, grouped by what the method aims at, on the same intensity axis, with a
+shaded band for how far the methods aimed at LT1 and at LT2 lie apart, so you can see at a glance how much the
+methods agree; the two that mark LT1 and LT2 (\code{lt1}, \code{lt2}, the
 defaults of \code{\link[=lactate_zones]{lactate_zones()}}) are drawn in green. With \code{method}, the plot of that one method:
 what the method fitted, the measured stages, and the threshold with its intensity, lactate and
 heart rate.
