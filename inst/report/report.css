@@ -66,6 +66,10 @@ p { margin: 0 0 10px; }
 .stat-label { font-size: 13px; color: var(--muted); }
 .stat-value { font-size: 30px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
 .stat-detail { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stat-warning { color: var(--ink); }
+.stat-flag { color: #b45309; font-weight: 600; }
+/* a subscript (Dmax, HRmax) must not make its line taller than its neighbors */
+sub, sup { line-height: 0; }
 figure { margin: 18px 0 0; }
 figure img { display: block; width: 100%; height: auto !important; }
 figcaption { margin-top: 2px; }

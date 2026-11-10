@@ -388,15 +388,8 @@ html_method <- function(zones, boundary) {
 html_lede <- function(r) {
   stages <- r$info$data[r$info$data$intensity > 0, ]
   sport <- r$info$settings$sport
-  sprintf(
-    paste(
-      "A %s step test of %d stages, up to %s. LT1 (%s) and LT2 (%s) split the intensities into three domains: below",
-      "LT1 exercise is moderate, between them heavy, and above LT2 severe, where lactate keeps rising even at a",
-      "constant intensity."
-    ),
-    sport, nrow(stages), intensity_text(max(stages$intensity), sport), html_method(r$three, 1),
-    html_method(r$three, 2)
-  )
+  ## the test in one line: the methods are named over the numbers below, and the domains under the figure
+  sprintf("A %s step test of %d stages, up to %s.", sport, nrow(stages), intensity_text(max(stages$intensity), sport))
 }
 
 #' @rdname report_internals
@@ -419,15 +412,23 @@ html_stats <- function(r) {
       })
     )
   }
-  ## how far the methods aimed at the same threshold lie apart, so the reader sees how much the choice matters
+  ## how far the methods aimed at the same threshold lie apart, so the reader sees how much the choice matters; as a
+  ## warning beside the number when the check of the data flags it
+  checks <- lactate_checks(r$x)
   others <- function(k) {
     values <- info$intensity[as.integer(method_aim(names(info$intensity))) == k]
     values <- values[!is.na(values)]
     if(length(values) > 1) {
-      gsub(" ", "&nbsp;", sprintf(
-        "%d %s-rise methods: %s to %s", length(values), c("first", "second")[k],
-        format_intensity(min(values), sport), intensity_text(max(values), sport)
-      ), fixed = TRUE)
+      range <- paste(format_intensity(min(values), sport), "to", intensity_text(max(values), sport))
+      if(identical(checks$status[checks$check == paste0("LT", k)], "warning")) {
+        sprintf(
+          "<span class=\"stat-warning\"><span class=\"stat-flag\">!</span> Methods disagree: %s</span>",
+          gsub(" ", "&nbsp;", range, fixed = TRUE)
+        )
+      } else {
+        gsub(" ", "&nbsp;", sprintf("%d %s-rise methods: %s", length(values), c("first", "second")[k], range),
+             fixed = TRUE)
+      }
     }
   }
   boundary <- function(k) {
@@ -589,10 +590,10 @@ html_progress <- function(r, cv) {
     html_plot(
       plot,
       paste(
-        "Every lactate curve, light to dark from the first to the latest test,",
+        "Every lactate curve: the latest test in blue, the first in dark gray, the tests between in light gray;",
         if(with_hr) "then the heart rate of the stages in the same colors, with LT1 and LT2 as filled points,",
-        "and below them the five training zones of each test, with LT1 and LT2 at their boundaries; dashed lines: 2",
-        "and 4 mmol/L."
+        "and below them the five training zones of each test up to its highest stage, with LT1 and LT2 at their",
+        "boundaries; dashed lines: 2 and 4 mmol/L."
       ),
       height = if(with_hr) 5 + 0.35 * n else 3.6 + 0.3 * n
     ),
