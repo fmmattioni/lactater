@@ -157,8 +157,9 @@ autoplot.lactate_shape <- function(object, ...) {
   points <- rbind(stages(object$curves$before, "Before"), stages(object$curves$after, "After"))
   points$test <- factor(points$test, levels = levels(curves$test))
   ends <- do.call(rbind, lapply(split(curves, curves$test), function(d) d[nrow(d), ]))
-  ends$hjust <- ifelse(ends$test == "Before", 1.15, -0.1)
-  palette <- c("Before" = colours[["muted"]], "Before, shifted" = colours[["accent"]], "After" = colours[["curve"]])
+  ends$hjust <- ifelse(ends$test == "Before", 1.25, -0.25)
+  ## the first test in gray as in the comparison plot, and its shifted copy in the blue of the test it is held against
+  palette <- c("Before" = colours[["faint"]], "Before, shifted" = colours[["curve"]], "After" = colours[["curve"]])
   top <- max(points$lactate, curves$lactate) * 1.05
 
   ggplot2::ggplot(curves, ggplot2::aes(intensity, lactate, colour = test)) +

@@ -155,7 +155,8 @@ autoplot.lactate_diagnostics <- function(object, ...) {
       ..., shape = 21, size = 2.6, stroke = 0.7, fill = colours[["paper"]], colour = colours[["curve"]]
     )
   }
-  reference <- function(...) ggplot2::geom_hline(..., colour = colours[["accent"]], linewidth = 0.6, linetype = "22")
+  ## reference lines in gray: green is for thresholds
+  reference <- function(...) ggplot2::geom_hline(..., colour = colours[["muted"]], linewidth = 0.6, linetype = "22")
   ## one-line subtitles as plain text: a text box inside patchwork reserves the height it would need at the width of
   ## the whole figure, and overlaps the title
   panel <- function(title, subtitle) {
@@ -185,7 +186,7 @@ autoplot.lactate_diagnostics <- function(object, ...) {
     panel("Residuals vs fitted", "Dots around zero; an arch means the curve has the wrong shape")
   quantiles <- stats::qqnorm(stages$standardized, plot.it = FALSE)
   normal <- ggplot2::ggplot(data.frame(x = quantiles$x, y = quantiles$y), ggplot2::aes(x, y)) +
-    ggplot2::geom_abline(intercept = 0, slope = 1, colour = colours[["accent"]], linewidth = 0.6, linetype = "22") +
+    ggplot2::geom_abline(intercept = 0, slope = 1, colour = colours[["muted"]], linewidth = 0.6, linetype = "22") +
     dot() +
     ggplot2::labs(x = "Theoretical quantiles", y = "Standardized residuals") +
     panel("Normality of residuals", "Dots on the line; with so few stages, a weak check")

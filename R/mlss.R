@@ -173,22 +173,25 @@ autoplot.lactate_mlss <- function(object, ...) {
     is.na(out$rise[match(ends$intensity, out$intensity)]), sprintf("%g%s", ends$intensity, unit),
     sprintf("%g%s  %+.1f", ends$intensity, unit, out$rise[match(ends$intensity, out$intensity)])
   )
-  ink <- function(steady) ifelse(steady, colours[["accent"]], colours[["muted"]])
+  ## green for the answer only: the MLSS bout; the other steady bouts in blue, the rest in gray
+  ink <- function(d) {
+    ifelse(d$intensity %in% object$mlss, colours[["accent"]], ifelse(d$steady, colours[["curve"]], colours[["muted"]]))
+  }
 
   ggplot2::ggplot(samples, ggplot2::aes(time, lactate, group = intensity)) +
     ## the window that decides the bout
     ggplot2::annotate("rect", xmin = object$from, xmax = 30, ymin = -Inf, ymax = Inf, fill = colours[["faint"]],
                       alpha = 0.2) +
-    ggplot2::geom_line(colour = ink(samples$steady), linewidth = 0.8) +
-    ggplot2::geom_point(shape = 21, size = 2.2, stroke = 0.7, fill = colours[["paper"]], colour = ink(samples$steady)) +
+    ggplot2::geom_line(colour = ink(samples), linewidth = 0.8) +
+    ggplot2::geom_point(shape = 21, size = 2.2, stroke = 0.7, fill = colours[["paper"]], colour = ink(samples)) +
     ggplot2::geom_text(
-      ggplot2::aes(label = label), ends, hjust = -0.12, size = 3, colour = ink(ends$steady)
+      ggplot2::aes(label = label), ends, hjust = -0.12, size = 3, colour = ink(ends)
     ) +
     ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0.02, 0.3))) +
     ggplot2::labs(
       title = if(is.na(object$mlss)) "No steady bout" else sprintf("MLSS at %g%s", object$mlss, unit),
       subtitle = sprintf(
-        "Steady bouts in green: lactate rose by %g mmol/L or less from minute %g to 30 (shaded)",
+        "Green: the highest steady bout. Blue: steady, lactate rose by %g mmol/L or less from minute %g to 30 (shaded)",
         object$rise, object$from
       ),
       x = "Minute of the bout", y = "Blood lactate (mmol/L)"
