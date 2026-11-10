@@ -665,7 +665,8 @@ html_zones <- function(zones, sport) {
   span <- function(from, to, digits, format = function(v) formatC(v, format = "f", digits = digits)) {
     ## a range whose ends print the same (RPE 9.6 to 10.4) is one number
     both <- ifelse(format(from) == format(to), format(from), paste0(format(from), "\u2013", format(to)))
-    ifelse(is.na(from) & is.na(to), "", ifelse(
+    ## a dash where there is no value (the lactate of a zone below the first stage), not an empty cell
+    ifelse(is.na(from) & is.na(to), "\u2013", ifelse(
       is.na(from), paste("<", format(to)), ifelse(is.na(to), paste(">", format(from)), both)
     ))
   }
@@ -682,7 +683,10 @@ html_zones <- function(zones, sport) {
     table$pace <- span(zones$pace_to, zones$pace_from, 0, function(v) sub(" .*", "", format_pace(v, sport)))
   }
   if("heart_rate_from" %in% names(zones)) table$heart_rate <- span(zones$heart_rate_from, zones$heart_rate_to, 0)
-  if("rpe_from" %in% names(zones)) table$rpe <- span(zones$rpe_from, zones$rpe_to, 0)
+  ## RPE as whole numbers, unless two boundaries would then print the same ("< 10" over "10")
+  if("rpe_from" %in% names(zones)) {
+    table$rpe <- span(zones$rpe_from, zones$rpe_to, as.integer(anyDuplicated(round(zones$rpe_to[-n])) > 0))
+  }
   table$lactate <- span(zones$lactate_from, zones$lactate_to, 1)
   numeric <- intersect(c("intensity", "pace", "heart_rate", "rpe", "lactate"), names(table))
   rule <- which(!duplicated(zones$domain))[-1]

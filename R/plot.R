@@ -145,9 +145,12 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
       fill = colours[["accent"]], alpha = 0.12
     )
   }
+  ## the guide of a low threshold (Bsln + 0.5) runs just over the resting sample: its label goes under the dot then
+  rest_lactate <- if(nrow(points) == nrow(data)) points$lactate[data$intensity == 0][1] else NA
+  guide_over_rest <- isTRUE(drawn$y > rest_lactate && drawn$y < rest_lactate + 0.12 * diff(y_range))
   p <- p +
     drawn$layers +
-    stage_layers(points, data, colours, label_rest = !ratio && !log_axes) +
+    stage_layers(points, data, colours, label_rest = !ratio && !log_axes, rest_below = guide_over_rest) +
     marker_layers(
       intensity, drawn$y, label, x_range, y_range, log_axes, colours, below = isTRUE(drawn$below),
       avoid = plot_data$line
@@ -392,16 +395,17 @@ other_point <- function(x, y, label, colours) {
 #' @param data The data retrieved from `prepare_data()`, to tell the resting sample apart.
 #' @param colours The plot colours.
 #' @param label_rest Whether to label the resting sample.
+#' @param rest_below Whether that label goes under the dot instead of over it.
 #' @keywords internal
-stage_layers <- function(points, data, colours, label_rest = TRUE) {
+stage_layers <- function(points, data, colours, label_rest = TRUE, rest_below = FALSE) {
   rest <- if(nrow(points) == nrow(data)) points[data$intensity == 0, ] else points[0, ]
   stages <- points[!points$intensity %in% rest$intensity, ]
   list(
     if(nrow(rest) > 0) stage_points(rest, colours, outline = colours[["faint"]]),
     if(nrow(rest) > 0 && label_rest) {
       ## from the dot to the right: the rest sits at the left edge of the plot
-      ggplot2::annotate("text", x = rest$intensity, y = rest$lactate, label = "rest", hjust = 0, vjust = -1.2,
-                        size = 2.9, colour = colours[["muted"]])
+      ggplot2::annotate("text", x = rest$intensity, y = rest$lactate, label = "rest", hjust = 0,
+                        vjust = if(rest_below) 2 else -1.2, size = 2.9, colour = colours[["muted"]])
     },
     stage_points(stages, colours)
   )

@@ -4,7 +4,7 @@
 \alias{stage_layers}
 \title{Measured stages and the resting sample}
 \usage{
-stage_layers(points, data, colours, label_rest = TRUE)
+stage_layers(points, data, colours, label_rest = TRUE, rest_below = FALSE)
 }
 \arguments{
 \item{points}{The stages to draw (\code{intensity}, \code{lactate}), with the resting sample positioned.}
@@ -14,6 +14,8 @@ stage_layers(points, data, colours, label_rest = TRUE)
 \item{colours}{The plot colours.}
 
 \item{label_rest}{Whether to label the resting sample.}
+
+\item{rest_below}{Whether that label goes under the dot instead of over it.}
 }
 \description{
 The stages as open dots; the resting sample, placed one step before the first stage, fainter and

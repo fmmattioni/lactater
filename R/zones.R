@@ -428,7 +428,8 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
       ggplot2::geom_line(ggplot2::aes(intensity, y), hr, colour = colours[["ink"]], linewidth = 0.5),
       ggplot2::geom_point(ggplot2::aes(intensity, y), hr, shape = 22, size = 1.6, stroke = 0.6,
                           fill = colours[["paper"]], colour = colours[["ink"]]),
-      ggplot2::annotate("text", x = hr$intensity[1], y = hr$y[1], label = "Heart rate", hjust = 0.2, vjust = -1.2,
+      ## over the rising line, ending above its second point, where the line is still below the text
+      ggplot2::annotate("text", x = hr$intensity[2], y = hr$y[2], label = "Heart rate", hjust = 1.1, vjust = -0.8,
                         size = 2.9, colour = colours[["ink"]])
     )
   }

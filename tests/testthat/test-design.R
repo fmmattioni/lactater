@@ -78,3 +78,22 @@ test_that("the report opens with one line and flags LT1 beside its number when t
   expect_match(html, "<span class=\"stat-flag\">!</span> Methods disagree: 6.8&nbsp;to&nbsp;11.8&nbsp;km/h", fixed = TRUE)
   expect_match(html, "8&nbsp;second-rise&nbsp;methods:&nbsp;10.4&nbsp;to&nbsp;14.1&nbsp;km/h", fixed = TRUE)
 })
+
+test_that("labels keep clear of the lines beside them, and the zones table leaves no empty or repeated cell", {
+  ## the guide of Bsln + 0.5 runs just over the resting sample, so "rest" goes under its dot (and over it for Dmax)
+  rest_vjust <- function(method) {
+    layers <- autoplot(results, method = method)$layers
+    Filter(function(l) identical(l$aes_params$label, "rest"), layers)[[1]]$aes_params$vjust
+  }
+  expect_equal(rest_vjust("Bsln + 0.5"), 2)
+  expect_equal(rest_vjust("Dmax"), -1.2)
+  skip_if_not_installed("gt")
+  running <- lactate_tests[lactate_tests$test == "running_recreational", ]
+  runner <- lactate_threshold(running, intensity, lactate, heart_rate, rpe_column = rpe, sport = "running",
+                              plot = FALSE)
+  html <- as.character(lactater:::html_zones(lactate_zones(runner, model = 5), "running"))
+  ## RPE 9.9 and 10.4 would both print as 10; the lactate below the first stage is a dash
+  expect_match(html, "&lt; 9.9", fixed = TRUE)
+  expect_match(html, "9.9\u201310.4", fixed = TRUE)
+  expect_match(html, ">\u2013</td>")
+})
