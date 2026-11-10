@@ -343,8 +343,9 @@ plot_zone_ruler <- function(object, zones, limits, colours) {
     ) +
     ggplot2::geom_label(
       ggplot2::aes(x, y, label = label), values, size = 3.5, fontface = ifelse(values$lt, "bold", "plain"),
+      ## enough paper around a value that the boundary line stops clear of its digits
       colour = colours[["ink"]], fill = colours[["paper"]], border.colour = NA,
-      label.padding = ggplot2::unit(0.12, "lines")
+      label.padding = ggplot2::unit(0.3, "lines")
     ) +
     ggplot2::annotate(
       "text", x = limits[1] - 0.03 * span, y = rev(seq_len(m)), label = names(scales), hjust = 1, size = 3.1,
