@@ -101,7 +101,7 @@ Read the result with care:
 ## A series of tests
 
 For up to five tests, the plot of `lactate_trend()` shows where the curve moved and what that did to the training
-zones: every lactate curve, light to dark by date, above the five zones of each test from the LT1 and LT2 you
+zones: every lactate curve, the latest in blue and the first in dark gray, above the five zones of each test from the LT1 and LT2 you
 choose. `day` takes the date of each test, or the days since the first. The test dates are not in `lactate_tests`, so
 this example starts on a made-up date, with five of the six tests:
 

@@ -27,8 +27,8 @@ lactate_trend(..., day)
 \item{method}{The methods to plot in the \code{"thresholds"} view. Defaults to ModDmax, IAT, OBLA 4.0 and Dmax, which have
 a published test-retest variation (see \code{\link[=compare_tests]{compare_tests()}}), when present.}
 
-\item{view}{\code{"curves"}, the default for up to five tests: the lactate curves of all tests, light to dark by date, to
-see where along the intensity range the curve moved, then their heart rate with LT1 and LT2 as filled points (the
+\item{view}{\code{"curves"}, the default for up to five tests: the lactate curves of all tests (the latest in blue, the first in dark
+gray, the tests between in light gray), to see where along the intensity range the curve moved, then their heart rate with LT1 and LT2 as filled points (the
 latest test labeled), above the five training zones of each test from \code{lt1} and \code{lt2}. \code{"thresholds"}, the default
 for more tests: one panel per method, each test as a dot (with its confidence interval when computed) and a gray band
 for the noise of the method around the first test, so that dots outside the band are changes larger than the noise

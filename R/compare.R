@@ -472,8 +472,8 @@ list_to_thresholds <- function(info) {
 #' @param object The result of [lactate_trend()].
 #' @param method The methods to plot in the `"thresholds"` view. Defaults to ModDmax, IAT, OBLA 4.0 and Dmax, which have
 #' a published test-retest variation (see [compare_tests()]), when present.
-#' @param view `"curves"`, the default for up to five tests: the lactate curves of all tests, light to dark by date, to
-#' see where along the intensity range the curve moved, then their heart rate with LT1 and LT2 as filled points (the
+#' @param view `"curves"`, the default for up to five tests: the lactate curves of all tests (the latest in blue, the first in dark
+#' gray, the tests between in light gray), to see where along the intensity range the curve moved, then their heart rate with LT1 and LT2 as filled points (the
 #' latest test labeled), above the five training zones of each test from `lt1` and `lt2`. `"thresholds"`, the default
 #' for more tests: one panel per method, each test as a dot (with its confidence interval when computed) and a gray band
 #' for the noise of the method around the first test, so that dots outside the band are changes larger than the noise
@@ -556,9 +556,9 @@ autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL
 
 #' The lactate curves and training zones of a few tests
 #'
-#' `plot_series()` draws every lactate curve, light to dark by date, then the heart rate of the stages in the same
-#' colors with LT1 and LT2 as filled points (when the tests have it), above the five zones of each test as one bar, on
-#' one intensity axis.
+#' `plot_series()` draws every lactate curve (the latest test in blue, the first in dark gray, the tests between in
+#' light gray), then the heart rate of the stages in the same colors with LT1 and LT2 as filled points (when the tests
+#' have it), above the five zones of each test as one bar that ends at its highest stage, on one intensity axis.
 #' `series_zones()` gives the five zones of each test, and names the test when a threshold is missing.
 #' `date_labels()` names tests by date ("3 Nov 2026") or by day ("Day 58"). For internal use only.
 #'
@@ -599,18 +599,24 @@ plot_series <- function(tests, labels, lt1, lt2) {
   }
   top <- max(stages$lactate, curves$lactate, ends$lactate) * 1.05
 
-  shades <- grDevices::colorRampPalette(c(colours[["faint"]], colours[["curve"]]), space = "Lab")(n)
+  ## the latest test in blue, the first in dark gray, the tests between in light gray and drawn first, under the two
+  shades <- utils::tail(c(colours[["muted"]], rep(colours[["faint"]], max(n - 2, 0)), colours[["curve"]]), n)
+  ends_of_series <- labels[unique(c(1, n))]
+  curves$draw <- factor(curves$test, levels = c(setdiff(labels, ends_of_series), ends_of_series))
+  thick <- ggplot2::scale_linewidth_manual(values = c(`FALSE` = 0.6, `TRUE` = 0.95), guide = "none")
   lactate <- ggplot2::ggplot(curves, ggplot2::aes(intensity, lactate, colour = test)) +
     ggplot2::geom_hline(yintercept = c(2, 4), colour = colours[["faint"]], linewidth = 0.3, linetype = "22") +
-    ggplot2::geom_line(linewidth = 0.9) +
+    ggplot2::geom_line(ggplot2::aes(group = draw, linewidth = test %in% ends_of_series)) +
+    thick +
     ggplot2::geom_point(data = stages, shape = 21, fill = colours[["paper"]], size = 1.7, stroke = 0.7) +
     ggplot2::geom_segment(
       ggplot2::aes(x = intensity, xend = intensity + 0.015 * span, y = end, yend = lactate),
       ends[ends$lactate != ends$end, ], inherit.aes = FALSE, colour = colours[["muted"]], linewidth = 0.3
     ) +
     ggplot2::geom_label(
-      ggplot2::aes(label = test), ends, hjust = -0.12, size = 3.1, fontface = "bold", colour = colours[["ink"]],
-      fill = colours[["paper"]], border.colour = NA, label.padding = ggplot2::unit(0.08, "lines")
+      ggplot2::aes(label = test), ends, hjust = -0.12, size = 3.1,
+      fontface = ifelse(ends$test == labels[n], "bold", "plain"),
+      colour = ifelse(ends$test %in% ends_of_series, colours[["ink"]], colours[["muted"]]), fill = colours[["paper"]], border.colour = NA, label.padding = ggplot2::unit(0.08, "lines")
     ) +
     ggplot2::scale_colour_manual(values = stats::setNames(shades, labels), guide = "none") +
     ggplot2::scale_y_continuous(limits = c(0, top), breaks = lactate_breaks(top), expand = c(0, 0)) +
@@ -618,12 +624,14 @@ plot_series <- function(tests, labels, lt1, lt2) {
     ggplot2::labs(x = NULL, y = "Blood lactate (mmol/L)") +
     theme_lactater()
 
-  ## one bar per test, the first at the top, in the colors of the zones, with LT1 and LT2 at their boundaries
+  ## one bar per test, the first at the top, in the colors of the zones, with LT1 and LT2 at their boundaries; the
+  ## bar ends at the highest stage of its test, where zone 5 was last seen
+  peaks <- vapply(infos, function(i) max(i$data$intensity), 0)
   bars <- do.call(rbind, lapply(seq_len(n), function(k) {
     z <- zones[[k]]
     data.frame(
       row = n + 1 - k, from = ifelse(is.na(z$intensity_from), xlim[1], z$intensity_from),
-      to = ifelse(is.na(z$intensity_to), xlim[2], z$intensity_to), fill = zone_colours[["5"]]
+      to = ifelse(is.na(z$intensity_to), peaks[k], z$intensity_to), fill = zone_colours[["5"]]
     )
   }))
   marks <- do.call(rbind, lapply(seq_len(n), function(k) {
@@ -638,8 +646,17 @@ plot_series <- function(tests, labels, lt1, lt2) {
       ggplot2::aes(intensity, row, label = format_intensity(intensity, sport)), marks, hjust = 1.15, size = 2.7,
       fontface = "bold", colour = colours[["ink"]]
     ) +
-    ggplot2::scale_y_continuous(breaks = seq_len(n), labels = rev(labels), expand = c(0, 0.1)) +
-    ggplot2::coord_cartesian(xlim = xlim, expand = FALSE) +
+    ## what the two numbers are, over the first bar, and where each test ended
+    ggplot2::annotate(
+      "text", x = marks$intensity[marks$row == n], y = n + 0.36, label = c("LT1", "LT2"), hjust = 1.2, vjust = -0.5,
+      size = 2.5, colour = colours[["muted"]]
+    ) +
+    ggplot2::annotate(
+      "text", x = peaks, y = rev(seq_len(n)), label = paste("peak", format_intensity(peaks, sport)), hjust = -0.15,
+      size = 2.5, colour = colours[["muted"]]
+    ) +
+    ggplot2::scale_y_continuous(breaks = seq_len(n), labels = rev(labels)) +
+    ggplot2::coord_cartesian(xlim = xlim, ylim = c(0.54, n + 0.9), expand = FALSE) +
     ggplot2::labs(x = intensity_label(sport), y = NULL) +
     theme_lactater() +
     ggplot2::theme(axis.line.y = ggplot2::element_blank(), axis.ticks.y = ggplot2::element_blank())
@@ -667,8 +684,10 @@ plot_series <- function(tests, labels, lt1, lt2) {
     latest <- at[at$test == labels[n], ]
     ylim <- c(floor((min(hr$heart_rate) - 5) / 20) * 20, max(hr$heart_rate) + 6)
     ## lines without the stages, which the curves above show, so the points at LT1 and LT2 stand out
+    hr$draw <- factor(hr$test, levels = levels(curves$draw))
     hr_panel <- ggplot2::ggplot(hr, ggplot2::aes(intensity, heart_rate, colour = test)) +
-      ggplot2::geom_line(linewidth = 0.8) +
+      ggplot2::geom_line(ggplot2::aes(group = draw, linewidth = test %in% ends_of_series)) +
+      thick +
       ggplot2::geom_point(ggplot2::aes(fill = test), at, shape = 21, size = 2.6, stroke = 0.9,
                           colour = colours[["paper"]]) +
       lapply(seq_len(nrow(latest)), function(k) {
@@ -685,17 +704,17 @@ plot_series <- function(tests, labels, lt1, lt2) {
   }
 
   with_hr <- length(plots) == 3
+  moved <- function(change) paste(sprintf("%+.*f", intensity_digits(sport), change), intensity_unit(sport))
   patchwork::wrap_plots(plots, ncol = 1, heights = heights) +
     patchwork::plot_annotation(
-      title = if(with_hr) {
-        "Where the curve, the heart rate and the zones moved"
-      } else {
-        "Where the curve and the zones moved"
-      },
+      title = sprintf(
+        "Since the first test: LT1 %s, LT2 %s", moved(zones[[n]]$intensity_from[3] - zones[[1]]$intensity_from[3]),
+        moved(zones[[n]]$intensity_from[4] - zones[[1]]$intensity_from[4])
+      ),
       subtitle = paste0(
-        n, " tests, light to dark by date; dashed: 2 and 4 mmol/L.",
-        if(with_hr) " Below them, the heart rate of the stages, with LT1 and LT2 as filled points.",
-        " Bars: the five zones of each test, with LT1 and LT2"
+        "Blue: the latest test; dark gray: the first", if(n > 2) "; light gray: the tests between", ". Below: ",
+        if(with_hr) "the heart rate, with LT1 and LT2 as filled points, and ",
+        "the zones of each test up to its peak"
       ),
       theme = theme_lactater()
     )
