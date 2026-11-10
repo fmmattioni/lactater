@@ -59,8 +59,11 @@ computed.
 ## Plots and reports
 
 * Every method's plot explains itself: the method as title, how it works as subtitle, the construction drawn on the
-  curve, the threshold labeled with its values. `autoplot(x)` draws an overview of every threshold on one axis with a
-  table of values; `autoplot(x, method = )` one method.
+  curve, the threshold labeled with its values. `autoplot(x)` draws an overview of every threshold on one axis, grouped
+  by what the method aims at (the first rise, the second rise, a fixed lactate), with a table of values;
+  `autoplot(x, method = )` one method.
+* `autoplot(lactate_zones(x), view = "ruler")` draws the zones as one bar over the intensity, pace, heart rate and RPE
+  at each boundary, to hand to the athlete.
 * `options(lactater.style = "night")` and `"journal"`, `options(lactater.font = )`, and `theme_lactater()` for your
   own plots.
 * New `lactate_report()` (a gt table) and `gt_lactater()`.

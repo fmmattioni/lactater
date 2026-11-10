@@ -274,16 +274,110 @@ domain_splits <- function(split, lt, info) {
   ifelse(inside, seiler, relative)
 }
 
+#' The zones as a ruler
+#'
+#' One bar of the zones on the intensity axis, and under each boundary the intensity, pace, heart rate and RPE where
+#' one zone ends and the next begins (those the zones have). For internal use only.
+#'
+#' @param object The result of [lactate_zones()].
+#' @param zones Its `lactater_zones` attribute.
+#' @param limits The intensity range of the plot.
+#' @param colours The plot colours.
+#' @keywords internal
+plot_zone_ruler <- function(object, zones, limits, colours) {
+  sport <- zones$info$settings$sport
+  n <- nrow(object)
+  span <- diff(limits)
+  bands <- data.frame(
+    from = pmax(c(limits[1], zones$bounds), limits[1]), to = pmin(c(zones$bounds, limits[2]), limits[2]),
+    zone = object$zone, description = object$description, fill = zone_colours[[as.character(n)]]
+  )
+  bands <- bands[bands$to > bands$from, ]
+  ## a very narrow zone keeps only its number, as on the curve
+  narrow <- (bands$to - bands$from) / span < 0.09
+  bands$label <- ifelse(narrow, sub("Zone ", "Z", bands$zone), bands$zone)
+  bands$description[narrow] <- ""
+  shown <- zones$bounds > limits[1] & zones$bounds < limits[2]
+  at <- function(column, format) if(column %in% names(object)) format(object[[column]][-n])
+  scales <- list(
+    at("intensity_to", function(v) format_intensity(v, sport)),
+    at("pace_to", function(v) sub(" .*", "", format_pace(v, sport))),
+    at("heart_rate_to", function(v) sprintf("%.0f", v)),
+    at("rpe_to", function(v) sprintf("%.0f", v))
+  )
+  names(scales) <- c(
+    intensity_label(sport), paste0("Pace (min", sub("^\\S+ ", "", format_pace(0, sport)), ")"), "Heart rate (bpm)",
+    "RPE"
+  )
+  scales <- Filter(Negate(is.null), scales)
+  m <- length(scales)
+  values <- do.call(rbind, lapply(seq_len(m), function(k) {
+    data.frame(y = m + 1 - k, x = zones$bounds, label = scales[[k]], lt = zones$bounds %in% zones$lt)[shown, ]
+  }))
+  values <- values[!grepl("NA", values$label), ]
+
+  ggplot2::ggplot() +
+    ggplot2::geom_rect(
+      ggplot2::aes(xmin = from, xmax = to), bands, ymin = m + 0.9, ymax = m + 2.4, fill = bands$fill, alpha = 0.45,
+      colour = colours[["paper"]], linewidth = 0.6
+    ) +
+    ggplot2::annotate(
+      "text", x = (bands$from + bands$to) / 2, y = m + 1.9, label = bands$label, fontface = "bold", size = 3.4,
+      colour = colours[["ink"]]
+    ) +
+    ggplot2::annotate(
+      "text", x = (bands$from + bands$to) / 2, y = m + 1.3, label = method_label(bands$description), size = 2.9,
+      colour = colours[["muted"]]
+    ) +
+    ggplot2::annotate(
+      "segment", x = zones$bounds[shown], xend = zones$bounds[shown], y = 0.6, yend = m + 0.9,
+      colour = colours[["faint"]], linewidth = 0.3
+    ) +
+    ggplot2::annotate(
+      "segment", x = zones$lt, xend = zones$lt, y = 0.6, yend = m + 2.8, colour = colours[["ink"]], linewidth = 0.4,
+      linetype = "22"
+    ) +
+    ggplot2::annotate(
+      "text", x = zones$lt, y = m + 3.1, label = c("LT1", "LT2"), fontface = "bold", size = 3.4,
+      colour = colours[["ink"]]
+    ) +
+    ggplot2::geom_label(
+      ggplot2::aes(x, y, label = label), values, size = 3.5, fontface = ifelse(values$lt, "bold", "plain"),
+      colour = colours[["ink"]], fill = colours[["paper"]], border.colour = NA,
+      label.padding = ggplot2::unit(0.12, "lines")
+    ) +
+    ggplot2::annotate(
+      "text", x = limits[1] - 0.03 * span, y = rev(seq_len(m)), label = names(scales), hjust = 1, size = 3.1,
+      colour = colours[["muted"]]
+    ) +
+    ## a third of the width on the left for the names of the scales
+    ggplot2::coord_cartesian(xlim = c(limits[1] - 0.33 * span, limits[2]), ylim = c(0.5, m + 3.5), expand = FALSE) +
+    ggplot2::labs(
+      title = sprintf("%d training zones", n),
+      subtitle = "Read down from a boundary: the values where one zone ends and the next begins",
+      x = NULL, y = NULL
+    ) +
+    theme_lactater() +
+    ggplot2::theme(
+      axis.line = ggplot2::element_blank(), axis.text = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank()
+    )
+}
+
 #' @rdname lactate_zones
 #' @param object The result of [lactate_zones()].
 #' @param heart_rate How the plot shows the heart rate of the stages, when the test has it: `"panel"` (default), in a
 #'   panel under the curve on the same intensity axis, read at LT1 and LT2; `"axis"`, on the lactate plot against a
 #'   second axis, as many lab reports do; or `"none"`. `options(lactater.heart_rate = "axis")` sets it for every plot
 #'   and report.
+#' @param view `"curve"` (default), the zones on the lactate curve; or `"ruler"`, one bar of the zones over the
+#'   intensity, pace, heart rate and RPE at each boundary, to hand to the athlete.
 #' @param ... Not used.
 #' @export
-autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.heart_rate", "panel"), ...) {
+autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.heart_rate", "panel"),
+                                   view = c("curve", "ruler"), ...) {
   heart_rate <- match.arg(heart_rate, c("panel", "axis", "none"))
+  view <- match.arg(view)
   zones <- attr(object, "lactater_zones")
   info <- zones$info
   colours <- lactater_colours()
@@ -294,6 +388,7 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
   sport <- info$settings$sport
   value <- function(x) format_intensity(x, sport)
   n <- nrow(object)
+  if(view == "ruler") return(plot_zone_ruler(object, zones, limits, colours))
   bands <- data.frame(
     from = c(limits[1], zones$bounds),
     to = c(zones$bounds, limits[2]),

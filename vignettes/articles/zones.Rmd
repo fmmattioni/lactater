@@ -98,6 +98,13 @@ a plot depends only on how the two axes are scaled, so read the heart rate from 
 autoplot(zones, heart_rate = "axis")
 ```
 
+For the athlete, `view = "ruler"` draws the zones as one bar, with the intensity, pace, heart rate and RPE (those the
+test has) under each boundary:
+
+```{r, fig.height = 3}
+autoplot(zones, view = "ruler")
+```
+
 ## Five zones
 
 The five-zone scale used in endurance sports ([Seiler, 2010](https://doi.org/10.1123/ijspp.5.3.276)) maps onto the domains: zones 1 and 2 lie below LT1, zone

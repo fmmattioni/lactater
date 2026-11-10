@@ -13,7 +13,12 @@ lactate_zones(
   split = "relative"
 )
 
-\method{autoplot}{lactate_zones}(object, heart_rate = getOption("lactater.heart_rate", "panel"), ...)
+\method{autoplot}{lactate_zones}(
+  object,
+  heart_rate = getOption("lactater.heart_rate", "panel"),
+  view = c("curve", "ruler"),
+  ...
+)
 }
 \arguments{
 \item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
@@ -32,6 +37,9 @@ lactate_zones(
 panel under the curve on the same intensity axis, read at LT1 and LT2; \code{"axis"}, on the lactate plot against a
 second axis, as many lab reports do; or \code{"none"}. \code{options(lactater.heart_rate = "axis")} sets it for every plot
 and report.}
+
+\item{view}{\code{"curve"} (default), the zones on the lactate curve; or \code{"ruler"}, one bar of the zones over the
+intensity, pace, heart rate and RPE at each boundary, to hand to the athlete.}
 
 \item{...}{Not used.}
 }
