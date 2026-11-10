@@ -50,40 +50,29 @@ test_that("series dates in another format are an error, not the year 3", {
   expect_s3_class(report_start(list(one, one), dates = c("2026-11-03", "2026-11-10")), "lactate_test_report")
 })
 
+test_that("methods are grouped by what they aim at, as in Faude et al. (2009)", {
+  aim <- function(x) as.integer(lactater:::method_aim(x))
+  expect_equal(aim(c("Log-log", "LTratio", "LTP1", "Bsln + 0.5", "Bsln + 1.0", "Bsln + 1.4")), rep(1, 6))
+  expect_equal(aim(c("Bsln + 1.5", "Dmax", "Log-Poly-ModDmax", "LTP2", "IAT", "Stegmann")), rep(2, 6))
+  expect_equal(aim(c("OBLA 2.0", "OBLA 4.0")), c(3, 3))
+})
+
 test_that("the checks say when the LT1 or LT2 methods disagree", {
-  untrained <- lactate_threshold(lactate_tests[lactate_tests$test == "untrained", ], intensity, lactate, plot = FALSE)
-  checks <- lactate_checks(untrained)
+  recreational <- lactate_tests[lactate_tests$test == "running_recreational", ]
+  checks <- lactate_checks(lactate_threshold(recreational, intensity, lactate, sport = "running", plot = FALSE))
   expect_equal(checks$status[checks$check == "LT1"], "warning")
-  expect_match(checks$details[checks$check == "LT1"], "Bsln \\+ 0.5 98, Log-log 148, LTP1 140")
+  expect_match(checks$details[checks$check == "LT1"], "31% of peak apart (5 methods, Bsln + 0.5 6.8 to Log-log 11.8)",
+               fixed = TRUE)
   expect_equal(checks$status[checks$check == "LT2"], "ok")
   ## one method of the set is enough to say nothing
-  expect_false("LT1" %in% lactate_checks(lactate_threshold(demo_data, intensity, lactate, method = "OBLA",
+  expect_false("LT1" %in% lactate_checks(lactate_threshold(demo_data, intensity, lactate, method = "Log-log",
                                                             plot = FALSE))$check)
 })
 
-test_that("the report lists the other LT1 and LT2 methods under the chosen ones", {
+test_that("the report says how far the LT1 and LT2 methods lie apart under the chosen ones", {
   skip_if_not_installed("htmltools")
   results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
   html <- as.character(lactater:::html_stats(report_start(results)))
-  expect_match(html, "Also Log-log&nbsp;101&nbsp;W · LTP1&nbsp;111&nbsp;W")
-  expect_match(html, "Also OBLA&nbsp;4.0&nbsp;146&nbsp;W · LTP2&nbsp;160&nbsp;W")
-})
-
-test_that("predict_performance() says which predictions are extrapolations", {
-  runner <- lactate_threshold(lactate_tests[lactate_tests$test == "running", ], intensity, lactate, sport = "running",
-                              plot = FALSE)
-  warned <- character()
-  prediction <- withCallingHandlers(predict_performance(runner), warning = function(w) {
-    warned <<- c(warned, conditionMessage(w))
-    invokeRestart("muffleWarning")
-  })
-  expect_type(prediction$extrapolated, "logical")
-  ## one warning per method and source; the column is per race
-  expect_equal(length(unique(prediction$method[prediction$extrapolated])), sum(grepl("outside the range", warned)))
-  expect_true(any(prediction$extrapolated))
-})
-
-test_that("lactate_curve() takes rowing", {
-  rower <- lactate_tests[lactate_tests$test == "rowing", ]
-  expect_s3_class(lactate_curve(rower, intensity, lactate, sport = "rowing")$lactate_curve, "tbl_df")
+  expect_match(html, "5&nbsp;first-rise&nbsp;methods:&nbsp;77&nbsp;to&nbsp;111&nbsp;W")
+  expect_match(html, "8&nbsp;second-rise&nbsp;methods:&nbsp;118&nbsp;to&nbsp;160&nbsp;W")
 })

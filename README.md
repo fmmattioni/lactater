@@ -65,8 +65,8 @@ training load and the race prediction have their own.
 
 <td width="50%" valign="top">
 
-<a href="https://fmmattioni.github.io/lactater/reference/autoplot.lactate_thresholds.html"><img src="man/figures/readme/gallery-overview.png" alt="Every threshold of a test on one intensity axis, grouped by method family, with a table of lactate, heart rate and percentages of peak"></a><br><b>One
-test, every method</b>: each threshold on one axis, grouped by family,
+<a href="https://fmmattioni.github.io/lactater/reference/autoplot.lactate_thresholds.html"><img src="man/figures/readme/gallery-overview.png" alt="Every threshold of a test on one intensity axis, grouped by what the method aims at, with a table of lactate, heart rate and percentages of peak"></a><br><b>One
+test, every method</b>: each threshold on one axis, grouped by what it aims at,
 with its values. <code>autoplot(results)</code>
 </td>
 

@@ -75,9 +75,11 @@ the relative split instead, with a warning.
 }
 }
 
-LT1 is usually a "first rise" threshold (e.g. \code{"Bsln + 0.5"}, \code{"Log-log"}, \code{"LTP1"}), and LT2 a threshold meant to
-estimate the maximal lactate steady state (MLSS; e.g. \code{"Log-Poly-ModDmax"}, \code{"Bsln + 1.5"}, \code{"LTP2"}, \code{"ModDmax"},
-\code{"OBLA 4.0"}, \code{"IAT"}). Against a measured MLSS these landed from about 40 W below to 40 W above it on average, by
+LT1 is usually a "first rise" threshold (\code{"Log-log"}, \code{"Bsln + 0.5"}, \code{"Bsln + 1.0"}, \code{"LTratio"}, \code{"LTP1"}), and
+LT2 a threshold aimed at the maximal lactate steady state (MLSS) or the second, abrupt rise (the Dmax family,
+\code{"LTP2"}, \code{"IAT"}, \code{"Stegmann"}, and \code{"Bsln + 1.5"}, which estimated the MLSS in two studies; Jamnick et al., 2020).
+These are two of the three categories of threshold concepts of Faude et al. (2009); fixed values such as
+\code{"OBLA 4.0"} are the third. Against a measured MLSS these landed from about 40 W below to 40 W above it on average, by
 method, protocol and athletes (Hauser et al., 2014; Ploszczyca et al., 2020), and whether the MLSS or the critical
 power marks the boundary between the heavy and severe domains is debated (Jones et al., 2019). Different choices
 give different zones, so report which ones you used.
@@ -96,6 +98,9 @@ lactate_zones(results, model = 5)
 lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5, split = "seiler")
 }
 \references{
+Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid are they? Sports Medicine.
+2009;39(6):469-490.
+
 Hofmann P, Tschakert G. Intensity- and duration-based options to regulate endurance training. Frontiers in
 Physiology. 2017;8:337.
 

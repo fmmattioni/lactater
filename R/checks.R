@@ -133,28 +133,28 @@ lactate_checks <- function(x) {
       fine = sprintf("%s lactate.", info$settings$sample)
     )
   )
-  ## the methods aimed at one boundary land close together in most tests (within 10% of the peak intensity on
-  ## `lactate_tests`, 15% on `demo_data`); further apart, the choice of method decides the zones, so it should be a
-  ## choice. shortcut: 15% is a judgement call from those 17 tests, not a published cut-off
-  agreement <- function(name, members) {
-    values <- intensity[match(members, methods)]
-    members <- members[!is.na(values)]
-    values <- values[!is.na(values)]
+  ## how far the methods aimed at one threshold lie apart (`method_aim()`). On the 16 tests of `lactate_tests` the
+  ## first-rise methods span a median of 21% of the peak intensity (10 to 31%) and the second-rise methods 12% (6 to
+  ## 29%); much further apart, the choice of method decides the zones, so it should be a choice.
+  ## shortcut: 25% is a judgement call from those tests (it flags 3 of them), not a published cut-off
+  agreement <- function(k) {
+    values <- sort(stats::setNames(intensity, methods)[as.integer(method_aim(methods)) == k])
     if(length(values) < 2) return(NULL)
+    name <- paste0("LT", k)
     spread <- 100 * diff(range(values)) / max(stages$intensity)
-    listed <- paste(members, format_intensity(values, info$settings$sport), collapse = ", ")
+    listed <- sprintf(
+      "%d methods, %s %s to %s %s", length(values), names(values)[1],
+      format_intensity(values[1], info$settings$sport), names(values)[length(values)],
+      format_intensity(values[length(values)], info$settings$sport)
+    )
     check(
-      name, spread <= 15,
+      name, spread <= 25,
       sprintf("%.0f%% of peak apart (%s): the choice of %s decides the zones, so look at the overview before choosing.",
               spread, listed, name),
       fine = sprintf("Within %.0f%% of peak (%s).", spread, listed)
     )
   }
-  out <- rbind(
-    out,
-    agreement("LT1", c("Bsln + 0.5", "Log-log", "LTP1")),
-    agreement("LT2", c("Log-Poly-ModDmax", "OBLA 4.0", "LTP2"))
-  )
+  out <- rbind(out, agreement(1), agreement(2))
   out <- tibble::as_tibble(out)
   class(out) <- c("lactate_checks", class(out))
   out

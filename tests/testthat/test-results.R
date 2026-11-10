@@ -17,8 +17,9 @@ test_that("autoplot draws the overview and single methods", {
   ## every column, the outer ones included, sits inside the panel
   expect_equal(ggplot2::ggplot_build(table)$layout$panel_params[[1]]$x.range, c(0.5, 4.5))
   ## % HRmax: the heart rate at the threshold over the highest heart rate of the test
+  ## (the top row is the lowest first-rise threshold, LTratio)
   expect_equal(table$data$label[table$data$column == 4 & table$data$row == max(table$data$row)],
-               sprintf("%.0f", 100 * results$heart_rate[1] / max(demo_data$heart_rate)))
+               sprintf("%.0f", 100 * results$heart_rate[results$method == "LTratio"] / max(demo_data$heart_rate)))
   grDevices::pdf(NULL)
   expect_silent(print(autoplot(results)))
   grDevices::dev.off()

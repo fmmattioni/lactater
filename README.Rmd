@@ -104,7 +104,7 @@ gallery(autoplot(lactate_diagnostics(results)), "diagnostics", width = 9, height
 
 <table>
 <tr>
-<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/autoplot.lactate_thresholds.html"><img src="man/figures/readme/gallery-overview.png" alt="Every threshold of a test on one intensity axis, grouped by method family, with a table of lactate, heart rate and percentages of peak"></a><br><b>One test, every method</b>: each threshold on one axis, grouped by family, with its values. <code>autoplot(results)</code></td>
+<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/autoplot.lactate_thresholds.html"><img src="man/figures/readme/gallery-overview.png" alt="Every threshold of a test on one intensity axis, grouped by what the method aims at, with a table of lactate, heart rate and percentages of peak"></a><br><b>One test, every method</b>: each threshold on one axis, grouped by what it aims at, with its values. <code>autoplot(results)</code></td>
 <td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/lactate_zones.html"><img src="man/figures/readme/gallery-zones.png" alt="Five training zones on the lactate curve, colored by intensity domain, with the heart rate of the stages in a panel below"></a><br><b>Training zones</b>: three or five, colored by intensity domain, with the heart rate at LT1 and LT2. <code>autoplot(lactate_zones(...))</code></td>
 </tr>
 <tr>

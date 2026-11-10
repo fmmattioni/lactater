@@ -93,9 +93,10 @@ set `sport` for running, swimming or rowing. `rpe_column` gives the RPE at each 
 for the 0-10 scale; the RPE of `demo_data` is simulated).
 
 Two of these thresholds are what training needs. LT1 is the first rise of lactate above resting values, the top of
-the moderate intensity domain; LT2 is the second, abrupt rise, the top of the heavy domain. Each family of methods
-aims at one of them (Log-log, Bsln+, LTP1 and LT<sub>ratio</sub> at LT1; OBLA 4.0, the D<sub>max</sub> family, LTP2
-and IAT at LT2), and [The methods and the evidence](https://fmmattioni.github.io/lactater/articles/methods.html) says
+the moderate intensity domain; LT2 is the second, abrupt rise, the top of the heavy domain. The methods aim at one of
+them or at a fixed lactate value, the three categories of [Faude et al. (2009)](https://doi.org/10.2165/00007256-200939060-00003): the first rise (Log-log, Bsln + 0.5 and 1.0,
+LT<sub>ratio</sub>, LTP1), the second rise or the maximal lactate steady state (Bsln + 1.5, the D<sub>max</sub> family,
+LTP2, IAT, Stegmann), and fixed values (OBLA). `autoplot()` groups them this way, and [The methods and the evidence](https://fmmattioni.github.io/lactater/articles/methods.html) says
 which to trust. A threshold is `NA` when its method found nothing in the tested range: the Log-log lines crossing
 outside the stages, a D<sub>max</sub> curve never below its line, LTP2 in a test that stopped early.
 `lactate_checks()` names them and says what to do.

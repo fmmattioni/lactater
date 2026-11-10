@@ -419,19 +419,15 @@ html_stats <- function(r) {
       })
     )
   }
-  ## the other methods aimed at the same boundary, so the reader sees how much the choice of method matters
+  ## how far the methods aimed at the same threshold lie apart, so the reader sees how much the choice matters
   others <- function(k) {
-    members <- setdiff(
-      if(k == 1) c("Bsln + 0.5", "Log-log", "LTP1") else c("Log-Poly-ModDmax", "OBLA 4.0", "LTP2"),
-      attr(three, "lactater_zones")$labels[k]
-    )
-    values <- info$intensity[members]
-    members <- members[!is.na(values)]
+    values <- info$intensity[as.integer(method_aim(names(info$intensity))) == k]
     values <- values[!is.na(values)]
-    if(length(values)) {
-      ## a method stays on one line with its value
-      pairs <- gsub(" ", "&nbsp;", paste(method_html(members), intensity_text(values, sport)), fixed = TRUE)
-      paste("Also", paste(pairs, collapse = " \u00b7 "))
+    if(length(values) > 1) {
+      gsub(" ", "&nbsp;", sprintf(
+        "%d %s-rise methods: %s to %s", length(values), c("first", "second")[k],
+        format_intensity(min(values), sport), intensity_text(max(values), sport)
+      ), fixed = TRUE)
     }
   }
   boundary <- function(k) {

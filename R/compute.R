@@ -1,6 +1,18 @@
 ## method categories in output order
 method_categories <- c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT", "Stegmann")
 
+## what each method aims at, in the three categories of Faude et al. (2009): the first rise above baseline (LT1),
+## the MLSS or the second, abrupt rise (LT2), and fixed lactate values. Bsln + 1.5 goes with LT2 as the rise that
+## estimated the MLSS (Jamnick et al., 2020).
+## shortcut: any other Bsln+ rise is split at 1.5 mmol/L by that rule, not by a published cut-off
+method_aims <- c("First rise (LT1)", "Second rise (LT2)", "Fixed lactate (OBLA)")
+method_aim <- function(method) {
+  method <- as.character(method)
+  rise <- suppressWarnings(as.numeric(sub("^Bsln \\+ ", "", method)))
+  first <- method %in% c("Log-log", "LTratio", "LTP1") | (!is.na(rise) & rise < 1.5)
+  factor(ifelse(grepl("^OBLA", method), method_aims[3], ifelse(first, method_aims[1], method_aims[2])), method_aims)
+}
+
 #' Compute thresholds
 #'
 #' Fits the user-selected curve and runs the requested methods. For internal use only.

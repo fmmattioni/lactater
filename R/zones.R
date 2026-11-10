@@ -34,9 +34,11 @@ zone_colours <- list(
 #'   * Two intensities, `c(zone 1|2, zone 4|5)`, for your own cuts.
 #'
 #' @details
-#' LT1 is usually a "first rise" threshold (e.g. `"Bsln + 0.5"`, `"Log-log"`, `"LTP1"`), and LT2 a threshold meant to
-#' estimate the maximal lactate steady state (MLSS; e.g. `"Log-Poly-ModDmax"`, `"Bsln + 1.5"`, `"LTP2"`, `"ModDmax"`,
-#' `"OBLA 4.0"`, `"IAT"`). Against a measured MLSS these landed from about 40 W below to 40 W above it on average, by
+#' LT1 is usually a "first rise" threshold (`"Log-log"`, `"Bsln + 0.5"`, `"Bsln + 1.0"`, `"LTratio"`, `"LTP1"`), and
+#' LT2 a threshold aimed at the maximal lactate steady state (MLSS) or the second, abrupt rise (the Dmax family,
+#' `"LTP2"`, `"IAT"`, `"Stegmann"`, and `"Bsln + 1.5"`, which estimated the MLSS in two studies; Jamnick et al., 2020).
+#' These are two of the three categories of threshold concepts of Faude et al. (2009); fixed values such as
+#' `"OBLA 4.0"` are the third. Against a measured MLSS these landed from about 40 W below to 40 W above it on average, by
 #' method, protocol and athletes (Hauser et al., 2014; Ploszczyca et al., 2020), and whether the MLSS or the critical
 #' power marks the boundary between the heavy and severe domains is debated (Jones et al., 2019). Different choices
 #' give different zones, so report which ones you used.
@@ -63,6 +65,9 @@ zone_colours <- list(
 #' Plot it with [autoplot()].
 #'
 #' @references
+#' Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid are they? Sports Medicine.
+#' 2009;39(6):469-490.
+#'
 #' Hofmann P, Tschakert G. Intensity- and duration-based options to regulate endurance training. Frontiers in
 #' Physiology. 2017;8:337.
 #'

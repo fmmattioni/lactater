@@ -45,7 +45,7 @@ tbl_sum.lactate_thresholds <- function(x, ...) {
 #' Plot lactate thresholds
 #'
 #' Plots the result of [lactate_threshold()]. Without `method`, an overview: the fitted lactate
-#' curve on top and every threshold below, grouped by method family, on the same intensity axis, so
+#' curve on top and every threshold below, grouped by what the method aims at, on the same intensity axis, so
 #' you can see at a glance how much the methods agree; the two that mark LT1 and LT2 (`lt1`, `lt2`, the
 #' defaults of [lactate_zones()]) are drawn in green. With `method`, the plot of that one method:
 #' what the method fitted, the measured stages, and the threshold with its intensity, lactate and
@@ -103,9 +103,10 @@ plot.lactate_thresholds <- function(x, method = NULL, ...) {
 #' Overview plot
 #'
 #' Every threshold of the test on one intensity axis: the fitted curve on top, and below it one row per method,
-#' grouped by family, with the threshold as a dot and its confidence interval as a line (when computed). A table on
-#' the right prints the lactate, heart rate, RPE, percentage of the peak intensity and of the highest heart rate at
-#' each threshold, with the lactate shaded by its value.
+#' grouped by what it aims at (the first rise, the second rise, or a fixed lactate), with the threshold as a dot and
+#' its confidence interval as a line (when computed). A table on the right prints the lactate, heart rate, RPE,
+#' percentage of the peak intensity and of the highest heart rate at each threshold, with the lactate shaded by its
+#' value.
 #'
 #' @param object The result of [lactate_threshold()].
 #' @param info Its `lactater` attribute.
@@ -129,21 +130,26 @@ plot_overview <- function(object, info, chosen = character()) {
     rows$high <- unname(info$intervals[methods, "high"])
   }
   rows <- rows[!is.na(rows$intensity), ]
-  rows$row <- rev(seq_len(nrow(rows)))
+  ## grouped by what the method aims at and sorted by intensity, with a free row above each group for its name
+  rows$aim <- droplevels(method_aim(rows$method))
+  rows <- rows[order(rows$aim, rows$intensity), ]
+  rows$row <- rev(seq_len(nrow(rows))) + nlevels(rows$aim) - as.integer(rows$aim)
+  heads <- tapply(rows$row, rows$aim, max) + 1
   rows$chosen <- rows$method %in% chosen
   rows$peak <- 100 * rows$intensity / max(info$data$intensity)
   if(!is.null(rows$heart_rate)) rows$hr_max <- 100 * rows$heart_rate / max(info$data$heart_rate, na.rm = TRUE)
-  family_end <- which(rows$family[-1] != rows$family[-nrow(rows)])
-  separators <- rows$row[family_end] - 0.5
   curve <- curve_points(info$curve)
   limits <- range(points$intensity, curve$intensity, rows$intensity, rows$low, rows$high, na.rm = TRUE)
   x_scale <- ggplot2::scale_x_continuous(limits = limits, expand = ggplot2::expansion(mult = 0.03))
-  y_rows <- ggplot2::scale_y_continuous(breaks = rows$row, labels = method_label(rows$method), expand = c(0, 0.6))
+  y_rows <- ggplot2::scale_y_continuous(
+    breaks = c(rows$row, heads),
+    labels = c(method_label(rows$method), parse(text = sprintf('bold("%s")', names(heads)))),
+    limits = c(0.5, max(heads) + 0.5), expand = c(0, 0.1)
+  )
   bands <- ggplot2::annotate(
     "rect", xmin = -Inf, xmax = Inf, ymin = rows$row[rows$row %% 2 == 0] - 0.5,
     ymax = rows$row[rows$row %% 2 == 0] + 0.5, fill = colours[["faint"]], alpha = 0.18
   )
-  lines <- ggplot2::geom_hline(yintercept = separators, colour = colours[["faint"]], linewidth = 0.4)
 
   top <- ggplot2::ggplot() +
     ggplot2::geom_line(ggplot2::aes(intensity, lactate), curve, colour = colours[["curve"]], linewidth = 0.9) +
@@ -156,7 +162,7 @@ plot_overview <- function(object, info, chosen = character()) {
     ggplot2::labs(x = NULL, y = "Lactate (mmol/L)") +
     theme_lactater()
 
-  dots <- ggplot2::ggplot(rows) + bands + lines
+  dots <- ggplot2::ggplot(rows) + bands
   if(!is.null(rows$low)) {
     dots <- dots + ggplot2::geom_segment(
       ggplot2::aes(x = low, xend = high, y = row, yend = row), colour = colours[["muted"]], alpha = 0.55,
@@ -176,14 +182,14 @@ plot_overview <- function(object, info, chosen = character()) {
       axis.ticks.y = ggplot2::element_blank(), axis.line.y = ggplot2::element_blank()
     )
 
-  table <- overview_table(rows, colours, sport, intervals = !is.null(rows$low)) + bands + lines
+  table <- overview_table(rows, colours, sport, intervals = !is.null(rows$low)) + bands
   ## the table as wide as its columns (lactate, % peak, and heart rate, % HRmax, RPE and CI width when present), so
   ## that two-word headers such as "Heart rate" keep apart
   columns <- 2 + 2 * (!is.null(rows$heart_rate)) + (!is.null(rows$rpe)) + (!is.null(rows$low))
   design <- "AB\nCD"
   patchwork::wrap_plots(
     A = top, B = patchwork::plot_spacer(), C = dots, D = table, design = design,
-    widths = c(2, 0.37 * columns), heights = c(0.75, max(1.4, nrow(rows) / 7))
+    widths = c(2, 0.37 * columns), heights = c(0.75, max(1.4, max(heads) / 7))
   ) +
     patchwork::plot_annotation(
       title = sprintf(
@@ -193,7 +199,7 @@ plot_overview <- function(object, info, chosen = character()) {
       ),
       subtitle = paste0(
         "Each method as a dot", if(!is.null(rows$low)) " with its confidence interval" else "",
-        ", grouped by family; the table gives the values at each threshold",
+        ", grouped by what it aims at; the table gives the values at each threshold",
         if(any(rows$chosen)) {
           sprintf(". Green: %s", paste(method_html(chosen[chosen %in% rows$method]), collapse = " and "))
         }
@@ -250,7 +256,7 @@ overview_table <- function(rows, colours, sport, intervals) {
       breaks = seq_along(columns), labels = as.expression(lapply(columns, `[[`, 2)), position = "top",
       limits = c(0.5, length(columns) + 0.5), expand = c(0, 0)
     ) +
-    ggplot2::scale_y_continuous(expand = c(0, 0.6)) +
+    ggplot2::scale_y_continuous(limits = c(0.5, max(rows$row) + 1.5), expand = c(0, 0.1)) +
     ggplot2::labs(x = NULL, y = NULL) +
     theme_lactater() +
     ggplot2::theme(
