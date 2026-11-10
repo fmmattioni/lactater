@@ -66,8 +66,8 @@ training load and the race prediction have their own.
 <td width="50%" valign="top">
 
 <a href="https://fmmattioni.github.io/lactater/reference/autoplot.lactate_thresholds.html"><img src="man/figures/readme/gallery-overview.png" alt="Every threshold of a test on one intensity axis, grouped by what the method aims at, with a table of lactate, heart rate and percentages of peak"></a><br><b>One
-test, every method</b>: each threshold on one axis, grouped by what it aims at,
-with its values. <code>autoplot(results)</code>
+test, every method</b>: each threshold on one axis, grouped by what it
+aims at, with its values. <code>autoplot(results)</code>
 </td>
 
 <td width="50%" valign="top">
@@ -83,7 +83,7 @@ rate at LT1 and LT2. <code>autoplot(lactate_zones(…))</code>
 
 <td width="50%" valign="top">
 
-<a href="https://fmmattioni.github.io/lactater/reference/lactate_trend.html"><img src="man/figures/readme/gallery-series.png" alt="The lactate curves of five tests, light to dark by date, then their heart rate, above the five training zones of each test"></a><br><b>Up
+<a href="https://fmmattioni.github.io/lactater/reference/lactate_trend.html"><img src="man/figures/readme/gallery-series.png" alt="The lactate curves of five tests, the latest in blue and the first in dark gray, then their heart rate, above the five training zones of each test"></a><br><b>Up
 to five tests</b>: where the curve, the heart rate and the zones moved,
 by date. <code>autoplot(lactate_trend(…))</code>
 </td>
