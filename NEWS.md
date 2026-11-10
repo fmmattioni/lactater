@@ -42,8 +42,8 @@ computed.
 * Column arguments take a bare name, a string or a variable; `heart_rate_column` is optional; new `rpe_column` and
   `rpe_scale`.
 * `.by` analyzes many tests in one call; rows with a missing lactate are dropped with a warning.
-* Deterministic results, about 30x faster than 0.3.0 without plots (667 -> 22 ms for every method on `demo_data`)
-  and twice as fast with them.
+* Deterministic results, about 50x faster than 0.3.0 without plots (500 -> 10 ms for every method on `demo_data`)
+  and nearly twice as fast with them.
 
 ## Checks and uncertainty
 

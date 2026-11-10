@@ -39,9 +39,9 @@ test can change a little, for reasons given at the end.
 ## Faster
 
 Every method is now computed in closed form or by a deterministic search, with no iterative model fitting, and
-eleven dependencies were dropped. On `demo_data` with every method, `lactate_threshold()` takes about 20 ms without
-plots where 0.3.0 took about 650 ms, thirty times faster; with the plot of every method it takes 0.7 s instead of
-1.4 s. A whole squad goes through `.by` in under a second, and bootstrap intervals with 500 replicates take a few
+eleven dependencies were dropped. On `demo_data` with every method, `lactate_threshold()` takes about 10 ms without
+plots where 0.3.0 took about 500 ms, some fifty times faster; with the plot of every method it takes 0.5 s instead
+of 0.9 s. A whole squad goes through `.by` in under a second, and bootstrap intervals with 500 replicates take a few
 seconds (measured on a laptop; your numbers will differ, the ratio less so).
 
 ## Why some numbers change, and an example
