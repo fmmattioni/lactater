@@ -217,7 +217,13 @@ predict_performance <- function(x, method = NULL, equation = NULL) {
     plot = data.frame(
       event = out$event, method = out$method, threshold = threshold, value = intensity, low = intensity - half,
       high = intensity + half,
-      label = if("time" %in% names(out)) out$time else paste(format_intensity(intensity, sport), unit)
+      label = if("time" %in% names(out)) out$time else paste(format_intensity(intensity, sport), unit),
+      ## the range in the unit people read: race time when there is one, otherwise the intensity
+      range = if("time" %in% names(out)) {
+        paste(out$time_low, "to", out$time_high)
+      } else {
+        paste(format_intensity(intensity - half, sport), "to", format_intensity(intensity + half, sport), unit)
+      }
     )
   )
   class(out) <- c("lactate_performance", class(out))
@@ -378,26 +384,43 @@ autoplot.lactate_performance <- function(object, ...) {
   ## one event (cycling): the rows only need the method
   names <- if(length(unique(rows$event)) == 1) rows$method else paste0(rows$event, " (", rows$method, ")")
   rows$row <- factor(names, levels = rev(unique(names)))
-  rows$label_at <- pmax(rows$high, rows$threshold)
+  ## the title gives the first and the last event; one event predicted from several thresholds keeps its name
+  events <- rows[!duplicated(rows$event), ]
+  title <- if(nrow(events) == 1 && nrow(rows) > 1) {
+    paste("Predicted", rows$event[1])
+  } else {
+    events <- events[unique(c(1, nrow(events))), ]
+    paste(sprintf("%s in %s", c(events$event[1], tolower(events$event[-1])), events$label), collapse = ", ")
+  }
 
   ggplot2::ggplot(rows, ggplot2::aes(y = row)) +
-    ggplot2::geom_segment(ggplot2::aes(x = low, xend = high, yend = row), colour = colours[["muted"]], alpha = 0.55,
-                          linewidth = 0.9, lineend = "round") +
+    ggplot2::geom_segment(ggplot2::aes(x = low, xend = high, yend = row), colour = colours[["faint"]],
+                          linewidth = 1.5, lineend = "round") +
     ggplot2::geom_point(ggplot2::aes(x = threshold), shape = 21, size = 2.6, stroke = 0.8, fill = colours[["paper"]],
                         colour = colours[["accent"]]) +
     ggplot2::geom_point(ggplot2::aes(x = value), shape = 21, size = 3, stroke = 0.7, fill = colours[["curve"]],
                         colour = colours[["paper"]]) +
-    ggplot2::geom_text(ggplot2::aes(x = label_at, label = label), hjust = -0.2, size = 3.2, colour = colours[["ink"]]) +
-    ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.2))) +
+    ## a column on the right edge: the prediction over its range
+    ggplot2::geom_text(ggplot2::aes(x = Inf, label = label), hjust = 1, vjust = -0.1, size = 3.8, fontface = "bold",
+                       colour = colours[["ink"]]) +
+    ggplot2::geom_text(ggplot2::aes(x = Inf, label = range), hjust = 1, vjust = 1.6, size = 2.8,
+                       colour = colours[["muted"]]) +
+    ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0.05, 0.3))) +
     ggplot2::scale_y_discrete(labels = method_label) +
     ggplot2::labs(
-      title = if(length(unique(rows$event)) == 1) paste("Predicted", rows$event[1]) else "Predicted race times",
-      subtitle = "Blue: the predicted race intensity with its 95% range; green: the threshold it comes from",
+      title = title,
+      subtitle = paste(
+        "Blue: the predicted race intensity with its 95% range; green: the threshold it comes from.",
+        "Right: the prediction, and the range of 95 of 100 athletes"
+      ),
       caption = paste("From", paste(names(performance$protocols), collapse = "; ")),
       x = intensity_label(sport), y = NULL
     ) +
     theme_lactater() +
-    ggplot2::theme(axis.ticks.y = ggplot2::element_blank(), axis.line.y = ggplot2::element_blank())
+    ggplot2::theme(
+      axis.ticks.y = ggplot2::element_blank(), axis.line.y = ggplot2::element_blank(),
+      axis.text.y = ggplot2::element_text(colour = colours[["ink"]])
+    )
 }
 
 #' @rdname calibrate_performance

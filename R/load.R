@@ -146,44 +146,55 @@ autoplot.lactate_load <- function(object, ...) {
   colours <- lactater_colours()
   n <- nrow(load$zones)
   keys <- if(is.null(load$by)) "All" else do.call(paste, c(as.list(object[load$by]), sep = " "))
-  percent <- paste0("zone_", seq_len(n), "_percent")
-  rows <- as.data.frame(object)[percent]
-  if(nrow(object) > 1) rows <- rbind(rows, load$overall[percent])
-  labels <- if(nrow(object) > 1) c(keys, "All") else keys
-  long <- do.call(rbind, lapply(seq_len(nrow(rows)), function(i) {
-    share <- unlist(rows[i, percent]) / 100
-    data.frame(group = labels[i], zone = paste("Zone", seq_len(n)), share = share)
-  }))
-  long$group <- factor(long$group, levels = rev(unique(labels)))
-  long$zone <- factor(long$zone, levels = rev(paste("Zone", seq_len(n))))
-  percent_text <- sprintf("%.0f%%", 100 * long$share)
-  long$text <- ifelse(long$share > 0.18, paste(long$zone, percent_text), ifelse(long$share > 0.07, percent_text, ""))
-  overall <- load$overall
-  below_lt1 <- if(n > 3) overall$moderate_percent else overall$zone_1_percent
-  title <- sprintf(
-    "%s%s: %.0f%% of the time below LT1", toupper(substr(overall$distribution, 1, 1)),
-    substring(overall$distribution, 2), below_lt1
+  ## minutes, not shares, so that a long session looks long; the shares of the whole are in the subtitle
+  minutes <- as.matrix(as.data.frame(object)[paste0("zone_", seq_len(n))])
+  long <- data.frame(
+    group = factor(rep(keys, n), levels = rev(unique(keys))),
+    zone = factor(rep(paste("Zone", seq_len(n)), each = length(keys)), levels = rev(paste("Zone", seq_len(n)))),
+    minutes = as.vector(minutes)
   )
+  widest <- max(rowSums(minutes))
+  long$text <- ifelse(
+    long$minutes > 0.18 * widest, sprintf("%s  %.0f min", long$zone, long$minutes),
+    ifelse(long$minutes > 0.05 * widest, sprintf("%.0f", long$minutes), "")
+  )
+  totals <- data.frame(group = factor(keys, levels = levels(long$group)), minutes = rowSums(minutes))
+  overall <- load$overall
+  domains <- if(n > 3) {
+    unlist(overall[c("moderate_percent", "heavy_percent", "severe_percent")])
+  } else {
+    unlist(overall[c("zone_1_percent", "zone_2_percent", "zone_3_percent")])
+  }
 
-  ggplot2::ggplot(long, ggplot2::aes(share, group, fill = zone)) +
-    ggplot2::geom_col(width = 0.66, colour = colours[["paper"]], linewidth = 0.6, alpha = 0.55) +
+  ggplot2::ggplot(long, ggplot2::aes(minutes, group)) +
+    ggplot2::geom_col(ggplot2::aes(fill = zone), width = 0.66, colour = colours[["paper"]], linewidth = 0.6, alpha = 0.55) +
     ggplot2::geom_text(
-      ggplot2::aes(label = text), position = ggplot2::position_stack(vjust = 0.5), size = 3, colour = colours[["ink"]]
+      ggplot2::aes(label = text, group = zone), position = ggplot2::position_stack(vjust = 0.5), size = 3,
+      colour = colours[["ink"]]
+    ) +
+    ggplot2::geom_text(
+      ggplot2::aes(label = sprintf("%.0f min", minutes)), totals, hjust = -0.2, size = 3, colour = colours[["muted"]]
     ) +
     ggplot2::scale_fill_manual(
       values = stats::setNames(zone_colours[[as.character(n)]], paste("Zone", seq_len(n))), guide = "none"
     ) +
-    ggplot2::scale_x_continuous(labels = function(v) paste0(100 * v, "%"), expand = c(0, 0)) +
+    ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0, 0.12))) +
     ggplot2::labs(
-      title = title,
-      subtitle = sprintf(
-        "Share of time in each lactate zone (%s); polarization index %s",
-        sub("_", " ", load$measure), format(overall$polarization_index)
+      title = sprintf(
+        "%s%s: %.0f%% of %.0f min below LT1", toupper(substr(overall$distribution, 1, 1)),
+        substring(overall$distribution, 2), domains[1], overall$minutes
       ),
-      x = NULL, y = NULL, fill = NULL
+      subtitle = sprintf(
+        "Minutes in each zone (%s): %.0f%% below LT1, %.0f%% between, %.0f%% above LT2; polarization index %s",
+        sub("_", " ", load$measure), domains[1], domains[2], domains[3], format(overall$polarization_index)
+      ),
+      x = "Minutes", y = NULL, fill = NULL
     ) +
     theme_lactater() +
-    ggplot2::theme(axis.line.y = ggplot2::element_blank(), axis.ticks.y = ggplot2::element_blank())
+    ggplot2::theme(
+      axis.line.y = ggplot2::element_blank(), axis.ticks.y = ggplot2::element_blank(),
+      axis.text.y = ggplot2::element_text(colour = colours[["ink"]])
+    )
 }
 
 #' Polarization index (Treff et al., 2019)

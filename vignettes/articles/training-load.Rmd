@@ -66,7 +66,8 @@ load <- training_load(week, zones, interval = 5)
 load
 ```
 
-The plot shows the share of time in each zone, per session and for all of them, colored by domain like the zones:
+The plot shows the minutes in each zone per session, colored by domain like the zones, so a long session looks
+long; the shares of the whole are in its subtitle:
 
 ```{r}
 autoplot(training_load(week, zones, interval = 5, .by = "session"))
