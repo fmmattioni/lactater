@@ -1,9 +1,16 @@
-## test-retest coefficients of variation (%) of the threshold intensity, where a study reports them:
-## Heuberger et al. (2018): 48 well-trained male cyclists, 5-min steps, five tests about two weeks apart;
-## Pallares et al. (2016): 14 trained male cyclists, 25 W/min ramp, two tests 2-5 days apart
+## test-retest coefficients of variation (%) of the threshold intensity, as lactater computes each method:
+## lactate_reliability() on the five step tests of every rider in the open data of Heuberger et al. (2018): 204 tests
+## of 47 well-trained male cyclists, 5-min steps, venous blood, about two weeks apart (data-raw/reliability_cycling.R).
+## Half of the riders received erythropoietin and the data do not say who, so these can only be too high; pairs of
+## consecutive tests gave the same size (mean 5.8-6.3% against 6.0% over the five tests), so a drift between the
+## groups is not what sets them. The tests have no resting sample: Bsln+ rises from the first stage.
+## Published values, which the help page lists beside these: Heuberger et al. (2018), placebo riders and their own
+## implementation, IAT 3.6, OBLA 4.0 3.8, Dmax 3.4, ModDmax 4.3; Pallares et al. (2016), 14 cyclists, 25 W/min ramp,
+## Bsln + 0.5 3.7, + 1.0 3.4, + 1.5 3.4.
 method_cv <- c(
-  "IAT" = 3.6, "OBLA 4.0" = 3.8, "Dmax" = 3.4, "ModDmax" = 4.3,
-  "Bsln + 0.5" = 3.7, "Bsln + 1.0" = 3.4, "Bsln + 1.5" = 3.4
+  "Log-log" = 7.8, "OBLA 2.0" = 7.7, "OBLA 2.5" = 5.2, "OBLA 3.0" = 4.6, "OBLA 3.5" = 4.8, "OBLA 4.0" = 4.4,
+  "Bsln + 0.5" = 8.2, "Bsln + 1.0" = 5.0, "Bsln + 1.5" = 4.5, "Dmax" = 5.9, "ModDmax" = 5.1, "Exp-Dmax" = 4.3,
+  "Log-Poly-ModDmax" = 5.5, "Log-Exp-ModDmax" = 4.9, "LTP1" = 10.6, "LTP2" = 6.0, "LTratio" = 9.4, "IAT" = 4.4
 )
 
 ## the coefficient of variation of each method: the user's `cv` (one number, a named vector, or the result of
@@ -28,7 +35,7 @@ method_cvs <- function(cv, methods) {
 #' which leaves out the mean change from one test to the next (Hopkins, 2000). It is given in intensity units and as a
 #' coefficient of variation, `100 * (exp(s) - 1)`, with `s` the typical error of the log intensities. Pass the result
 #' to `compare_tests(cv = )` so that its verdicts use the noise of your own protocol, analyzer and athletes rather than
-#' the published values of trained male cyclists.
+#' the default values, from trained male cyclists.
 #'
 #' A typical error from few athletes is itself uncertain: with 10 athletes and 2 tests (9 degrees of freedom) its 90%
 #' confidence interval spans 0.73 to 1.65 times its value (from the chi-square distribution of a variance).
@@ -101,13 +108,46 @@ lactate_reliability <- function(x, athlete, test) {
 #' A threshold moves between two tests even without any change in fitness, by the day-to-day variation of
 #' the athlete and the error of the analyzer and the method. Each change is therefore given with an
 #' interval, change +/- z * sqrt(2) * typical error, where the typical error is the coefficient of
-#' variation (`cv`) times the intensity before (Hopkins, 2000; Swinton et al., 2018). The change is called
-#' an `"increase"` or a `"decrease"` when the whole interval lies beyond the smallest worthwhile change
-#' (`swc`), and `"unclear"` otherwise.
+#' variation (`cv`) times the intensity before (Hopkins, 2000; Swinton et al., 2018). This is the model behind the
+#' repeatability of Bland & Altman (1996), for whom two measurements of the same person differ by less than
+#' `1.96 * sqrt(2)` within-subject standard deviations in 95% of pairs.
 #'
-#' The default `cv` comes from test-retest studies of trained male cyclists: 3.6% for IAT, 3.8% for OBLA 4.0,
-#' 3.4% for Dmax and 4.3% for ModDmax (Heuberger et al., 2018), and 3.4-3.7% for Bsln+ (Pallares et al.,
-#' 2016, ramp test). Other methods have no published value, so their `verdict` is `NA` unless you give one.
+#' Three columns say how the change stands against that noise, without a probability attached to them:
+#' * `noise`: `sqrt(2)` x the typical error, the typical difference between two tests when nothing changed, in the
+#'   unit of the intensity.
+#' * `ratio`: the change divided by the noise. At 1, the change is as large as two tests usually differ by anyway.
+#' * `verdict`: `"beyond the noise"` when the whole interval lies beyond the smallest worthwhile change (`swc`; beyond
+#'   zero by default), which at the default 90% is a ratio above 1.64, and `"within the noise"` otherwise. A change
+#'   within the noise is not a sign that nothing changed: one pair of tests cannot tell. No level is agreed on: 95% is
+#'   the classic choice, and narrower intervals are defended for decisions in practice (Swinton et al., 2018); set
+#'   yours with `level`. The words describe this one comparison against the `cv` in the table; graded terms such as
+#'   "likely" are not used, because they read a frequentist interval as a probability of the true change (Lohse et
+#'   al., 2020).
+#'
+#' The default `cv` of each method is lactater's own calculation: [lactate_reliability()] on the five step tests of
+#' each of 47 well-trained male cyclists in the open data of Heuberger et al. (2018; 204 tests, 5-min stages, venous
+#' blood, about two weeks apart), so that it is the noise of each method as lactater computes it, on a step test. The
+#' output gives it in the `cv` column.
+#'
+#' | Method | Default `cv` (%) | Published (%) |
+#' |:--|--:|:--|
+#' | OBLA 2.0, 2.5, 3.0, 3.5 | 7.7, 5.2, 4.6, 4.8 | |
+#' | OBLA 4.0 | 4.4 | 3.8 (Heuberger et al., 2018) |
+#' | Bsln + 0.5, 1.0, 1.5 | 8.2, 5.0, 4.5 | 3.7, 3.4, 3.4 (Pallares et al., 2016; ramp test) |
+#' | Dmax | 5.9 | 3.4 (Heuberger et al., 2018) |
+#' | ModDmax | 5.1 | 4.3 (Heuberger et al., 2018) |
+#' | Exp-Dmax, Log-Poly-ModDmax, Log-Exp-ModDmax | 4.3, 5.5, 4.9 | |
+#' | IAT | 4.4 | 3.6 (Heuberger et al., 2018) |
+#' | LTP1, LTP2 | 10.6, 6.0 | |
+#' | Log-log, LTratio | 7.8, 9.4 | |
+#'
+#' The defaults are on the careful side. Heuberger et al. computed their values on the riders who received placebo,
+#' with their own implementation of each method; the open data do not say which riders received erythropoietin, so the
+#' defaults use every rider and are, if anything, too high (pairs of consecutive tests gave values of the same size,
+#' so a drift between the two groups does not explain them). Those tests have no resting sample, so Bsln+ rose from
+#' the first stage. To use the published values instead, give them: `cv = c("IAT" = 3.6, "Dmax" = 3.4)`.
+#' `Stegmann` and your own `fixed` or `baseline_plus` values have no default: their `verdict` is `NA` unless you
+#' give one.
 #' The best `cv` is the one of your own athletes, measured with your protocol and analyzer.
 #'
 #' @param before,after The results of [lactate_threshold()] for the two tests, with the same sport.
@@ -118,16 +158,22 @@ lactate_reliability <- function(x, athlete, test) {
 #' @param level The probability of the interval. Defaults to `0.9`.
 #'
 #' @return a `lactate_comparison` tibble with one row per method found in both tests: `method`, `before`,
-#' `after`, `change`, `change_percent`, the interval of the change (`change_low`, `change_high`), the `verdict`,
+#' `after`, `change`, `change_percent`, the interval of the change (`change_low`, `change_high`), the `cv` (%) it
+#' was computed with, the `noise`, the `ratio` of the change to it, the `verdict`,
 #' and the heart rate at each threshold in both tests (when recorded). The `notes` attribute lists what differs
 #' between the two tests (stages, step, resting sample, sample type) and a fall in peak lactate. Plot both
 #' curves with [autoplot()].
 #'
 #' @references
+#' Bland JM, Altman DG. Measurement error. BMJ. 1996;312(7047):1654. doi:10.1136/bmj.312.7047.1654
+#'
 #' Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and
 #' predictive value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
 #'
 #' Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.
+#'
+#' Lohse KR, Sainani KL, Taylor JA, Butson ML, Knight EJ, Vickers AJ. Systematic review of the use of
+#' "magnitude-based inference" in sports science and medicine. PLOS ONE. 2020;15(6):e0235318.
 #'
 #' Pallares JG, Moran-Navarro R, Ortega JF, Fernandez-Elias VE, Mora-Rodriguez R. Validity and reliability of
 #' ventilatory and blood lactate thresholds in well-trained cyclists. PLOS ONE. 2016;11(9):e0163389.
@@ -162,8 +208,11 @@ compare_tests <- function(before, after, cv = NULL, swc = 0, level = 0.9) {
   ## not named `change`: tibble() would read the rounded column of that name in the lines below
   difference <- value_after - value_before
   worthwhile <- swc / 100 * value_before
-  verdict <- ifelse(difference - half_width > worthwhile, "increase",
-                    ifelse(difference + half_width < -worthwhile, "decrease", "unclear"))
+  beyond <- difference - half_width > worthwhile | difference + half_width < -worthwhile
+  verdict <- ifelse(beyond, "beyond the noise", "within the noise")
+  ## what two tests differ by when nothing changed: the standard deviation of a difference of two measurements
+  ## (not named `noise`: tibble() would read the rounded column of that name for the ratio)
+  noise_sd <- sqrt(2) * typical_error
 
   out <- tibble::tibble(
     method = factor(methods, levels = methods),
@@ -173,6 +222,9 @@ compare_tests <- function(before, after, cv = NULL, swc = 0, level = 0.9) {
     change_percent = round(100 * difference / value_before, 1),
     change_low = round(difference - half_width, digits),
     change_high = round(difference + half_width, digits),
+    cv = unname(cvs[methods]),
+    noise = round(noise_sd, digits),
+    ratio = round(difference / noise_sd, 1),
     verdict = verdict
   )
   if("heart_rate" %in% names(before) && "heart_rate" %in% names(after)) {
@@ -183,7 +235,7 @@ compare_tests <- function(before, after, cv = NULL, swc = 0, level = 0.9) {
     out$rpe_before <- before$rpe[match(methods, before$method)]
     out$rpe_after <- after$rpe[match(methods, after$method)]
   }
-  attr(out, "lactater_comparison") <- list(before = info_before, after = info_after)
+  attr(out, "lactater_comparison") <- list(before = info_before, after = info_after, level = level)
   attr(out, "notes") <- comparison_notes(info_before, info_after)
   class(out) <- c("lactate_comparison", class(out))
   out
@@ -195,10 +247,39 @@ tbl_sum.lactate_comparison <- function(x, ...) {
   if(is.null(tests)) return(NextMethod())
   notes <- attr(x, "notes")
   c(
-    "Tests compared" = sprintf("%s, %d methods; a change is clear when it exceeds the test-retest noise",
-                               tests$before$settings$sport, nrow(x)),
+    "Tests compared" = sprintf(
+      "%s, %d methods; noise: what two tests differ by when nothing changed; verdict at %g%%",
+      tests$before$settings$sport, nrow(x), 100 * tests$level
+    ),
+    pair_change(x, tests$before),
     if(length(notes)) stats::setNames(notes, rep("Note", length(notes)))
   )
+}
+
+#' The change of LT1 and LT2 in one line each
+#'
+#' @param x The comparison.
+#' @param info The `lactater` attribute of the first test, whose LT1 and LT2 are followed.
+#' @return a character vector named `LT1` and `LT2` (only those chosen by method and found in both tests).
+#' @keywords internal
+pair_change <- function(x, info) {
+  ## after select(), the columns of the line may be gone
+  if(!all(c("method", "before", "after", "change", "noise", "ratio", "verdict") %in% names(x))) return(NULL)
+  pair <- unlist(lapply(chosen_pair(info), as.character))
+  names(pair) <- c("LT1", "LT2")
+  ## a threshold missing in one test has no change to report
+  pair <- pair[pair %in% as.character(x$method)[!is.na(x$change)]]
+  rows <- x[match(pair, as.character(x$method)), ]
+  sport <- info$settings$sport
+  stats::setNames(sprintf(
+    "%s to %s (%s%s, %s), by %s", format_intensity(rows$before, sport), intensity_text(rows$after, sport),
+    ifelse(rows$change > 0, "+", ""), format_intensity(rows$change, sport),
+    ifelse(
+      is.na(rows$verdict), "no test-retest noise known for it: give `cv`",
+      sprintf("%s x the noise of %s: %s", format(abs(rows$ratio), nsmall = 1), intensity_text(rows$noise, sport),
+              rows$verdict)
+    ), pair
+  ), names(pair))
 }
 
 #' What could make two tests hard to compare
@@ -478,11 +559,11 @@ list_to_thresholds <- function(info) {
 #' for more tests: one panel per method, each test as a dot (with its confidence interval when computed) and a gray band
 #' for the noise of the method around the first test, so that dots outside the band are changes larger than the noise
 #' (as in monitoring charts; Hopkins, 2017).
-#' @param lt1,lt2 The thresholds that mark LT1 and LT2 in the `"curves"` view, as in [lactate_zones()].
+#' @param lt1,lt2 The thresholds that mark LT1 and LT2 in the `"curves"` view. Default to those each test chose in
+#'   [lactate_threshold()].
 #' @param cv The test-retest coefficient of variation (%) for the noise band, as in [compare_tests()].
 #' @export
-autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL, lt1 = "Bsln + 0.5",
-                                   lt2 = "Log-Poly-ModDmax", ...) {
+autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL, lt1 = NULL, lt2 = NULL, ...) {
   trend <- attr(object, "lactater_trend")
   if(is.null(view)) view <- if(length(trend$day) <= 5) "curves" else "thresholds"
   view <- match.arg(view, c("curves", "thresholds"))

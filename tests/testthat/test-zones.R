@@ -100,6 +100,10 @@ test_that("LT1 and LT2 chosen in lactate_threshold() are what the other function
   attr(old, "lactater")$settings[c("lt1", "lt2")] <- NULL
   expect_equal(attr(lactate_zones(old), "lactater_zones")$labels, c("Bsln + 0.5", "Log-Poly-ModDmax"))
   expect_equal(pillar::tbl_sum(chosen)[c("LT1", "LT2")], c(LT1 = "101 W (Log-log)", LT2 = "160 W (LTP2)"))
+  expect_equal(
+    unname(pillar::tbl_sum(compare_tests(chosen, chosen))["LT2"]),
+    "160 to 160 W (0, 0.0 x the noise of 14 W: within the noise), by LTP2"
+  )
   expect_equal(suppressWarnings(predict_performance(chosen))$method[1], "LTP2")
   expect_error(lactate_threshold(demo_data, intensity, lactate, lt1 = c("Log-log", "LTP1")), "one method or one")
 })

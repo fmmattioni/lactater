@@ -570,16 +570,17 @@ html_progress <- function(r, cv) {
       paste(sub("^-", "\u2212", format_intensity(comparison$change_low, sport)), "to",
             sub("^-", "\u2212", format_intensity(comparison$change_high, sport)))
     ),
+    ratio = ifelse(is.na(comparison$ratio), "", sprintf("%.1f", abs(comparison$ratio))),
     verdict = ifelse(is.na(comparison$verdict), "noise not known", as.character(comparison$verdict))
   )
   against <- gt::gt(latest) |>
     gt::fmt_markdown(columns = "method") |>
-    gt::cols_align("right", columns = c("before", "after", "change", "interval")) |>
-    gt::tab_style(gt::cell_text(weight = 600), gt::cells_body(columns = "verdict", rows = latest$verdict %in%
-                                                                c("increase", "decrease"))) |>
+    gt::cols_align("right", columns = c("before", "after", "change", "interval", "ratio")) |>
+    gt::tab_style(gt::cell_text(weight = 600), gt::cells_body(columns = "verdict", rows = latest$verdict ==
+                                                                "beyond the noise")) |>
     gt::cols_label(
       method = "", before = series$labels[n - 1], after = series$labels[n], change = "Change",
-      interval = "90% interval", verdict = "Verdict"
+      interval = "90% interval", ratio = gt::html("Change &divide; noise"), verdict = "Against the noise"
     )
 
   change <- rows[n, c("lt1", "lt2")] - rows[1, c("lt1", "lt2")]
@@ -609,8 +610,9 @@ html_progress <- function(r, cv) {
     tags$h2(sprintf("The latest test against the one before (%s)", series$labels[n - 1])),
     html_table(against),
     tags$p(class = "caption", paste(
-      "A change is an increase or a decrease when its whole 90% interval, from the typical error of the method, lies",
-      "on one side of zero, and unclear when the interval spans zero."
+      "The noise is what two tests of this method usually differ by when nothing changed. A change is beyond the",
+      "noise when its whole 90% interval lies on one side of zero (a change of more than 1.6 times the noise);",
+      "a change within the noise may still be real: one pair of tests cannot tell."
     ))
   )
 }

@@ -5,15 +5,21 @@ shifted <- function(by) transform(demo_data, intensity = intensity * by)
 test_that("compare_tests calls a change real only beyond the noise of the method", {
   ## +5% on every threshold, typical error 1% of the intensity: interval about +/- 2.3%
   small_noise <- compare_tests(before, run(shifted(1.05)), cv = 1)
-  expect_true(all(small_noise$verdict == "increase"))
+  expect_true(all(small_noise$verdict == "beyond the noise"))
+  ## the noise is sqrt(2) x the typical error, and the ratio is the change over it
+  expect_true(all(abs(small_noise$noise - sqrt(2) * 0.01 * small_noise$before) <= 0.5))
+  expect_true(all(abs(small_noise$ratio - small_noise$change_percent / sqrt(2)) <= 0.1))
+  ## the header survives a selection of columns
+  expect_no_error(pillar::tbl_sum(small_noise[c("method", "change")]))
   big_noise <- compare_tests(before, run(shifted(1.05)), cv = 5)
-  expect_true(all(big_noise$verdict == "unclear"))
+  expect_true(all(big_noise$verdict == "within the noise"))
+  ## a fall is judged like a rise
+  expect_true(all(compare_tests(run(shifted(1.05)), before, cv = 1)$verdict == "beyond the noise"))
   ## a smallest worthwhile change above the change itself
-  expect_true(all(compare_tests(before, run(shifted(1.05)), cv = 1, swc = 6)$verdict == "unclear"))
-  ## default values only where a study reports them
+  expect_true(all(compare_tests(before, run(shifted(1.05)), cv = 1, swc = 6)$verdict == "within the noise"))
+  ## every method has a default value: from a study, or computed on the open data of Heuberger et al. (2018)
   default <- compare_tests(before, run(shifted(1.05)))
-  expect_false(is.na(default$verdict[default$method == "ModDmax"]))
-  expect_true(is.na(default$verdict[default$method == "LTP2"]))
+  expect_false(anyNA(default$verdict))
   expect_true(all(c("heart_rate_before", "heart_rate_after") %in% names(default)))
   expect_error(compare_tests(before, before, cv = c(1, 2)), "`cv`")
 })

@@ -75,7 +75,11 @@ computed.
 ## Zones, comparisons, performance
 
 * `lactate_threshold(lt1 = , lt2 = )` chooses the athlete's LT1 and LT2 once: the print, the overview, the zones, the
-  report and the header of `predict_performance()` follow that pair.
+  report and the headers of `compare_tests()` and `predict_performance()` follow that pair.
+* `compare_tests()` sets every change against the `noise` of its method (what two tests differ by when nothing
+  changed), with their `ratio` and a verdict of "beyond" or "within the noise", and shows the `cv` behind it. The
+  default noise of each method is lactater's own calculation on the open data of Heuberger et al. (2018), in
+  `data-raw/reliability_cycling.R`; the help page lists the published values beside it.
 * New `lactate_zones()`: three or five zones from LT1 and LT2 (Bsln + 0.5 and Log-Poly-ModDmax by default) at the
   intensity domains, with intensity, pace, lactate, heart rate and RPE; `split` sets the cuts inside the domains.
   Heart rate is drawn in a panel under the curve, or on a second axis (`heart_rate = "axis"`).

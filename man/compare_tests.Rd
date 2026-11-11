@@ -26,7 +26,8 @@ for your own tests.}
 }
 \value{
 a \code{lactate_comparison} tibble with one row per method found in both tests: \code{method}, \code{before},
-\code{after}, \code{change}, \code{change_percent}, the interval of the change (\code{change_low}, \code{change_high}), the \code{verdict},
+\code{after}, \code{change}, \code{change_percent}, the interval of the change (\code{change_low}, \code{change_high}), the \code{cv} (\%) it
+was computed with, the \code{noise}, the \code{ratio} of the change to it, the \code{verdict},
 and the heart rate at each threshold in both tests (when recorded). The \code{notes} attribute lists what differs
 between the two tests (stages, step, resting sample, sample type) and a fall in peak lactate. Plot both
 curves with \code{\link[=autoplot]{autoplot()}}.
@@ -40,13 +41,48 @@ notes on what could make the comparison unfair.
 A threshold moves between two tests even without any change in fitness, by the day-to-day variation of
 the athlete and the error of the analyzer and the method. Each change is therefore given with an
 interval, change +/- z * sqrt(2) * typical error, where the typical error is the coefficient of
-variation (\code{cv}) times the intensity before (Hopkins, 2000; Swinton et al., 2018). The change is called
-an \code{"increase"} or a \code{"decrease"} when the whole interval lies beyond the smallest worthwhile change
-(\code{swc}), and \code{"unclear"} otherwise.
+variation (\code{cv}) times the intensity before (Hopkins, 2000; Swinton et al., 2018). This is the model behind the
+repeatability of Bland & Altman (1996), for whom two measurements of the same person differ by less than
+\code{1.96 * sqrt(2)} within-subject standard deviations in 95\% of pairs.
 
-The default \code{cv} comes from test-retest studies of trained male cyclists: 3.6\% for IAT, 3.8\% for OBLA 4.0,
-3.4\% for Dmax and 4.3\% for ModDmax (Heuberger et al., 2018), and 3.4-3.7\% for Bsln+ (Pallares et al.,
-2016, ramp test). Other methods have no published value, so their \code{verdict} is \code{NA} unless you give one.
+Three columns say how the change stands against that noise, without a probability attached to them:
+\itemize{
+\item \code{noise}: \code{sqrt(2)} x the typical error, the typical difference between two tests when nothing changed, in the
+unit of the intensity.
+\item \code{ratio}: the change divided by the noise. At 1, the change is as large as two tests usually differ by anyway.
+\item \code{verdict}: \code{"beyond the noise"} when the whole interval lies beyond the smallest worthwhile change (\code{swc}; beyond
+zero by default), which at the default 90\% is a ratio above 1.64, and \code{"within the noise"} otherwise. A change
+within the noise is not a sign that nothing changed: one pair of tests cannot tell. No level is agreed on: 95\% is
+the classic choice, and narrower intervals are defended for decisions in practice (Swinton et al., 2018); set
+yours with \code{level}. The words describe this one comparison against the \code{cv} in the table; graded terms such as
+"likely" are not used, because they read a frequentist interval as a probability of the true change (Lohse et
+al., 2020).
+}
+
+The default \code{cv} of each method is lactater's own calculation: \code{\link[=lactate_reliability]{lactate_reliability()}} on the five step tests of
+each of 47 well-trained male cyclists in the open data of Heuberger et al. (2018; 204 tests, 5-min stages, venous
+blood, about two weeks apart), so that it is the noise of each method as lactater computes it, on a step test. The
+output gives it in the \code{cv} column.\tabular{lrl}{
+   Method \tab Default \code{cv} (\%) \tab Published (\%) \cr
+   OBLA 2.0, 2.5, 3.0, 3.5 \tab 7.7, 5.2, 4.6, 4.8 \tab  \cr
+   OBLA 4.0 \tab 4.4 \tab 3.8 (Heuberger et al., 2018) \cr
+   Bsln + 0.5, 1.0, 1.5 \tab 8.2, 5.0, 4.5 \tab 3.7, 3.4, 3.4 (Pallares et al., 2016; ramp test) \cr
+   Dmax \tab 5.9 \tab 3.4 (Heuberger et al., 2018) \cr
+   ModDmax \tab 5.1 \tab 4.3 (Heuberger et al., 2018) \cr
+   Exp-Dmax, Log-Poly-ModDmax, Log-Exp-ModDmax \tab 4.3, 5.5, 4.9 \tab  \cr
+   IAT \tab 4.4 \tab 3.6 (Heuberger et al., 2018) \cr
+   LTP1, LTP2 \tab 10.6, 6.0 \tab  \cr
+   Log-log, LTratio \tab 7.8, 9.4 \tab  \cr
+}
+
+
+The defaults are on the careful side. Heuberger et al. computed their values on the riders who received placebo,
+with their own implementation of each method; the open data do not say which riders received erythropoietin, so the
+defaults use every rider and are, if anything, too high (pairs of consecutive tests gave values of the same size,
+so a drift between the two groups does not explain them). Those tests have no resting sample, so Bsln+ rose from
+the first stage. To use the published values instead, give them: \code{cv = c("IAT" = 3.6, "Dmax" = 3.4)}.
+\code{Stegmann} and your own \code{fixed} or \code{baseline_plus} values have no default: their \code{verdict} is \code{NA} unless you
+give one.
 The best \code{cv} is the one of your own athletes, measured with your protocol and analyzer.
 }
 \examples{
@@ -56,10 +92,15 @@ after <- lactate_threshold(subset(series, day == 58), intensity, lactate, heart_
 compare_tests(before, after)
 }
 \references{
+Bland JM, Altman DG. Measurement error. BMJ. 1996;312(7047):1654. doi:10.1136/bmj.312.7047.1654
+
 Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and
 predictive value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
 
 Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.
+
+Lohse KR, Sainani KL, Taylor JA, Butson ML, Knight EJ, Vickers AJ. Systematic review of the use of
+"magnitude-based inference" in sports science and medicine. PLOS ONE. 2020;15(6):e0235318.
 
 Pallares JG, Moran-Navarro R, Ortega JF, Fernandez-Elias VE, Mora-Rodriguez R. Validity and reliability of
 ventilatory and blood lactate thresholds in well-trained cyclists. PLOS ONE. 2016;11(9):e0163389.

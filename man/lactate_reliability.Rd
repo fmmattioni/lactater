@@ -23,7 +23,7 @@ not change (e.g. a few days apart): the residual standard deviation of a two-way
 which leaves out the mean change from one test to the next (Hopkins, 2000). It is given in intensity units and as a
 coefficient of variation, \code{100 * (exp(s) - 1)}, with \code{s} the typical error of the log intensities. Pass the result
 to \code{compare_tests(cv = )} so that its verdicts use the noise of your own protocol, analyzer and athletes rather than
-the published values of trained male cyclists.
+the default values, from trained male cyclists.
 }
 \details{
 A typical error from few athletes is itself uncertain: with 10 athletes and 2 tests (9 degrees of freedom) its 90\%

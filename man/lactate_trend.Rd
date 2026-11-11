@@ -12,8 +12,8 @@ lactate_trend(..., day)
   method = NULL,
   view = NULL,
   cv = NULL,
-  lt1 = "Bsln + 0.5",
-  lt2 = "Log-Poly-ModDmax",
+  lt1 = NULL,
+  lt2 = NULL,
   ...
 )
 }
@@ -36,7 +36,8 @@ for the noise of the method around the first test, so that dots outside the band
 
 \item{cv}{The test-retest coefficient of variation (\%) for the noise band, as in \code{\link[=compare_tests]{compare_tests()}}.}
 
-\item{lt1, lt2}{The thresholds that mark LT1 and LT2 in the \code{"curves"} view, as in \code{\link[=lactate_zones]{lactate_zones()}}.}
+\item{lt1, lt2}{The thresholds that mark LT1 and LT2 in the \code{"curves"} view. Default to those each test chose in
+\code{\link[=lactate_threshold]{lactate_threshold()}}.}
 }
 \value{
 a \code{lactate_trend} tibble with one row per method found in every test: \code{method}, \code{tests}, the

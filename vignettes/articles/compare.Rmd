@@ -40,18 +40,31 @@ practices](best-practices.html)).
 
 A threshold moves between two tests even when fitness does not, through day-to-day variation and the error of the
 analyzer and the method. `compare_tests()` gives every change an interval from the test-retest variation of the
-method ([Hopkins, 2000](https://doi.org/10.2165/00007256-200030010-00001); [Swinton et al., 2018](https://doi.org/10.3389/fnut.2018.00041)) and calls it an increase or a decrease only when the whole interval is
-on one side of zero, or of the smallest worthwhile change you set with `swc`.
+method ([Hopkins, 2000](https://doi.org/10.2165/00007256-200030010-00001); [Swinton et al., 2018](https://doi.org/10.3389/fnut.2018.00041)), and three columns to read it by: the `noise` (what two
+tests of that method usually differ by when nothing changed), the `ratio` of the change to it, and a `verdict`,
+"beyond the noise" when the whole interval is on one side of zero, or of the smallest worthwhile change you set with
+`swc`. There is no agreed level for that interval: 90% is the default, 95% the classic choice, and narrower ones are
+defended for decisions in practice (Swinton et al., 2018); set it with `level`. "Within the noise" does not mean
+that nothing changed. The noise of most tests is larger than the changes a training block brings ([Hopkins,
+2004](https://sportsci.org/jour/04/wghtests.htm)), so one pair of tests rarely settles it, and a series of tests says more (below). lactater does not turn the interval
+into "likely" or "very likely": those terms read it as the probability of a true change, which it is not ([Lohse et
+al., 2020](https://doi.org/10.1371/journal.pone.0235318)).
 
 ```{r}
 comparison <- compare_tests(before, after)
 comparison |>
-  select(method, before, after, change, change_low, change_high, verdict)
+  select(method, before, after, change, change_low, change_high, cv, noise, ratio, verdict)
 ```
 
-The default test-retest variation comes from trained male cyclists ([Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846); [Pallares et al., 2016](https://doi.org/10.1371/journal.pone.0163389))
-and exists only for some methods (the Bsln+ values come from a 25 W/min ramp test, not a step test); the others get a verdict once you give their `cv`, best measured on your own
-athletes with your own protocol. `attr(comparison, "notes")` lists what could make two tests hard to compare: a
+The default test-retest variation of each method (the `cv` column) is lactater's own calculation on the open data of
+[Heuberger et al. (2018)](https://doi.org/10.1371/journal.pone.0206846): the five step tests of each of 47 trained male cyclists, about two weeks apart, analyzed with
+`lactate_reliability()`. It is about 4% to 6% for the thresholds aimed at LT2 and 8% to 11% for Bsln + 0.5, Log-log,
+LT<sub>ratio</sub> and LTP1, so a first-rise threshold has to move about twice as far before the change is clear. These
+defaults are on the careful side: the published values are lower (3.4% to 4.3% for D<sub>max</sub>, IAT, 4 mmol/L and
+ModD<sub>max</sub> in the placebo riders of the same study; 3.4% to 3.7% for Bsln+ in a ramp test, [Pallares et al.,
+2016](https://doi.org/10.1371/journal.pone.0163389)), and `?compare_tests` lists both, to give the published ones with `cv` if you prefer them. The best
+`cv` is still the one of your own athletes with your own protocol: measure it with `lactate_reliability()`.
+`attr(comparison, "notes")` lists what could make two tests hard to compare: a
 different protocol, sample type or resting sample, or a fall in peak lactate, which also moves the curve to the
 right.
 
