@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>lactater cheatsheet</title>
+<!-- analytics -->
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600&display=swap">
 <style>
   @page { size: A4 landscape; margin: 9mm 10mm; }
@@ -34,9 +36,41 @@
   img { display: block; width: 100%; height: auto; margin: 3px 0 2px; }
   .caption { font-size: 9.5px; color: #5b6672; margin-bottom: 5px; }
   footer { padding-top: 4px; border-top: 1px solid #d9dde3; font-size: 8.5px; color: #5b6672; display: flex; justify-content: space-between; }
+  /* on screen only (the PDF is printed): a bar with the PDF, the pages as sheets, and one column on a narrow screen */
+  .bar { display: none; }
+  @media screen {
+    body { background: #eef0f3; }
+    .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; max-width: 297mm; margin: 0 auto; padding: 14px 0 10px; font-size: 13px; }
+    .bar a { color: #11181f; }
+    .bar .wordmark { font-size: 16px; text-decoration: none; }
+    .bar .download { padding: 6px 12px; border: 1px solid #11181f; border-radius: 4px; font-weight: 600; text-decoration: none; white-space: nowrap; }
+    .bar .download:hover { background: #11181f; color: #fff; }
+    .page { width: 297mm; height: auto; min-height: 210mm; overflow: visible; margin: 0 auto 10mm; padding: 9mm 10mm; background: #fff; box-shadow: 0 1px 4px rgba(17, 24, 31, 0.15); }
+  }
+  @media screen and (max-width: 1160px) {
+    body { font-size: 14px; }
+    .bar { padding: 12px 16px 8px; }
+    .page { width: auto; min-height: 0; margin: 0 0 16px; padding: 16px; box-shadow: none; }
+    header { flex-wrap: wrap; gap: 4px; }
+    .columns { grid-template-columns: 1fr; padding-top: 4px; }
+    h1 { font-size: 22px; }
+    h2 { margin-top: 18px; font-size: 18px; }
+    h3 { font-size: 15px; }
+    code, pre, dt, .fn { font-size: 12.5px; }
+    header .meta, .caption, footer { font-size: 12px; }
+  }
+  @media screen and (max-width: 640px) {
+    dl { display: block; }
+    dd { margin: 0 0 6px; }
+  }
 </style>
 </head>
 <body>
+
+<nav class="bar">
+  <a class="wordmark" href="index.html">lactater</a>
+  <a class="download" href="lactater-cheatsheet.pdf" download>Download PDF</a>
+</nav>
 
 <section class="page">
   <header>

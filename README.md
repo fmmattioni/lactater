@@ -184,8 +184,9 @@ runner](https://fmmattioni.github.io/lactater/report-running-example.html)).
 The [web
 form](https://fmmattioni.github.io/lactater/step-test-form.html) records
 a test and downloads an .xlsx that `read_recording()` reads, and the
-[cheatsheet](https://fmmattioni.github.io/lactater/lactater-cheatsheet.pdf)
-puts the whole package on two pages. [Get
+[cheatsheet](https://fmmattioni.github.io/lactater/cheatsheet.html) puts
+the whole package on two pages (also as a
+[PDF](https://fmmattioni.github.io/lactater/lactater-cheatsheet.pdf)). [Get
 started](https://fmmattioni.github.io/lactater/articles/lactater.html)
 walks through all of it.
 

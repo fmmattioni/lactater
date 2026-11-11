@@ -1,4 +1,5 @@
-## Builds the two-page cheatsheet: renders its plots from demo_data, then prints cheatsheet.html to PDF.
+## Builds the two-page cheatsheet: renders its plots from demo_data, then prints cheatsheet.html to PDF and writes its
+## web version (pkgdown/assets/cheatsheet.html, the Cheatsheet of the site menu).
 ## Run from the package root (needs Chrome and the pagedown package):
 ##
 ##   Rscript data-raw/cheatsheet/build.R
@@ -32,3 +33,13 @@ png::writePNG(pdftools::pdf_render_page(report, page = 1, dpi = 110), file.path(
 pagedown::chrome_print(
   file.path(dir, "cheatsheet.html"), output = "pkgdown/assets/lactater-cheatsheet.pdf", verbose = 0
 )
+
+## the web version beside it: the same page with the analytics of the rest of the site and the plots inside it
+page <- readLines(file.path(dir, "cheatsheet.html"), encoding = "UTF-8")
+analytics <- yaml::read_yaml("_pkgdown.yml")$template$includes$in_header
+page <- sub("<!-- analytics -->", analytics, page, fixed = TRUE)
+for(image in list.files(dir, pattern = "\\.png$")) {
+  page <- gsub(sprintf('src="%s"', image), sprintf('src="%s"', xfun::base64_uri(file.path(dir, image))), page,
+               fixed = TRUE)
+}
+writeLines(page, "pkgdown/assets/cheatsheet.html", useBytes = TRUE)

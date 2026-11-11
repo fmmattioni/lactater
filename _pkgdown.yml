@@ -43,9 +43,12 @@ development:
 
 navbar:
   structure:
-    left: [intro, reference, articles, record, news]
+    left: [intro, reference, articles, cheatsheet, record, news]
     right: [search, github, lightswitch]
   components:
+    cheatsheet:
+      text: Cheatsheet
+      href: cheatsheet.html
     record:
       text: Record a test
       href: step-test-form.html
