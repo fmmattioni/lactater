@@ -21,8 +21,7 @@ method_label(x, bold = FALSE)
 a character vector, or an expression vector.
 }
 \description{
-Plotmath, so that \code{"ModDmax"} is drawn as ModD with a subscript max, \code{"LTratio"} as LT with a subscript ratio, and
-\code{"VO2max"} with a dot over the V.
+Plotmath, so that \code{"ModDmax"} is drawn as ModD with a subscript max and \code{"LTratio"} as LT with a subscript ratio.
 Plotmath keeps the labels plain \code{element_text()}, which users can restyle. \code{method_plotmath()} gives the text to
 parse (for \code{label_parsed} and \code{parse = TRUE}), \code{method_label()} the parsed expressions, and \code{method_html()} the same
 names for HTML.

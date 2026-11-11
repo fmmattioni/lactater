@@ -681,10 +681,10 @@ html_zones <- function(zones, sport) {
   }
   n <- nrow(zones)
   table <- data.frame(
-    ## the domain named once, on its first zone, so the table stays short
+    ## the domain and its position named once, on the first zone, so the table stays short
     domain = ifelse(duplicated(zones$domain), "", tools::toTitleCase(zones$domain)),
     zone = zones$zone,
-    description = ifelse(zones$description == "VO2max", "V&#775;O<sub>2max</sub>", zones$description),
+    description = ifelse(duplicated(zones$domain), "", zones$description),
     ## the units in the column labels, so a range fits on one line
     intensity = span(zones$intensity_from, zones$intensity_to, intensity_digits(sport))
   )
@@ -700,7 +700,6 @@ html_zones <- function(zones, sport) {
   numeric <- intersect(c("intensity", "pace", "heart_rate", "rpe", "lactate"), names(table))
   rule <- which(!duplicated(zones$domain))[-1]
   out <- gt::gt(table) |>
-    gt::fmt_markdown(columns = "description") |>
     gt::cols_align("right", columns = numeric) |>
     gt::tab_style(gt::cell_text(weight = 600), gt::cells_body(columns = "zone")) |>
     gt::tab_style(gt::cell_text(whitespace = "nowrap"), gt::cells_body()) |>

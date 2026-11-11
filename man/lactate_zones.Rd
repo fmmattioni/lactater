@@ -58,7 +58,9 @@ LT1 and LT2.
 \item \strong{Five zones} (\code{model = 5}): zones 1 and 2 split the moderate domain, zone 3 is the heavy domain, and zones 4 and
 5 split the severe domain, as in the five-zone scale described by Seiler (2010) and Tonnessen et al. (2014),
 where zones 1-2 lie below LT1, zone 3 between LT1 and LT2, and zones 4-5 above LT2. The two splits inside a
-domain are set by \code{split}:
+domain are set by \code{split}. The five zones are not named: the scale gives them no names, and the names of other
+scales belong to other boundaries (the "threshold" level of the five-level scale in Jamnick et al., 2020,
+Table 1, lies around LT2, not above it). The two splits:
 \itemize{
 \item \code{"relative"} (default): zone 1|2 at 75\% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of
 the test. In the five-zone scale of Seiler (2010, Table 1), zone 2 starts at 66\% of the maximal oxygen uptake

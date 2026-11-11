@@ -168,11 +168,11 @@ lactate_zones(results, model = 5)
 #> # A tibble: 5 × 9
 #>   zone   domain  description intensity_from intensity_to lactate_from lactate_to
 #>   <chr>  <chr>   <chr>                <dbl>        <dbl>        <dbl>      <dbl>
-#> 1 Zone 1 modera… recovery                NA           62         NA          1.1
-#> 2 Zone 2 modera… endurance               62           83          1.1        1.4
-#> 3 Zone 3 heavy   tempo                   83          149          1.4        4.2
-#> 4 Zone 4 severe  threshold              149          170          4.2        6.1
-#> 5 Zone 5 severe  VO2max                 170           NA          6.1       NA  
+#> 1 Zone 1 modera… below LT1               NA           62         NA          1.1
+#> 2 Zone 2 modera… below LT1               62           83          1.1        1.4
+#> 3 Zone 3 heavy   LT1 to LT2              83          149          1.4        4.2
+#> 4 Zone 4 severe  above LT2              149          170          4.2        6.1
+#> 5 Zone 5 severe  above LT2              170           NA          6.1       NA  
 #> # ℹ 2 more variables: heart_rate_from <dbl>, heart_rate_to <dbl>
 ```
 

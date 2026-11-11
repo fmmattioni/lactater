@@ -620,8 +620,7 @@ method_note <- function(method, settings) {
 
 #' Method names with their subscripts
 #'
-#' Plotmath, so that `"ModDmax"` is drawn as ModD with a subscript max, `"LTratio"` as LT with a subscript ratio, and
-#' `"VO2max"` with a dot over the V.
+#' Plotmath, so that `"ModDmax"` is drawn as ModD with a subscript max and `"LTratio"` as LT with a subscript ratio.
 #' Plotmath keeps the labels plain `element_text()`, which users can restyle. `method_plotmath()` gives the text to
 #' parse (for `label_parsed` and `parse = TRUE`), `method_label()` the parsed expressions, and `method_html()` the same
 #' names for HTML.
@@ -636,7 +635,6 @@ method_plotmath <- function(x) {
   dmax <- grepl("Dmax", x, fixed = TRUE)
   out[dmax] <- sprintf('"%sD"[max]*"%s"', sub("Dmax.*", "", x[dmax]), sub(".*Dmax", "", x[dmax]))
   out[x == "LTratio"] <- '"LT"[ratio]'
-  out[x == "VO2max"] <- "dot(V)*O[2*max]"
   out
 }
 

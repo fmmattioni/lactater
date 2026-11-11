@@ -2,7 +2,8 @@ results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = F
 ## the first line of each label the plot draws as a grob (zone names, heart rate at LT1 and LT2)
 grob_labels <- function(plot) {
   unname(unlist(lapply(plot$layers, function(l) {
-    if(inherits(l$geom, "GeomCustomAnn")) l$geom_params$grob$children[[1]]$label
+    grob <- l$geom_params$grob
+    if(inherits(l$geom, "GeomCustomAnn")) if(is.null(grob$label)) grob$children[[1]]$label else grob$label
   })))
 }
 lt1 <- attr(results, "lactater")$intensity[["Log-log"]]
@@ -11,6 +12,8 @@ lt2 <- attr(results, "lactater")$intensity[["ModDmax"]]
 test_that("five zones split the moderate domain at 75% of LT1 and the severe domain halfway by default", {
   zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5)
   expect_equal(zones$domain, c("moderate", "moderate", "heavy", "severe", "severe"))
+  ## positions, not names: "threshold" would sit above LT2
+  expect_equal(zones$description, c("below LT1", "below LT1", "LT1 to LT2", "above LT2", "above LT2"))
   expect_equal(attr(zones, "lactater_zones")$bounds, c(0.75 * lt1, lt1, lt2, (lt2 + 191) / 2))
   expect_s3_class(autoplot(zones), "ggplot")
 })
@@ -58,8 +61,9 @@ test_that("a runner's zones leave the lactate below the first stage unknown, and
   expect_lt(zones$intensity_to[1], 12)
   expect_true(is.na(zones$lactate_to[1]) && is.na(zones$lactate_from[2]))
   expect_true(all(zones$lactate_from > 0, na.rm = TRUE))
-  ## zones 4 and 5 are under a tenth of the axis wide: their numbers only
-  expect_equal(grob_labels(autoplot(zones)[[1]]), c("ZONE 2", "ZONE 3", "Z4", "Z5"))
+  ## zones 4 and 5 are under a tenth of the axis wide: their numbers only, over one "above LT2" for the two
+  expect_equal(grob_labels(autoplot(zones)[[1]]),
+               c("ZONE 2", "ZONE 3", "Z4", "Z5", "below LT1", "LT1 to LT2", "above LT2"))
 })
 
 test_that("the zones plot shows the heart rate in a panel below, on a second axis, or not at all", {

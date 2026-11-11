@@ -120,7 +120,8 @@ autoplot(five)
 No published five-zone scale is built on individual thresholds alone. Their lactate and heart-rate limits are group
 averages: Seiler's scale, for example, puts zone 3 at 2.5 to 4 mmol/L, while lactater's zone 3 is this athlete's own
 heavy domain. Other five-level scales put LT1 at a different cut altogether ([Jamnick et al., 2020](https://doi.org/10.1007/s40279-020-01322-8), Table 1), so check
-which scale a coach means. The cut inside each domain is a convention, set with `split`:
+which scale a coach means. For the same reason the five zones carry no names: Seiler's scale has none, and a name
+such as "threshold" belongs to level 4 of that other scale, around LT2, not to a zone above it. The cut inside each domain is a convention, set with `split`:
 
 * `"relative"` (default): zone 1|2 at 75% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of the
   test. In Seiler's (2010) scale zone 2 starts at 66% of the maximal oxygen uptake and zone 3 at 81%, which, converted

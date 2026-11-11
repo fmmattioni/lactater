@@ -17,7 +17,9 @@ zone_colours <- list(
 #' * **Five zones** (`model = 5`): zones 1 and 2 split the moderate domain, zone 3 is the heavy domain, and zones 4 and
 #'   5 split the severe domain, as in the five-zone scale described by Seiler (2010) and Tonnessen et al. (2014),
 #'   where zones 1-2 lie below LT1, zone 3 between LT1 and LT2, and zones 4-5 above LT2. The two splits inside a
-#'   domain are set by `split`:
+#'   domain are set by `split`. The five zones are not named: the scale gives them no names, and the names of other
+#'   scales belong to other boundaries (the "threshold" level of the five-level scale in Jamnick et al., 2020,
+#'   Table 1, lies around LT2, not above it). The two splits:
 #'   * `"relative"` (default): zone 1|2 at 75% of LT1, and zone 4|5 halfway between LT2 and the highest intensity of
 #'     the test. In the five-zone scale of Seiler (2010, Table 1), zone 2 starts at 66% of the maximal oxygen uptake
 #'     and zone 3 at 81%; converted with the oxygen cost of cycling and running (Glass & Dwyer, 2007), our own
@@ -142,7 +144,8 @@ lactate_zones <- function(x, lt1 = NULL, lt2 = NULL, model = 3, split = "relativ
   } else {
     bounds <- c(domain_splits(split, lt, info)[1], lt, domain_splits(split, lt, info)[2])
     domain <- c("moderate", "moderate", "heavy", "severe", "severe")
-    description <- c("recovery", "endurance", "tempo", "threshold", "VO2max")
+    ## no names: the scale has none, and those of other scales ("threshold") sit at other boundaries
+    description <- c("below LT1", "below LT1", "LT1 to LT2", "above LT2", "above LT2")
   }
 
   sport <- info$settings$sport
@@ -245,6 +248,22 @@ zone_value <- function(data, column, x, digits, lowest = 0) {
   value
 }
 
+#' The position text of the zones, once per domain
+#'
+#' Zones 1 and 2 of the five-zone model are both "below LT1": the text is drawn once, centered over the two.
+#'
+#' @param bands The zone bands of a plot: `from`, `to`, `description`.
+#' @param span The width of the plot, in intensity.
+#' @return a data frame with `from`, `to` and `description` (empty where there is no room for it).
+#' @keywords internal
+domain_spans <- function(bands, span) {
+  ## in the order of the zones, whatever the locale sorts first
+  domain <- factor(bands$description, unique(bands$description))
+  out <- data.frame(from = tapply(bands$from, domain, min), to = tapply(bands$to, domain, max))
+  out$description <- ifelse((out$to - out$from) / span < 0.09, "", rownames(out))
+  out
+}
+
 #' The two splits inside the moderate and the severe domain (five-zone model)
 #'
 #' @param split `"relative"`, `"seiler"`, or two intensities.
@@ -300,7 +319,7 @@ plot_zone_ruler <- function(object, zones, limits, colours) {
   ## a very narrow zone keeps only its number, as on the curve
   narrow <- (bands$to - bands$from) / span < 0.09
   bands$label <- ifelse(narrow, sub("Zone ", "Z", bands$zone), bands$zone)
-  bands$description[narrow] <- ""
+  spans <- domain_spans(bands, span)
   shown <- zones$bounds > limits[1] & zones$bounds < limits[2]
   at <- function(column, format) if(column %in% names(object)) format(object[[column]][-n])
   scales <- list(
@@ -330,7 +349,7 @@ plot_zone_ruler <- function(object, zones, limits, colours) {
       colour = colours[["ink"]]
     ) +
     ggplot2::annotate(
-      "text", x = (bands$from + bands$to) / 2, y = m + 1.3, label = method_label(bands$description), size = 2.9,
+      "text", x = (spans$from + spans$to) / 2, y = m + 1.3, label = spans$description, size = 2.9,
       colour = colours[["muted"]]
     ) +
     ggplot2::annotate(
@@ -409,7 +428,7 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
   ## a very narrow band keeps only its number, so neighboring labels do not run into each other
   width <- (bands$to - bands$from) / diff(limits)
   bands$label <- ifelse(width < 0.09, sub("Zone ", "Z", bands$zone), toupper(bands$zone))
-  bands$description[width < 0.09] <- ""
+  spans <- domain_spans(bands, diff(limits))
   top <- max(points$lactate, curve$lactate) * 1.25
   ## the lines carry only LT1 and LT2; the methods behind them are in the subtitle, clear of the curve
   marks <- data.frame(intensity = zones$lt, label = c("LT1", "LT2"))
@@ -444,23 +463,14 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
     method_html(zones$labels[1]), method_html(zones$labels[2])
   )
 
-  ## the zone and its description, set down from the top of the panel in points rather than in units of the axis,
-  ## so the two lines keep apart at any height of the plot; its boundaries are on the axis above
-  zone_label <- function(k) {
-    line <- function(label, from_top, size, ...) {
+  ## the zones and, once per domain, their position, set down from the top of the panel in points rather than in
+  ## units of the axis, so the two lines keep apart at any height of the plot; the boundaries are on the axis above
+  top_text <- function(label, from, to, from_top, size, ...) {
+    ggplot2::annotation_custom(
       grid::textGrob(label, y = grid::unit(1, "npc") - grid::unit(from_top, "pt"), vjust = 1, gp = grid::gpar(
         fontsize = size * ggplot2::.pt, fontfamily = getOption("lactater.font", ""), ...
-      ))
-    }
-    ggplot2::annotation_custom(
-      grid::grobTree(
-        line(bands$label[k], 5, 3.2, fontface = "bold", col = colours[["ink"]]),
-        ## an invisible bar on each side gives every description the same height, so "recovery" (no tall letter)
-        ## sits on the same line as "endurance"
-        line(parse(text = sprintf('phantom("|")*%s*phantom("|")', method_plotmath(bands$description[k]))), 16, 2.8,
-             col = colours[["muted"]])
-      ),
-      xmin = bands$from[k], xmax = bands$to[k], ymin = -Inf, ymax = Inf
+      )),
+      xmin = from, xmax = to, ymin = -Inf, ymax = Inf
     )
   }
 
@@ -468,7 +478,8 @@ autoplot.lactate_zones <- function(object, heart_rate = getOption("lactater.hear
     ggplot2::annotate(
       "rect", xmin = bands$from, xmax = bands$to, ymin = 0, ymax = top, fill = bands$fill, alpha = 0.2
     ) +
-    lapply(seq_len(nrow(bands)), zone_label) +
+    Map(top_text, bands$label, bands$from, bands$to, 5, 3.2, fontface = "bold", col = colours[["ink"]]) +
+    Map(top_text, spans$description, spans$from, spans$to, 16, 2.8, col = colours[["muted"]]) +
     ggplot2::geom_segment(
       ggplot2::aes(x = intensity, xend = intensity, y = 0, yend = top * 0.8), marks,
       colour = colours[["ink"]], linewidth = 0.4, linetype = "22"
