@@ -28,6 +28,14 @@ method_cvs <- function(cv, methods) {
   }
 }
 
+## the quantile that turns the noise of each method into an interval at `level`: normal for the defaults (133 to 153
+## degrees of freedom) and for a `cv` given as numbers, t for a `cv` from lactate_reliability(), whose few athletes
+## leave the typical error itself uncertain (Swinton et al., 2018, Table 2)
+noise_quantile <- function(cv, methods, level) {
+  df <- if(is.data.frame(cv) && "df" %in% names(cv)) cv$df[match(methods, cv$method)] else NA_real_
+  stats::qt(1 - (1 - level) / 2, ifelse(is.na(df), Inf, df))
+}
+
 #' Test-retest reliability of each threshold, from your own repeated tests
 #'
 #' The typical error of each threshold, from athletes who did the same test two or more times while their fitness did
@@ -38,18 +46,35 @@ method_cvs <- function(cv, methods) {
 #' the default values, from trained male cyclists.
 #'
 #' A typical error from few athletes is itself uncertain: with 10 athletes and 2 tests (9 degrees of freedom) its 90%
-#' confidence interval spans 0.73 to 1.65 times its value (from the chi-square distribution of a variance).
+#' confidence interval spans 0.73 to 1.65 times its value (from the chi-square distribution of a variance). The
+#' result therefore gives the degrees of freedom (`df`) and that interval for the `cv` (`cv_low`, `cv_high`), as
+#' reliability statistics should always come with one (Sainani, 2017), and [compare_tests()] widens its intervals for
+#' a small `df`. Atkinson & Nevill (1998) recommend more than 40 athletes for a reliability study; with fewer, read
+#' the interval.
+#'
+#' The `bias` is the mean change from each test to the next, which the typical error leaves out. Report it beside the
+#' random error (Atkinson & Nevill, 1998): a `bias` that is not near zero is a learning or order effect, or a change
+#' in fitness between the tests. The `cv` assumes that the error grows with the intensity, as it usually does for
+#' such measures; with athletes of a similar level the two cannot be told apart, and `typical_error` is the same
+#' noise in intensity units.
 #'
 #' @param x The result of [lactate_threshold()] with `.by`, one group per athlete and test (e.g.
 #'   `.by = c("athlete", "test")`).
 #' @param athlete,test The columns of `x` that name the athlete and the test (e.g. the test number or date). Tests are
 #'   matched by their order within each athlete: first, second, and so on.
 #'
-#' @return a tibble with one row per method: `method`, `n_athletes` (with two or more tests), `n_tests`,
-#'   `typical_error` (intensity units) and `cv` (%). Methods with fewer than two such athletes get `NA`.
+#' @return a tibble with one row per method: `method`, `n_athletes` (with two or more tests), `n_tests`, `bias`
+#'   (the mean change from one test to the next, intensity units), `typical_error` (intensity units), `cv` (%) with
+#'   its 90% confidence interval (`cv_low`, `cv_high`), and the degrees of freedom of the typical error (`df`).
+#'   Methods with fewer than two such athletes get `NA`.
 #'
 #' @references
+#' Atkinson G, Nevill AM. Statistical methods for assessing measurement error (reliability) in variables relevant to
+#' sports medicine. Sports Medicine. 1998;26(4):217-238.
+#'
 #' Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.
+#'
+#' Sainani KL. Reliability statistics. PM&R. 2017;9(6):622-628. doi:10.1016/j.pmrj.2017.05.001
 #'
 #' @export
 #'
@@ -82,20 +107,22 @@ lactate_reliability <- function(x, athlete, test) {
     when <- factor(stats::ave(seq_along(who), who, FUN = seq_along))
     who <- factor(who)
     ## a two-way fit of athletes and tests (one term each), leaving the residual: the typical error
-    error <- function(y) {
-      model <- if(nlevels(when) > 1) stats::lm(y ~ who + when) else stats::lm(y ~ who)
-      if(model$df.residual > 0) summary(model)$sigma else NA_real_
-    }
+    fit <- function(y) if(nlevels(when) > 1) stats::lm(y ~ who + when) else stats::lm(y ~ who)
+    error <- function(y) if(fit(y)$df.residual > 0) summary(fit(y))$sigma else NA_real_
     enough <- nlevels(who) >= 2
+    df <- if(enough && fit(d$intensity)$df.residual > 0) fit(d$intensity)$df.residual else NA_integer_
+    log_error <- if(enough) error(log(d$intensity)) else NA_real_
+    ## the 90% interval of a standard deviation, from the chi-square distribution of its variance
+    cv_at <- function(p) 100 * (exp(log_error * sqrt(df / stats::qchisq(p, df))) - 1)
     data.frame(
       method = m, n_athletes = nlevels(who), n_tests = nrow(d),
+      bias = if(enough) mean(unlist(tapply(d$intensity, who, diff))) else NA_real_,
       typical_error = if(enough) error(d$intensity) else NA_real_,
-      cv = if(enough) 100 * (exp(error(log(d$intensity))) - 1) else NA_real_
+      cv = 100 * (exp(log_error) - 1), cv_low = cv_at(0.95), cv_high = cv_at(0.05), df = df
     )
   })
   out <- tibble::as_tibble(do.call(rbind, rows))
-  out$typical_error <- round(out$typical_error, 2)
-  out$cv <- round(out$cv, 2)
+  for(column in c("bias", "typical_error", "cv", "cv_low", "cv_high")) out[[column]] <- round(out[[column]], 2)
   out
 }
 
@@ -110,7 +137,10 @@ lactate_reliability <- function(x, athlete, test) {
 #' interval, change +/- z * sqrt(2) * typical error, where the typical error is the coefficient of
 #' variation (`cv`) times the intensity before (Hopkins, 2000; Swinton et al., 2018). This is the model behind the
 #' repeatability of Bland & Altman (1996), for whom two measurements of the same person differ by less than
-#' `1.96 * sqrt(2)` within-subject standard deviations in 95% of pairs.
+#' `1.96 * sqrt(2)` within-subject standard deviations in 95% of pairs, a size also known as the minimal detectable
+#' change (Sainani, 2017). With a `cv` from [lactate_reliability()], `z` is the t quantile for its degrees of freedom,
+#' because a typical error from few athletes is itself uncertain (Swinton et al., 2018): with 10 athletes tested
+#' twice, the normal quantile would call 13% of unchanged pairs "beyond the noise" at the 90% level instead of 10%.
 #'
 #' Three columns say how the change stands against that noise, without a probability attached to them:
 #' * `noise`: `sqrt(2)` x the typical error, the typical difference between two tests when nothing changed, in the
@@ -118,11 +148,24 @@ lactate_reliability <- function(x, athlete, test) {
 #' * `ratio`: the change divided by the noise. At 1, the change is as large as two tests usually differ by anyway.
 #' * `verdict`: `"beyond the noise"` when the whole interval lies beyond the smallest worthwhile change (`swc`; beyond
 #'   zero by default), which at the default 90% is a ratio above 1.64, and `"within the noise"` otherwise. A change
-#'   within the noise is not a sign that nothing changed: one pair of tests cannot tell. No level is agreed on: 95% is
-#'   the classic choice, and narrower intervals are defended for decisions in practice (Swinton et al., 2018); set
-#'   yours with `level`. The words describe this one comparison against the `cv` in the table; graded terms such as
-#'   "likely" are not used, because they read a frequentist interval as a probability of the true change (Lohse et
-#'   al., 2020).
+#'   within the noise is not a sign that nothing changed: one pair of tests cannot tell. The words describe this one
+#'   comparison against the `cv` in the table; graded terms such as "likely" are not used, because they read a
+#'   frequentist interval as a probability of the true change (Lohse et al., 2020).
+#'
+#' Three things decide how often a verdict is wrong, so settle them before looking at the result:
+#' * **The level.** At the default 90%, an unchanged threshold is called "beyond the noise" in 10% of comparisons: 5%
+#'   as a gain and 5% as a loss, which is a one-sided test for a gain at 5%, the test Sainani (2018) recommends in
+#'   place of graded terms. No level is agreed on: 95% is the classic choice, and narrower intervals are defended for
+#'   decisions in practice (Swinton et al., 2018).
+#' * **The smallest worthwhile change.** With `swc` above zero, the verdict asks for a change that is certainly
+#'   larger than `swc`, not merely larger than zero. No value is agreed on for lactate thresholds; one convention is
+#'   0.2 times the standard deviation between athletes (Swinton et al., 2018). Choosing `swc` or `level` after seeing
+#'   the verdict lets one pick the verdict one likes (Sainani, 2018).
+#' * **The threshold.** Each method gets its own verdict, and with every method in the table some of them will lie
+#'   beyond the noise by chance. In 157 pairs of consecutive tests of the cyclists of Heuberger et al. (2018), each
+#'   method was beyond the noise in 6% to 15% of pairs, but at least one of the 18 was in 50%, and the default LT1 or
+#'   LT2 in 19%. The LT1 and LT2 chosen in [lactate_threshold()] are the ones to read, as the header does; a method
+#'   picked because its verdict stands out proves nothing.
 #'
 #' The default `cv` of each method is lactater's own calculation: [lactate_reliability()] on the five step tests of
 #' each of 47 well-trained male cyclists in the open data of Heuberger et al. (2018; 204 tests, 5-min stages, venous
@@ -155,14 +198,16 @@ lactate_reliability <- function(x, athlete, test) {
 #' 6%) for 22 trained men on a treadmill with 1-min stages, from the SDs of their test-retest differences (the CVs
 #' they report, 1.2% to 3.5%, are smaller; Cerezuela-Espejo et al., 2018), and 0.4 to 1.4 km/h for 19 healthy,
 #' untrained people with 4-min and 8-min stages (Gavin et al., 2014).
-#' The best `cv` is the one of your own athletes, measured with your protocol and analyzer.
+#' The best `cv` is the one of your own athletes, measured with your protocol and analyzer. A `cv` assumes that the
+#' noise grows with the intensity, which is common for such measures but should be checked where the data allow
+#' (Atkinson & Nevill, 1998).
 #'
 #' @param before,after The results of [lactate_threshold()] for the two tests, with the same sport.
 #' @param cv The test-retest coefficient of variation (%) of each method: one number for all methods, or a
 #' named vector (e.g. `c("LTP2" = 3)`) that adds to or replaces the defaults, or the result of [lactate_reliability()]
 #' for your own tests.
 #' @param swc The smallest worthwhile change, in % of the intensity before. Defaults to `0`.
-#' @param level The probability of the interval. Defaults to `0.9`.
+#' @param level The confidence level of the interval. Defaults to `0.9`.
 #'
 #' @return a `lactate_comparison` tibble with one row per method found in both tests: `method`, `before`,
 #' `after`, `change`, `change_percent`, the interval of the change (`change_low`, `change_high`), the `cv` (%) it
@@ -172,6 +217,9 @@ lactate_reliability <- function(x, athlete, test) {
 #' curves with [autoplot()].
 #'
 #' @references
+#' Atkinson G, Nevill AM. Statistical methods for assessing measurement error (reliability) in variables relevant to
+#' sports medicine. Sports Medicine. 1998;26(4):217-238.
+#'
 #' Bland JM, Altman DG. Measurement error. BMJ. 1996;312(7047):1654. doi:10.1136/bmj.312.7047.1654
 #'
 #' Cerezuela-Espejo V, Courel-Ibáñez J, Morán-Navarro R, Martínez-Cava A, Pallarés JG. The relationship between
@@ -191,6 +239,11 @@ lactate_reliability <- function(x, athlete, test) {
 #'
 #' Pallares JG, Moran-Navarro R, Ortega JF, Fernandez-Elias VE, Mora-Rodriguez R. Validity and reliability of
 #' ventilatory and blood lactate thresholds in well-trained cyclists. PLOS ONE. 2016;11(9):e0163389.
+#'
+#' Sainani KL. Reliability statistics. PM&R. 2017;9(6):622-628. doi:10.1016/j.pmrj.2017.05.001
+#'
+#' Sainani KL. The problem with "magnitude-based inference". Medicine & Science in Sports & Exercise.
+#' 2018;50(10):2166-2176. doi:10.1249/MSS.0000000000001645
 #'
 #' Swinton PA, Hemingway BS, Saunders B, Gualano B, Dolan E. A statistical framework to interpret individual
 #' response to intervention: paving the way for personalized nutrition and exercise prescription. Frontiers
@@ -218,7 +271,7 @@ compare_tests <- function(before, after, cv = NULL, swc = 0, level = 0.9) {
   digits <- intensity_digits(info_before$settings$sport)
 
   typical_error <- unname(cvs[methods]) / 100 * value_before
-  half_width <- stats::qnorm(1 - (1 - level) / 2) * sqrt(2) * typical_error
+  half_width <- noise_quantile(cv, methods, level) * sqrt(2) * typical_error
   ## not named `change`: tibble() would read the rounded column of that name in the lines below
   difference <- value_after - value_before
   worthwhile <- swc / 100 * value_before
@@ -433,20 +486,20 @@ relative_thresholds <- function(x, body_mass = NULL) {
 #' Thresholds over a series of tests
 #'
 #' Fits a straight line through each threshold over three or more tests of the same athlete, to show the trend
-#' with its uncertainty instead of reading noise from one test to the next (Hopkins, 2017).
+#' with its uncertainty instead of reading noise from one test to the next.
 #'
 #' @param ... The results of [lactate_threshold()], in any order. A list of results can be spliced in with `!!!`.
 #' @param day The date of each test, in the same order as `...`: dates, or days since the first test.
+#' @param level The confidence level of the interval of the trend, and of the noise band in the `"thresholds"` view.
+#'   Defaults to `0.9`, as in [compare_tests()].
 #'
 #' @return a `lactate_trend` tibble with one row per method found in every test: `method`, `tests`, the
-#' change per 30 days (`per_30_days`) with its 90% interval (`low`, `high`), and the first and last fitted
-#' values. Plot it with [autoplot()]: up to five tests as their lactate curves and training zones, more as each
+#' change per 30 days (`per_30_days`) with its confidence interval at `level` (`low`, `high`), and the first and last
+#' fitted values. Plot it with [autoplot()]: up to five tests as their lactate curves and training zones, more as each
 #' threshold over time.
 #'
 #' @references
 #' Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.
-#'
-#' Hopkins WG. A spreadsheet for monitoring an individual's changes and trend. Sportscience. 2017;21:5-9.
 #'
 #' @export
 #'
@@ -461,7 +514,7 @@ relative_thresholds <- function(x, body_mass = NULL) {
 #' trend
 #' autoplot(trend, lt1 = "Bsln + 0.5", lt2 = "ModDmax")
 #' autoplot(trend, view = "thresholds")
-lactate_trend <- function(..., day) {
+lactate_trend <- function(..., day, level = 0.9) {
   tests <- rlang::list2(...)
   infos <- lapply(tests, lactater_info)
   if(length(tests) < 3) stop("A trend needs at least three tests.", call. = FALSE)
@@ -483,7 +536,7 @@ lactate_trend <- function(..., day) {
     if(sum(found) < 3) return(NULL)
     fit <- stats::lm(intensity ~ day, data.frame(intensity = values[k, found], day = day[found]))
     slope <- stats::coef(fit)[[2]] * 30
-    interval <- stats::confint(fit, level = 0.9)[2, ] * 30
+    interval <- stats::confint(fit, level = level)[2, ] * 30
     fitted_ends <- stats::predict(fit, data.frame(day = range(day[found])))
     data.frame(
       method = methods[k], tests = sum(found), per_30_days = round(slope, digits + 1),
@@ -495,7 +548,7 @@ lactate_trend <- function(..., day) {
   out$method <- factor(out$method, levels = methods)
   attr(out, "lactater_trend") <- list(
     tests = tests, labels = labels, values = values, methods = methods, day = day, dates = dates,
-    sport = infos[[1]]$settings$sport,
+    sport = infos[[1]]$settings$sport, level = level,
     intervals = lapply(infos, `[[`, "intervals"), curves = lapply(infos, `[[`, "curve"),
     data = lapply(infos, `[[`, "data")
   )
@@ -575,9 +628,12 @@ list_to_thresholds <- function(info) {
 #' @param view `"curves"`, the default for up to five tests: the lactate curves of all tests (the latest in blue, the first in dark
 #' gray, the tests between in light gray), to see where along the intensity range the curve moved, then their heart rate with LT1 and LT2 as filled points (the
 #' latest test labeled), above the five training zones of each test from `lt1` and `lt2`. `"thresholds"`, the default
-#' for more tests: one panel per method, each test as a dot (with its confidence interval when computed) and a gray band
-#' for the noise of the method around the first test, so that dots outside the band are changes larger than the noise
-#' (as in monitoring charts; Hopkins, 2017).
+#' for more tests: one panel per method, each test as a dot (with its own bootstrap interval when computed, at the
+#' `ci_level` of [lactate_threshold()]) and a gray band for the noise of the method around the first test, at the
+#' `level` of [lactate_trend()], so that dots outside the band are changes larger than the noise. Every test is one
+#' more look: with nothing changed, at least one dot falls outside a 90% band in 24% of series with three later
+#' tests, 33% with five and 43% with eight, so one dark dot in a long series is weak evidence, and the trend line of
+#' [lactate_trend()] is the answer for the series.
 #' @param lt1,lt2 The thresholds that mark LT1 and LT2 in the `"curves"` view. Default to those each test chose in
 #'   [lactate_threshold()].
 #' @param cv The test-retest coefficient of variation (%) for the noise band, as in [compare_tests()].
@@ -606,10 +662,11 @@ autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL
     )
   }))
   points <- points[!is.na(points$intensity), ]
-  ## noise band: the first test +/- 1.645 * sqrt(2) * typical error, where 90% of test-to-test changes fall when
-  ## nothing changed (Hopkins, 2000)
+  ## noise band: the first test +/- quantile * sqrt(2) * typical error, where a test-to-test change falls with the
+  ## probability `level` when nothing changed (Hopkins, 2000)
   first <- points[points$day == min(trend$day), ]
-  first$half <- 1.645 * sqrt(2) * unname(cvs[as.character(first$method)]) / 100 * first$intensity
+  first$half <- noise_quantile(cv, as.character(first$method), trend$level) * sqrt(2) *
+    unname(cvs[as.character(first$method)]) / 100 * first$intensity
   points$outside <- abs(points$intensity - first$intensity[match(points$method, first$method)]) >
     first$half[match(points$method, first$method)]
   points$outside[is.na(points$outside)] <- FALSE
@@ -646,8 +703,9 @@ autoplot.lactate_trend <- function(object, method = NULL, view = NULL, cv = NULL
     ggplot2::labs(
       title = "Did the thresholds change?",
       subtitle = paste(
-        "Each test as a dot; gray band: the noise of the method around the first test, where 90% of changes fall",
-        "when nothing changed. Dark dots lie outside it"
+        sprintf("Each test as a dot; gray band: the noise of the method around the first test, where %g%% of changes",
+                100 * trend$level),
+        "fall when nothing changed. Dark dots lie outside it; in a long series, one may do so by chance"
       ),
       x = if(is.null(trend$dates)) "Day" else NULL, y = intensity_label(trend$sport)
     ) +

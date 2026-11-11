@@ -14,8 +14,10 @@ lactate_reliability(x, athlete, test)
 matched by their order within each athlete: first, second, and so on.}
 }
 \value{
-a tibble with one row per method: \code{method}, \code{n_athletes} (with two or more tests), \code{n_tests},
-\code{typical_error} (intensity units) and \code{cv} (\%). Methods with fewer than two such athletes get \code{NA}.
+a tibble with one row per method: \code{method}, \code{n_athletes} (with two or more tests), \code{n_tests}, \code{bias}
+(the mean change from one test to the next, intensity units), \code{typical_error} (intensity units), \code{cv} (\%) with
+its 90\% confidence interval (\code{cv_low}, \code{cv_high}), and the degrees of freedom of the typical error (\code{df}).
+Methods with fewer than two such athletes get \code{NA}.
 }
 \description{
 The typical error of each threshold, from athletes who did the same test two or more times while their fitness did
@@ -27,7 +29,17 @@ the default values, from trained male cyclists.
 }
 \details{
 A typical error from few athletes is itself uncertain: with 10 athletes and 2 tests (9 degrees of freedom) its 90\%
-confidence interval spans 0.73 to 1.65 times its value (from the chi-square distribution of a variance).
+confidence interval spans 0.73 to 1.65 times its value (from the chi-square distribution of a variance). The
+result therefore gives the degrees of freedom (\code{df}) and that interval for the \code{cv} (\code{cv_low}, \code{cv_high}), as
+reliability statistics should always come with one (Sainani, 2017), and \code{\link[=compare_tests]{compare_tests()}} widens its intervals for
+a small \code{df}. Atkinson & Nevill (1998) recommend more than 40 athletes for a reliability study; with fewer, read
+the interval.
+
+The \code{bias} is the mean change from each test to the next, which the typical error leaves out. Report it beside the
+random error (Atkinson & Nevill, 1998): a \code{bias} that is not near zero is a learning or order effect, or a change
+in fitness between the tests. The \code{cv} assumes that the error grows with the intensity, as it usually does for
+such measures; with athletes of a similar level the two cannot be told apart, and \code{typical_error} is the same
+noise in intensity units.
 }
 \examples{
 ## the same athlete tested twice, a few days apart (simulated here as small changes in lactate)
@@ -42,5 +54,10 @@ reliability <- lactate_reliability(results, "athlete", "test")
 reliability
 }
 \references{
+Atkinson G, Nevill AM. Statistical methods for assessing measurement error (reliability) in variables relevant to
+sports medicine. Sports Medicine. 1998;26(4):217-238.
+
 Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.
+
+Sainani KL. Reliability statistics. PM&R. 2017;9(6):622-628. doi:10.1016/j.pmrj.2017.05.001
 }

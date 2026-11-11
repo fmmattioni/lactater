@@ -21,8 +21,8 @@ stages each.}
 }
 \value{
 a \code{lactate_shape} list with \code{shift} (intensity units, positive when the curve moved to the right),
-\code{shift_low} and \code{shift_high}, \code{f}, \code{df1}, \code{df2}, \code{p_value}, \code{aicc_shift} and \code{aicc_free}, \code{verdict} (\code{"shift"}
-when the shift-only model is not worse, \code{"shape changed"} otherwise), the peak lactate of both tests and the two
+\code{shift_low} and \code{shift_high}, \code{f}, \code{df1}, \code{df2}, \code{p_value}, \code{aicc_shift} and \code{aicc_free}, \code{verdict}
+(\code{"shape changed"} when the F test and AICc both prefer the free shape, \code{"shift"} otherwise: none was detected), the peak lactate of both tests and the two
 exponential \code{curves}. Print it for a summary, and plot it with \code{\link[=autoplot]{autoplot()}}: the two fitted curves, and the first one
 moved by the shift (dashed).
 }
@@ -37,13 +37,20 @@ al., 1987), in which a pure horizontal shift by \code{d} changes only \code{b}:
 \item \strong{Free shape}: each test with its own \code{a}, \code{b} and \code{c}.
 }
 
-The two fits are compared with an extra-sum-of-squares F test and with AICc (global fitting with shared parameters;
-Motulsky & Ransnas, 1987). The shift \code{d} comes with a profile confidence interval.
+The two fits are compared with an extra-sum-of-squares F test (Motulsky & Ransnas, 1987) and with AICc, the
+Akaike criterion corrected for small samples (Hurvich & Tsai, 1989); the verdict is \code{"shape changed"} only when
+both prefer the free shape. The shift \code{d} comes with a profile confidence interval.
 
 Read the result with care:
 \itemize{
-\item With 6 to 10 stages per test the F test has little power: "no evidence of a shape change" is not proof of the same
-shape.
+\item The test finds a change of shape only when it is large and the tests are long. In simulated pairs of tests of a
+trained cyclist (analyzer error of 0.1 mmol/L plus 4\%), a baseline 0.5 mmol/L higher was found in 96\% of pairs
+with 8 stages per test and in 20\% with 6; a curve steep enough to double the peak lactate in 55\% and 10\%. So "no
+shape change detected" is not proof of the same shape, least of all with 6 stages.
+\item The p-value is approximate: the F test is exact only for models that are linear in their parameters, and a low
+p-value from one pair of curves needs a repeat before it counts (Motulsky & Ransnas, 1987). In the same
+simulation it fell below 0.05 in 8\% to 10\% of pairs with no change of shape; with AICc beside it, the verdict was
+wrong in 1\% to 6\%.
 \item In this model, a shift to the right is the same as a proportional fall of lactate above baseline. Better
 endurance, a lower glycolytic rate (VLamax) at the same VO2max, low glycogen stores and overreaching can all
 produce it, so check the peak lactate, the diet before the test and the performance too (Maassen & Busse, 1989;
@@ -61,6 +68,9 @@ curve_shape(before, after)
 \references{
 Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid are they? Sports Medicine.
 2009;39(6):469-490.
+
+Hurvich CM, Tsai CL. Regression and time series model selection in small samples. Biometrika.
+1989;76(2):297-307. doi:10.1093/biomet/76.2.297
 
 Hughson RL, Weisiger KH, Swanson GD. Blood lactate concentration increases as a continuous function in progressive
 exercise. Journal of Applied Physiology. 1987;62(5):1975-1981.

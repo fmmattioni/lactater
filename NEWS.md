@@ -81,7 +81,9 @@ computed.
 * `compare_tests()` sets every change against the `noise` of its method (what two tests differ by when nothing
   changed), with their `ratio` and a verdict of "beyond" or "within the noise", and shows the `cv` behind it. The
   default noise of each method is lactater's own calculation on the open data of Heuberger et al. (2018), in
-  `data-raw/reliability_cycling.R`; the help page lists the published values beside it.
+  `data-raw/reliability_cycling.R`; the help page lists the published values beside it. `lactate_reliability()`
+  gives the `bias` between tests, the interval of the `cv` and its degrees of freedom, and `compare_tests()` widens
+  its intervals for a `cv` from few athletes; `lactate_trend()` takes a `level`.
 * New `lactate_zones()`: three or five zones from LT1 and LT2 (Bsln + 0.5 and Log-Poly-ModDmax by default) at the
   intensity domains, with intensity, pace, lactate, heart rate and RPE; `split` sets the cuts inside the domains.
   Heart rate is drawn in a panel under the curve, or on a second axis (`heart_rate = "axis"`).

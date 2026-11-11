@@ -274,9 +274,9 @@ concentration; the residuals are scaled for their leverage and widened for the f
 leaves. Every method is then run again on each replicate, and the bounds are rounded outward. Replicates on which
 a method fails are left out, with a warning. The interval does not include the bias of the fitted curve, errors
 that are the same in every sample (analyzer bias, sampling site), or the day-to-day variation of the athlete,
-which is larger (about 3.5-4\% of the intensity; Heuberger et al., 2018; see \code{\link[=compare_tests]{compare_tests()}}). How the intervals
-were calibrated, and how often they held the true threshold in simulated tests, is in
-\href{https://fmmattioni.github.io/lactater/articles/checking.html}{Checking the analysis}.
+which is larger (about 3.5-4\% of the intensity; Heuberger et al., 2018; see \code{\link[=compare_tests]{compare_tests()}}). In simulated tests,
+95\% intervals held the true threshold in 84\% to 97\% of tests, depending on the method and the analyzer error; how
+they were calibrated is in \href{https://fmmattioni.github.io/lactater/articles/checking.html}{Checking the analysis}.
 }
 }
 \examples{

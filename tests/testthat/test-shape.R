@@ -16,7 +16,8 @@ test_that("curve_shape recovers a pure shift", {
   expect_equal(c(shifted$df1, shifted$df2), c(2, 2 * length(stages) - 6))
   same <- curve_shape(before, before)
   expect_equal(same$shift, 0, tolerance = 1e-6)
-  expect_output(print(shifted), "No evidence the shape changed")
+  expect_output(print(shifted), "No shape change detected")
+  expect_identical(autoplot(shifted)$labels$title, "No shape change detected")
   expect_s3_class(autoplot(shifted), "ggplot")
 })
 

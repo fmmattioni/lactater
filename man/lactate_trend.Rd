@@ -5,7 +5,7 @@
 \alias{autoplot.lactate_trend}
 \title{Thresholds over a series of tests}
 \usage{
-lactate_trend(..., day)
+lactate_trend(..., day, level = 0.9)
 
 \method{autoplot}{lactate_trend}(
   object,
@@ -22,6 +22,9 @@ lactate_trend(..., day)
 
 \item{day}{The date of each test, in the same order as \code{...}: dates, or days since the first test.}
 
+\item{level}{The confidence level of the interval of the trend, and of the noise band in the \code{"thresholds"} view.
+Defaults to \code{0.9}, as in \code{\link[=compare_tests]{compare_tests()}}.}
+
 \item{object}{The result of \code{\link[=lactate_trend]{lactate_trend()}}.}
 
 \item{method}{The methods to plot in the \code{"thresholds"} view. Defaults to ModDmax, IAT, OBLA 4.0 and Dmax, which have
@@ -30,9 +33,12 @@ a published test-retest variation (see \code{\link[=compare_tests]{compare_tests
 \item{view}{\code{"curves"}, the default for up to five tests: the lactate curves of all tests (the latest in blue, the first in dark
 gray, the tests between in light gray), to see where along the intensity range the curve moved, then their heart rate with LT1 and LT2 as filled points (the
 latest test labeled), above the five training zones of each test from \code{lt1} and \code{lt2}. \code{"thresholds"}, the default
-for more tests: one panel per method, each test as a dot (with its confidence interval when computed) and a gray band
-for the noise of the method around the first test, so that dots outside the band are changes larger than the noise
-(as in monitoring charts; Hopkins, 2017).}
+for more tests: one panel per method, each test as a dot (with its own bootstrap interval when computed, at the
+\code{ci_level} of \code{\link[=lactate_threshold]{lactate_threshold()}}) and a gray band for the noise of the method around the first test, at the
+\code{level} of \code{\link[=lactate_trend]{lactate_trend()}}, so that dots outside the band are changes larger than the noise. Every test is one
+more look: with nothing changed, at least one dot falls outside a 90\% band in 24\% of series with three later
+tests, 33\% with five and 43\% with eight, so one dark dot in a long series is weak evidence, and the trend line of
+\code{\link[=lactate_trend]{lactate_trend()}} is the answer for the series.}
 
 \item{cv}{The test-retest coefficient of variation (\%) for the noise band, as in \code{\link[=compare_tests]{compare_tests()}}.}
 
@@ -41,13 +47,13 @@ for the noise of the method around the first test, so that dots outside the band
 }
 \value{
 a \code{lactate_trend} tibble with one row per method found in every test: \code{method}, \code{tests}, the
-change per 30 days (\code{per_30_days}) with its 90\% interval (\code{low}, \code{high}), and the first and last fitted
-values. Plot it with \code{\link[=autoplot]{autoplot()}}: up to five tests as their lactate curves and training zones, more as each
+change per 30 days (\code{per_30_days}) with its confidence interval at \code{level} (\code{low}, \code{high}), and the first and last
+fitted values. Plot it with \code{\link[=autoplot]{autoplot()}}: up to five tests as their lactate curves and training zones, more as each
 threshold over time.
 }
 \description{
 Fits a straight line through each threshold over three or more tests of the same athlete, to show the trend
-with its uncertainty instead of reading noise from one test to the next (Hopkins, 2017).
+with its uncertainty instead of reading noise from one test to the next.
 }
 \examples{
 series <- subset(lactate_tests, athlete == "cyclist_series")
@@ -63,6 +69,4 @@ autoplot(trend, view = "thresholds")
 }
 \references{
 Hopkins WG. Measures of reliability in sports medicine and science. Sports Medicine. 2000;30(1):1-15.
-
-Hopkins WG. A spreadsheet for monitoring an individual's changes and trend. Sportscience. 2017;21:5-9.
 }

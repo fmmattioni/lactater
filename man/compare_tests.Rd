@@ -18,7 +18,7 @@ for your own tests.}
 
 \item{swc}{The smallest worthwhile change, in \% of the intensity before. Defaults to \code{0}.}
 
-\item{level}{The probability of the interval. Defaults to \code{0.9}.}
+\item{level}{The confidence level of the interval. Defaults to \code{0.9}.}
 
 \item{object}{The result of \code{\link[=compare_tests]{compare_tests()}}.}
 
@@ -43,7 +43,10 @@ the athlete and the error of the analyzer and the method. Each change is therefo
 interval, change +/- z * sqrt(2) * typical error, where the typical error is the coefficient of
 variation (\code{cv}) times the intensity before (Hopkins, 2000; Swinton et al., 2018). This is the model behind the
 repeatability of Bland & Altman (1996), for whom two measurements of the same person differ by less than
-\code{1.96 * sqrt(2)} within-subject standard deviations in 95\% of pairs.
+\code{1.96 * sqrt(2)} within-subject standard deviations in 95\% of pairs, a size also known as the minimal detectable
+change (Sainani, 2017). With a \code{cv} from \code{\link[=lactate_reliability]{lactate_reliability()}}, \code{z} is the t quantile for its degrees of freedom,
+because a typical error from few athletes is itself uncertain (Swinton et al., 2018): with 10 athletes tested
+twice, the normal quantile would call 13\% of unchanged pairs "beyond the noise" at the 90\% level instead of 10\%.
 
 Three columns say how the change stands against that noise, without a probability attached to them:
 \itemize{
@@ -52,11 +55,26 @@ unit of the intensity.
 \item \code{ratio}: the change divided by the noise. At 1, the change is as large as two tests usually differ by anyway.
 \item \code{verdict}: \code{"beyond the noise"} when the whole interval lies beyond the smallest worthwhile change (\code{swc}; beyond
 zero by default), which at the default 90\% is a ratio above 1.64, and \code{"within the noise"} otherwise. A change
-within the noise is not a sign that nothing changed: one pair of tests cannot tell. No level is agreed on: 95\% is
-the classic choice, and narrower intervals are defended for decisions in practice (Swinton et al., 2018); set
-yours with \code{level}. The words describe this one comparison against the \code{cv} in the table; graded terms such as
-"likely" are not used, because they read a frequentist interval as a probability of the true change (Lohse et
-al., 2020).
+within the noise is not a sign that nothing changed: one pair of tests cannot tell. The words describe this one
+comparison against the \code{cv} in the table; graded terms such as "likely" are not used, because they read a
+frequentist interval as a probability of the true change (Lohse et al., 2020).
+}
+
+Three things decide how often a verdict is wrong, so settle them before looking at the result:
+\itemize{
+\item \strong{The level.} At the default 90\%, an unchanged threshold is called "beyond the noise" in 10\% of comparisons: 5\%
+as a gain and 5\% as a loss, which is a one-sided test for a gain at 5\%, the test Sainani (2018) recommends in
+place of graded terms. No level is agreed on: 95\% is the classic choice, and narrower intervals are defended for
+decisions in practice (Swinton et al., 2018).
+\item \strong{The smallest worthwhile change.} With \code{swc} above zero, the verdict asks for a change that is certainly
+larger than \code{swc}, not merely larger than zero. No value is agreed on for lactate thresholds; one convention is
+0.2 times the standard deviation between athletes (Swinton et al., 2018). Choosing \code{swc} or \code{level} after seeing
+the verdict lets one pick the verdict one likes (Sainani, 2018).
+\item \strong{The threshold.} Each method gets its own verdict, and with every method in the table some of them will lie
+beyond the noise by chance. In 157 pairs of consecutive tests of the cyclists of Heuberger et al. (2018), each
+method was beyond the noise in 6\% to 15\% of pairs, but at least one of the 18 was in 50\%, and the default LT1 or
+LT2 in 19\%. The LT1 and LT2 chosen in \code{\link[=lactate_threshold]{lactate_threshold()}} are the ones to read, as the header does; a method
+picked because its verdict stands out proves nothing.
 }
 
 The default \code{cv} of each method is lactater's own calculation: \code{\link[=lactate_reliability]{lactate_reliability()}} on the five step tests of
@@ -90,7 +108,9 @@ Published running values are of a similar size in trained runners: typical error
 6\%) for 22 trained men on a treadmill with 1-min stages, from the SDs of their test-retest differences (the CVs
 they report, 1.2\% to 3.5\%, are smaller; Cerezuela-Espejo et al., 2018), and 0.4 to 1.4 km/h for 19 healthy,
 untrained people with 4-min and 8-min stages (Gavin et al., 2014).
-The best \code{cv} is the one of your own athletes, measured with your protocol and analyzer.
+The best \code{cv} is the one of your own athletes, measured with your protocol and analyzer. A \code{cv} assumes that the
+noise grows with the intensity, which is common for such measures but should be checked where the data allow
+(Atkinson & Nevill, 1998).
 }
 \examples{
 series <- subset(lactate_tests, athlete == "cyclist_series")
@@ -99,6 +119,9 @@ after <- lactate_threshold(subset(series, day == 58), intensity, lactate, heart_
 compare_tests(before, after)
 }
 \references{
+Atkinson G, Nevill AM. Statistical methods for assessing measurement error (reliability) in variables relevant to
+sports medicine. Sports Medicine. 1998;26(4):217-238.
+
 Bland JM, Altman DG. Measurement error. BMJ. 1996;312(7047):1654. doi:10.1136/bmj.312.7047.1654
 
 Cerezuela-Espejo V, Courel-Ibáñez J, Morán-Navarro R, Martínez-Cava A, Pallarés JG. The relationship between
@@ -118,6 +141,11 @@ Lohse KR, Sainani KL, Taylor JA, Butson ML, Knight EJ, Vickers AJ. Systematic re
 
 Pallares JG, Moran-Navarro R, Ortega JF, Fernandez-Elias VE, Mora-Rodriguez R. Validity and reliability of
 ventilatory and blood lactate thresholds in well-trained cyclists. PLOS ONE. 2016;11(9):e0163389.
+
+Sainani KL. Reliability statistics. PM&R. 2017;9(6):622-628. doi:10.1016/j.pmrj.2017.05.001
+
+Sainani KL. The problem with "magnitude-based inference". Medicine & Science in Sports & Exercise.
+2018;50(10):2166-2176. doi:10.1249/MSS.0000000000001645
 
 Swinton PA, Hemingway BS, Saunders B, Gualano B, Dolan E. A statistical framework to interpret individual
 response to intervention: paving the way for personalized nutrition and exercise prescription. Frontiers

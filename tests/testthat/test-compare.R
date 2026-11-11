@@ -63,6 +63,9 @@ test_that("lactate_trend recovers a steady change per 30 days", {
   at_start <- attr(tests[[1]], "lactater")$intensity[["OBLA 4.0"]]
   expect_lt(abs(obla$per_30_days - at_start / 100), 0.25 * at_start / 100)
   expect_lt(obla$low, obla$per_30_days)
+  ## a higher level widens the interval of the trend
+  wider <- do.call(lactate_trend, c(tests, list(day = days, level = 0.99)))
+  expect_lt(wider$low[wider$method == "OBLA 4.0"], obla$low)
   expect_s3_class(autoplot(trend), "patchwork")
   expect_error(lactate_trend(tests[[1]], tests[[2]], day = 1:2), "at least three")
   ## a list of tests can be spliced in

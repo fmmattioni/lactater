@@ -7,12 +7,19 @@
 #' * **Shift only**: one shape for both tests (shared `a`, `b` and `c`), with the second test moved by `d`.
 #' * **Free shape**: each test with its own `a`, `b` and `c`.
 #'
-#' The two fits are compared with an extra-sum-of-squares F test and with AICc (global fitting with shared parameters;
-#' Motulsky & Ransnas, 1987). The shift `d` comes with a profile confidence interval.
+#' The two fits are compared with an extra-sum-of-squares F test (Motulsky & Ransnas, 1987) and with AICc, the
+#' Akaike criterion corrected for small samples (Hurvich & Tsai, 1989); the verdict is `"shape changed"` only when
+#' both prefer the free shape. The shift `d` comes with a profile confidence interval.
 #'
 #' Read the result with care:
-#' * With 6 to 10 stages per test the F test has little power: "no evidence of a shape change" is not proof of the same
-#'   shape.
+#' * The test finds a change of shape only when it is large and the tests are long. In simulated pairs of tests of a
+#'   trained cyclist (analyzer error of 0.1 mmol/L plus 4%), a baseline 0.5 mmol/L higher was found in 96% of pairs
+#'   with 8 stages per test and in 20% with 6; a curve steep enough to double the peak lactate in 55% and 10%. So "no
+#'   shape change detected" is not proof of the same shape, least of all with 6 stages.
+#' * The p-value is approximate: the F test is exact only for models that are linear in their parameters, and a low
+#'   p-value from one pair of curves needs a repeat before it counts (Motulsky & Ransnas, 1987). In the same
+#'   simulation it fell below 0.05 in 8% to 10% of pairs with no change of shape; with AICc beside it, the verdict was
+#'   wrong in 1% to 6%.
 #' * In this model, a shift to the right is the same as a proportional fall of lactate above baseline. Better
 #'   endurance, a lower glycolytic rate (VLamax) at the same VO2max, low glycogen stores and overreaching can all
 #'   produce it, so check the peak lactate, the diet before the test and the performance too (Maassen & Busse, 1989;
@@ -25,14 +32,17 @@
 #' @param level The confidence level of the shift. Defaults to `0.95`.
 #'
 #' @return a `lactate_shape` list with `shift` (intensity units, positive when the curve moved to the right),
-#' `shift_low` and `shift_high`, `f`, `df1`, `df2`, `p_value`, `aicc_shift` and `aicc_free`, `verdict` (`"shift"`
-#' when the shift-only model is not worse, `"shape changed"` otherwise), the peak lactate of both tests and the two
+#' `shift_low` and `shift_high`, `f`, `df1`, `df2`, `p_value`, `aicc_shift` and `aicc_free`, `verdict`
+#' (`"shape changed"` when the F test and AICc both prefer the free shape, `"shift"` otherwise: none was detected), the peak lactate of both tests and the two
 #' exponential `curves`. Print it for a summary, and plot it with [autoplot()]: the two fitted curves, and the first one
 #' moved by the shift (dashed).
 #'
 #' @references
 #' Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid are they? Sports Medicine.
 #' 2009;39(6):469-490.
+#'
+#' Hurvich CM, Tsai CL. Regression and time series model selection in small samples. Biometrika.
+#' 1989;76(2):297-307. doi:10.1093/biomet/76.2.297
 #'
 #' Hughson RL, Weisiger KH, Swanson GD. Blood lactate concentration increases as a continuous function in progressive
 #' exercise. Journal of Applied Physiology. 1987;62(5):1975-1981.
@@ -123,12 +133,15 @@ print.lactate_shape <- function(x, ...) {
             format_intensity(x$shift_high, sport))
   }
   cat(sprintf(
-    "Shift only vs free shape: F(%d, %d) = %.2f, p = %.3f; AICc %.1f vs %.1f.\n",
+    "Shift only vs free shape: F(%d, %d) = %.2f, approximate p = %.3f; AICc %.1f vs %.1f.\n",
     x$df1, x$df2, x$f, x$p_value, x$aicc_shift, x$aicc_free
   ))
   cat(if(x$verdict == "shift") {
-    sprintf("No evidence the shape changed: one curve shifted by %s %s%s describes both tests.\n",
-            shift, unit, interval)
+    sprintf("No shape change detected: one curve shifted by %s %s%s describes both tests%s.\n",
+            shift, unit, interval,
+            if(min(nrow(x$curves$before$points), nrow(x$curves$after$points)) < 8) {
+              ", but with fewer than 8 stages the test finds few changes of shape"
+            } else "")
   } else {
     sprintf("The shape changed: a shift alone (%s %s) does not describe both tests.\n", shift, unit)
   })
@@ -172,11 +185,12 @@ autoplot.lactate_shape <- function(object, ...) {
     ggplot2::scale_x_continuous(expand = ggplot2::expansion(mult = c(0.02, 0.18))) +
     ggplot2::scale_y_continuous(limits = c(0, top), breaks = lactate_breaks(top), expand = c(0, 0)) +
     ggplot2::labs(
-      title = if(object$verdict == "shift") "The curve shifted" else "The curve changed shape",
+      title = if(object$verdict == "shift") "No shape change detected" else "The curve changed shape",
       subtitle = sprintf(
-        "Dashed: the first curve moved by %+g %s; it %s the second test (F test p = %.3f)",
+        "Dashed: the first curve moved by %+g %s; %s (F test, approximate p = %.3f)",
         round(object$shift, intensity_digits(sport)), intensity_unit(sport),
-        if(object$verdict == "shift") "matches" else "does not match", object$p_value
+        if(object$verdict == "shift") "the second test does not clearly differ" else
+          "it does not match the second test", object$p_value
       ),
       x = intensity_label(sport), y = "Blood lactate (mmol/L)"
     ) +

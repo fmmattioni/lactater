@@ -11,6 +11,11 @@ test_that("the typical error is the residual of athletes and tests (Hopkins, 200
   expect_equal(out$typical_error, round(stats::sd(change(repeats$intensity)) / sqrt(2), 2))
   expect_equal(out$cv, round(100 * (exp(stats::sd(change(log(repeats$intensity))) / sqrt(2)) - 1), 2))
   expect_equal(c(out$n_athletes, out$n_tests), c(3, 6))
+  ## three athletes, two tests: 6 - 3 - 1 degrees of freedom, and the mean change (6 - 3 + 9) / 3
+  expect_equal(c(out$df, out$bias), c(2, 4))
+  s <- stats::sd(change(log(repeats$intensity))) / sqrt(2)
+  expect_equal(out$cv_high, round(100 * (exp(s * sqrt(2 / stats::qchisq(0.05, 2))) - 1), 2))
+  expect_lt(out$cv_low, out$cv)
 })
 
 test_that("athletes with one test are left out, and too few athletes give NA", {
@@ -26,7 +31,11 @@ test_that("compare_tests() takes the result as its cv", {
   own <- lactate_reliability(repeats, "athlete", "test")
   by_table <- compare_tests(before, after, cv = own)
   by_vector <- compare_tests(before, after, cv = c("OBLA 4.0" = own$cv))
-  expect_equal(by_table, by_vector)
+  ## the same noise, but a typical error with 2 degrees of freedom widens the interval by qt / qnorm
+  expect_equal(by_table[c("change", "cv", "noise", "ratio")], by_vector[c("change", "cv", "noise", "ratio")])
+  width <- function(x) (x$change_high - x$change_low)[x$method == "OBLA 4.0"]
+  expect_equal(width(by_table) / width(by_vector), stats::qt(0.95, 2) / stats::qnorm(0.95), tolerance = 0.03)
+  expect_equal(width(by_table[by_table$method == "IAT", ]), width(by_vector[by_vector$method == "IAT", ]))
 })
 
 test_that("it runs on lactate_threshold(.by = ) results", {
