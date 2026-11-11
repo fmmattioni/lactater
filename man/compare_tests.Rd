@@ -83,6 +83,13 @@ so a drift between the two groups does not explain them). Those tests have no re
 the first stage. To use the published values instead, give them: \code{cv = c("IAT" = 3.6, "Dmax" = 3.4)}.
 \code{Stegmann}, \code{Keul}, \code{Simon} and your own \code{fixed} or \code{baseline_plus} values have no default: their \code{verdict} is \code{NA}
 unless you give one.
+
+The defaults come from cycling and are used for every sport, as a percentage of the intensity; the \code{notes} say so
+for other sports. No open test-retest data of running step tests were found to compute running values the same way.
+Published running values are of a similar size in trained runners: typical errors of about 0.3 to 0.8 km/h (2\% to
+6\%) for 22 trained men on a treadmill with 1-min stages, from the SDs of their test-retest differences (the CVs
+they report, 1.2\% to 3.5\%, are smaller; Cerezuela-Espejo et al., 2018), and 0.4 to 1.4 km/h for 19 healthy,
+untrained people with 4-min and 8-min stages (Gavin et al., 2014).
 The best \code{cv} is the one of your own athletes, measured with your protocol and analyzer.
 }
 \examples{
@@ -93,6 +100,13 @@ compare_tests(before, after)
 }
 \references{
 Bland JM, Altman DG. Measurement error. BMJ. 1996;312(7047):1654. doi:10.1136/bmj.312.7047.1654
+
+Cerezuela-Espejo V, Courel-Ibáñez J, Morán-Navarro R, Martínez-Cava A, Pallarés JG. The relationship between
+lactate and ventilatory thresholds in runners: validity and reliability of exercise test performance parameters.
+Frontiers in Physiology. 2018;9:1320. doi:10.3389/fphys.2018.01320
+
+Gavin JP, Willems MET, Myers SD. Reproducibility of lactate markers during 4 and 8 min stage incremental running:
+a pilot study. Journal of Science and Medicine in Sport. 2014;17(6):635-639. doi:10.1016/j.jsams.2013.08.006
 
 Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and
 predictive value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.

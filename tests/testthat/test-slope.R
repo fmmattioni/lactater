@@ -24,3 +24,12 @@ test_that("Keul and Simon are NA when the curve never gets that steep", {
   results <- lactate_threshold(flat, intensity, lactate, method = c("Keul", "Simon"), sport = "running", plot = FALSE)
   expect_true(all(is.na(results$intensity)))
 })
+
+test_that("compare_tests says the default noise comes from cyclists, and Keul and Simon have none", {
+  running <- lactate_tests[lactate_tests$test == "running_recreational", ]
+  before <- lactate_threshold(running, intensity, lactate, sport = "running", plot = FALSE)
+  comparison <- compare_tests(before, before)
+  expect_match(attr(comparison, "notes"), "step tests of cyclists", all = FALSE)
+  expect_true(all(is.na(comparison$verdict[comparison$method %in% c("Keul", "Simon")])))
+  expect_null(attr(compare_tests(before, before, cv = 3), "notes"))
+})

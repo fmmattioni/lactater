@@ -148,6 +148,13 @@ lactate_reliability <- function(x, athlete, test) {
 #' the first stage. To use the published values instead, give them: `cv = c("IAT" = 3.6, "Dmax" = 3.4)`.
 #' `Stegmann`, `Keul`, `Simon` and your own `fixed` or `baseline_plus` values have no default: their `verdict` is `NA`
 #' unless you give one.
+#'
+#' The defaults come from cycling and are used for every sport, as a percentage of the intensity; the `notes` say so
+#' for other sports. No open test-retest data of running step tests were found to compute running values the same way.
+#' Published running values are of a similar size in trained runners: typical errors of about 0.3 to 0.8 km/h (2% to
+#' 6%) for 22 trained men on a treadmill with 1-min stages, from the SDs of their test-retest differences (the CVs
+#' they report, 1.2% to 3.5%, are smaller; Cerezuela-Espejo et al., 2018), and 0.4 to 1.4 km/h for 19 healthy,
+#' untrained people with 4-min and 8-min stages (Gavin et al., 2014).
 #' The best `cv` is the one of your own athletes, measured with your protocol and analyzer.
 #'
 #' @param before,after The results of [lactate_threshold()] for the two tests, with the same sport.
@@ -166,6 +173,13 @@ lactate_reliability <- function(x, athlete, test) {
 #'
 #' @references
 #' Bland JM, Altman DG. Measurement error. BMJ. 1996;312(7047):1654. doi:10.1136/bmj.312.7047.1654
+#'
+#' Cerezuela-Espejo V, Courel-Ibáñez J, Morán-Navarro R, Martínez-Cava A, Pallarés JG. The relationship between
+#' lactate and ventilatory thresholds in runners: validity and reliability of exercise test performance parameters.
+#' Frontiers in Physiology. 2018;9:1320. doi:10.3389/fphys.2018.01320
+#'
+#' Gavin JP, Willems MET, Myers SD. Reproducibility of lactate markers during 4 and 8 min stage incremental running:
+#' a pilot study. Journal of Science and Medicine in Sport. 2014;17(6):635-639. doi:10.1016/j.jsams.2013.08.006
 #'
 #' Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and
 #' predictive value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
@@ -236,7 +250,12 @@ compare_tests <- function(before, after, cv = NULL, swc = 0, level = 0.9) {
     out$rpe_after <- after$rpe[match(methods, after$method)]
   }
   attr(out, "lactater_comparison") <- list(before = info_before, after = info_after, level = level)
-  attr(out, "notes") <- comparison_notes(info_before, info_after)
+  attr(out, "notes") <- c(
+    comparison_notes(info_before, info_after),
+    if(is.null(cv) && info_before$settings$sport != "cycling") {
+      "The default `cv` comes from step tests of cyclists (Heuberger et al., 2018): give your own for this sport."
+    }
+  )
   class(out) <- c("lactate_comparison", class(out))
   out
 }
