@@ -28,7 +28,7 @@
               text-decoration: none; }
   .lede { color: var(--muted); margin: 10px 0 0; }
   .current { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; margin-top: 14px; font-size: 14px; }
-  .current[hidden] { display: none; }
+  .current[hidden], #current-text:empty { display: none; }
   /* sections by a thin rule and space; boxed inputs a tester can find and hit on a tablet */
   h2 { margin: 36px 0 12px; padding-top: 18px; border-top: 1px solid var(--soft); font-size: 16px; font-weight: 600; }
   .hint { font-weight: 400; color: var(--muted); font-size: 13px; }
@@ -72,6 +72,19 @@
   footer { margin-top: 28px; color: var(--muted); font-size: 13px; }
   footer p { margin: 0 0 6px; }
   footer a { color: var(--ink); }
+  /* on screen, one long sheet of paper on a gray desk, as the cheatsheet, with the band as its letterhead; on a
+     phone, the whole width */
+  @media screen {
+    body { background: #eef0f3; }
+    main { margin: 28px auto 40px; padding: 0 32px 40px; background: var(--paper);
+           box-shadow: 0 1px 4px rgba(17, 24, 31, 0.15); }
+    header { margin: 0 -32px; padding: 24px 32px 22px; }
+  }
+  @media screen and (max-width: 720px) {
+    body { background: var(--paper); }
+    main { margin: 0 auto; padding: 0 16px 40px; box-shadow: none; }
+    header { margin: 0 -16px; padding: 20px 16px 18px; }
+  }
   @media print {
     body { font-size: 11px; }
     main { max-width: none; padding: 0; }
