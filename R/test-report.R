@@ -556,10 +556,10 @@ html_progress <- function(r, cv) {
       )
     ))
 
-  ## the latest test against the one before, method by method, with the chosen ones first
+  ## the latest test against the one before, for the chosen LT1 and LT2 (every method has a noise value, and all 18
+  ## would bury the two the report is about)
   comparison <- compare_tests(tests[[n - 1]], tests[[n]], cv = cv)
-  comparison <- comparison[comparison$method %in% methods | !is.na(comparison$verdict), ]
-  comparison <- comparison[order(!comparison$method %in% methods), ]
+  comparison <- comparison[match(methods, as.character(comparison$method), nomatch = 0), ]
   boundary <- match(as.character(comparison$method), chosen)
   latest <- data.frame(
     method = paste0(ifelse(is.na(boundary), "", paste0("LT", boundary, ", ")), method_html(comparison$method)),
