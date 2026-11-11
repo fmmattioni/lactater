@@ -28,10 +28,9 @@ training zones they make, how they changed since the last test, and a
 report for the athlete. It computes the methods sport scientists use,
 each as its original paper defined it: Log-log, OBLA, Bsln+, the
 D<sub>max</sub> family, the lactate turn points, LT<sub>ratio</sub>, and
-the individual anaerobic thresholds of Dickhuth, of Stegmann and, for running, of Keul and of
-Simon. It is
-written for teaching too: every function and article says what the
-evidence behind it is.
+the individual anaerobic thresholds of Dickhuth, of Stegmann and, for
+running, of Keul and of Simon. It is written for teaching too: every
+function and article says what the evidence behind it is.
 
 ## What it does
 
@@ -41,7 +40,7 @@ evidence behind it is.
 | Know how sure each one is | `ci = TRUE` | bootstrap intervals for the noise of the samples |
 | Check the data and the fit | `lactate_checks()`, `lactate_diagnostics()`, `lactate_fit_quality()` | what to double-check, residuals, influential stages, how much each threshold rests on one stage |
 | Make training zones | `lactate_zones()` | three or five zones from LT1 and LT2 (Bsln + 0.5 and Log-Poly-ModDmax unless you choose others), with intensity, pace, heart rate, RPE and lactate |
-| Compare two tests | `compare_tests()`, `curve_shift()`, `curve_shape()` | each change against the noise of the method, and how far and how the curve moved |
+| Compare two tests | `compare_tests()`, `curve_shift()`, `curve_shape()` | each change against the noise of the method (its `noise`, the `ratio` of the change to it, and whether it lies beyond it), and how far and how the curve moved |
 | Measure your own noise | `lactate_reliability()` | the test-retest typical error of each threshold from your repeated tests, for `compare_tests()` |
 | Follow a series of tests | `lactate_trend()` | the curves and zones of up to five tests, and a trend for longer series |
 | Compare athletes | `relative_thresholds()` | thresholds per kg and as a percentage of peak intensity and heart rate |
@@ -142,6 +141,8 @@ training zones:
 results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
 results
 #> # Lactate thresholds: cycling, 3rd degree polynomial, 7 stages + rest
+#> # LT1:                83 W (Bsln + 0.5)
+#> # LT2:                149 W (Log-Poly-ModDmax)
 #>    method_category method           fitting         intensity lactate heart_rate
 #>    <fct>           <fct>            <chr>               <dbl>   <dbl>      <dbl>
 #>  1 Log-log         Log-log          3rd degree pol…       101     1.8        154
@@ -186,7 +187,8 @@ form](https://fmmattioni.github.io/lactater/step-test-form.html) records
 a test and downloads an .xlsx that `read_recording()` reads, and the
 [cheatsheet](https://fmmattioni.github.io/lactater/cheatsheet.html) puts
 the whole package on two pages (also as a
-[PDF](https://fmmattioni.github.io/lactater/lactater-cheatsheet.pdf)). [Get
+[PDF](https://fmmattioni.github.io/lactater/lactater-cheatsheet.pdf)).
+[Get
 started](https://fmmattioni.github.io/lactater/articles/lactater.html)
 walks through all of it.
 

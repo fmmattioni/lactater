@@ -174,7 +174,7 @@ autoplot(results, method = "ModDmax") # one method</pre>
     <div class="column">
       <h2>Zones and training</h2>
 <pre>zones &lt;- lactate_zones(results, model = 5)
-## LT1 = "Bsln + 0.5", LT2 = "Log-Poly-ModDmax" by default</pre>
+## LT1, LT2: from lactate_threshold(lt1 =, lt2 =)</pre>
       <img src="zones.png" alt="Five training zones of demo_data">
       <p class="caption">LT1 and LT2 split the intensities into moderate, heavy and severe; five zones split the outer two. Below, the heart rate of the stages, read at LT1 and LT2. Every zone gets its heart rate and RPE range; heart-rate zones suit steady efforts, as heart rate lags in short intervals.</p>
       <dl>
