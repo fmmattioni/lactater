@@ -146,8 +146,8 @@ lactate_reliability <- function(x, athlete, test) {
 #' defaults use every rider and are, if anything, too high (pairs of consecutive tests gave values of the same size,
 #' so a drift between the two groups does not explain them). Those tests have no resting sample, so Bsln+ rose from
 #' the first stage. To use the published values instead, give them: `cv = c("IAT" = 3.6, "Dmax" = 3.4)`.
-#' `Stegmann` and your own `fixed` or `baseline_plus` values have no default: their `verdict` is `NA` unless you
-#' give one.
+#' `Stegmann`, `Keul`, `Simon` and your own `fixed` or `baseline_plus` values have no default: their `verdict` is `NA`
+#' unless you give one.
 #' The best `cv` is the one of your own athletes, measured with your protocol and analyzer.
 #'
 #' @param before,after The results of [lactate_threshold()] for the two tests, with the same sport.

@@ -40,7 +40,7 @@ if (plex) options(lactater.font = "IBM Plex Sans")
 what to double-check, the training zones they make, how they changed since the last test, and a report for the
 athlete. It computes the methods sport scientists use, each as its original paper defined it: Log-log, OBLA, Bsln+,
 the D<sub>max</sub> family, the lactate turn points, LT<sub>ratio</sub>, and the individual anaerobic thresholds of
-Dickhuth and of Stegmann. It is written for teaching too: every function and article says what the evidence behind it
+Dickhuth, of Stegmann and, for running, of Keul and of Simon. It is written for teaching too: every function and article says what the evidence behind it
 is.
 
 ## What it does

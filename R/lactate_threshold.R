@@ -20,8 +20,8 @@
 #' @param rpe_scale The RPE scale: `"6-20"` (Borg's RPE scale, default) or `"CR10"` (Borg's category-ratio scale,
 #'   0 to 10, with ratings above 10 allowed for an absolute maximum).
 #' @param method The method families to estimate, one or more of `"Log-log"`, `"OBLA"`, `"Bsln+"`, `"Dmax"`,
-#'   `"LTP"`, `"LTratio"`, `"IAT"` and `"Stegmann"`. Defaults to all of them (`Stegmann` only when `recovery` is
-#'   given).
+#'   `"LTP"`, `"LTratio"`, `"IAT"`, `"Keul"`, `"Simon"` and `"Stegmann"`. Defaults to all of them (`Keul` and `Simon`
+#'   only for running, `Stegmann` only when `recovery` is given).
 #' @param fit The curve fitted to the lactate values: `"3rd degree polynomial"` (default), `"4th degree polynomial"`
 #'   or `"B-spline"` (a natural cubic regression spline with 4 degrees of freedom; with 6 stages it nearly passes
 #'   through every point). OBLA, Bsln+ and Stegmann read their thresholds off this curve; the other methods fit their
@@ -160,6 +160,17 @@
 #' above the lactate at LTratio, on the same spline (as described by Heuberger et al., 2018). Like OBLA and Bsln+, IAT
 #' uses an absolute lactate step, so it assumes blood lactate.
 #'
+#' ## Keul and Simon
+#'
+#' The individual anaerobic thresholds of Keul et al. (1979) and Simon et al. (1981), for running only: the speed at
+#' which a 3rd degree polynomial through the exercise stages rises by 1.26 mmol/L per km/h (Keul; a tangent at
+#' 51°34') or by 1 mmol/L per km/h (Simon; 45°). Keul et al. took the mean slope at 4 mmol/L of 60 tests of 20
+#' cross-country skiers; Simon et al. took 45° as the point of the largest change in slope. Both tested on a treadmill
+#' at a 5% grade with 3-min stages of 2 km/h, sampling earlobe blood, and set the slope on that protocol. A slope in
+#' watts or m/s has no counterpart in these papers, so the methods run only with `sport = "running"`. When the slope
+#' reaches the value more than once, the last crossing where it rises through it is used; `NA` when it never does
+#' within the stages.
+#'
 #' ## Stegmann
 #'
 #' The individual anaerobic threshold of Stegmann et al. (1981). After the test, blood lactate first rises and then
@@ -253,6 +264,12 @@
 #' Stegmann H, Kindermann W, Schnabel A. Lactate kinetics and individual anaerobic threshold. International Journal
 #' of Sports Medicine. 1981;2(3):160–5. \doi{10.1055/s-2008-1034604}
 #'
+#' Keul J, Simon G, Berg A, Dickhuth HH, Goerttler I, Kübel R. Bestimmung der individuellen anaeroben Schwelle zur
+#' Leistungsbewertung und Trainingsgestaltung. Deutsche Zeitschrift für Sportmedizin. 1979;30(7):212–8.
+#'
+#' Simon G, Berg A, Dickhuth HH, Simon-Alt A, Keul J. Bestimmung der anaeroben Schwelle in Abhängigkeit vom Alter und
+#' von der Leistungsfähigkeit. Deutsche Zeitschrift für Sportmedizin. 1981;32(1):7–14.
+#'
 #' @export
 #'
 #' @examples
@@ -267,7 +284,7 @@ lactate_threshold <- function(
   heart_rate_column = NULL,
   rpe_column = NULL,
   rpe_scale = c("6-20", "CR10"),
-  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT", "Stegmann"),
+  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT", "Keul", "Simon", "Stegmann"),
   fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
   include_baseline = FALSE,
   sport = c("cycling", "running", "swimming", "rowing"),
@@ -331,6 +348,13 @@ lactate_threshold <- function(
   if(!is.null(recovery)) recovery <- prepare_recovery(recovery, stage_duration)
   fit <- match.arg(arg = fit, several.ok = FALSE)
   sport <- match.arg(arg = sport, several.ok = FALSE)
+  slopes <- intersect(c("Keul", "Simon"), method)
+  if(length(slopes) > 0 && sport != "running") {
+    if(method_given)
+      stop(sprintf("`%s` %s defined on running speed in km/h: use `sport = \"running\"`.",
+                   paste(slopes, collapse = "` and `"), if(length(slopes) > 1) "are" else "is"), call. = FALSE)
+    method <- setdiff(method, slopes)
+  }
   dmax_anchor <- match.arg(arg = dmax_anchor)
   if(!is.numeric(moddmax_rise) || length(moddmax_rise) != 1 || is.na(moddmax_rise) || moddmax_rise <= 0)
     stop("`moddmax_rise` must be a single positive number (mmol/L).", call. = FALSE)

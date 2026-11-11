@@ -57,6 +57,8 @@ tribble(
   "[Dickhuth et al., 1999](https://doi.org/10.1055/s-2007-971105)",
   "IAT", "1.5 mmol/L above the lactate at LT<sub>ratio</sub>", "B-spline",
   "[Dickhuth et al., 1999](https://doi.org/10.1055/s-2007-971105); Röcker et al., 1997",
+  "Keul, Simon (running)", "Speed where the curve rises by 1.26 or 1 mmol/L per km/h (a tangent at 51°34' or 45°)",
+  "3rd degree polynomial", "Keul et al., 1979; Simon et al., 1981",
   "Stegmann", "Tangent to the curve from the point in recovery where lactate is back at its end-of-exercise value",
   "your choice", "[Stegmann et al., 1981](https://doi.org/10.1055/s-2008-1034604)"
 ) |>
@@ -184,6 +186,26 @@ stegmann <- lactate_threshold(
 autoplot(stegmann, method = "Stegmann")
 ```
 
+### Keul and Simon (running only)
+
+Keul et al. (1979) and Simon et al. (1981) put the individual anaerobic threshold where the curve reaches a set
+slope. Both fitted a 3rd degree polynomial to lactate (mmol/L) against running speed (km/h), on treadmill tests at a
+5% grade with 3-min stages of 2 km/h and earlobe blood. Keul et al. took the mean slope at 4 mmol/L of 60 tests of
+20 cross-country skiers, 1.26 mmol/L per km/h (a tangent at 51°34'); Simon et al. took 1 mmol/L per km/h (45°), as
+the point where the slope changes most. The slope was set in km/h on that protocol, and neither paper gives a
+counterpart in watts, so lactater computes these two for running only. The tangent on the plot does not look like
+51° or 45°, because the two axes have different scales.
+
+Here with `running_recreational` from `lactate_tests` (simulated, 3-min stages of 2 km/h at a 2% grade):
+
+```{r keul-simon}
+runner <- lactate_threshold(
+  filter(lactate_tests, test == "running_recreational"), intensity, lactate, heart_rate,
+  method = c("Keul", "Simon"), sport = "running", plot = FALSE
+)
+autoplot(runner, method = "Keul")
+```
+
 ### Heart rate
 
 The heart rate at each threshold is interpolated between the measured stages.
@@ -226,7 +248,14 @@ tribble(
   severe domains. Test-retest variation: D<sub>max</sub> 3.8-10.3%, OBLA 4.0 3.1-8.2%, Bsln+ 0.5, 1.0 and 1.5
   1.2-3.7%, 3.4-12.6% and 3.1-3.4%. One athlete's threshold can differ by about 30% between methods. Bsln+ 1.5
   estimated the MLSS in two studies with 3-min stages, not with other stage lengths.",
-  "Review"
+  "Review",
+  "[Heck et al., 1985](https://doi.org/10.1055/s-2008-1025824)",
+  "16 men of varying fitness running on a treadmill; step tests with 3-min and 5-min stages, and 25-min runs to find
+  their MLSS; earlobe blood",
+  "Keul's threshold correlated with the speed at the MLSS (r = 0.98 for both stage lengths). Computed from Heck's raw
+  data, it lay 0.20 m/s above the MLSS with 3-min stages and 0.06 m/s below with 5-min stages ([Faude et al.,
+  2009](https://doi.org/10.2165/00007256-200939060-00003), Table V).",
+  "Single study"
 ) |>
   gt() |>
   fmt_markdown(columns = everything()) |>
@@ -258,12 +287,6 @@ the bouts and what the studies comparing the MLSS with the critical power found.
 The methods are only as good as the test behind them: stage duration, sampling site, sample type and analyzer
 all change the numbers. [Best practices for a step test](best-practices.html) collects what the literature says,
 as a checklist for running a test and analyzing it.
-
-## Methods lactater does not include
-
-Keul's and Simon's thresholds are the points where the curve's tangent reaches 51 and 45 degrees ([Faude et al.,
-2009](https://doi.org/10.2165/00007256-200939060-00003)). An angle depends on how the axes are scaled, which only the original papers define, so they wait
-for those papers.
 
 ## References
 
@@ -326,6 +349,9 @@ standard'. Physiol Rep. 2019;7(10):e14098. [doi:10.14814/phy2.14098](https://doi
 Keir DA, Iannetta D, Mattioni Maturana F, Kowalchuk JM, Murias JM. Identification of non-invasive exercise thresholds:
 methods, strategies, and an online app. Sports Med. 2022;52(2):237-55. [doi:10.1007/s40279-021-01581-z](https://doi.org/10.1007/s40279-021-01581-z)
 
+Keul J, Simon G, Berg A, Dickhuth HH, Goerttler I, Kübel R. Bestimmung der individuellen anaeroben Schwelle zur
+Leistungsbewertung und Trainingsgestaltung. Dtsch Z Sportmed. 1979;30(7):212-8.
+
 Kindermann W, Simon G, Keul J. The significance of the aerobic-anaerobic transition for the determination of work
 load intensities during endurance training. Eur J Appl Physiol Occup Physiol. 1979;42(1):25-34. [doi:10.1007/BF00421101](https://doi.org/10.1007/BF00421101)
 
@@ -346,6 +372,9 @@ Poole DC, Rossiter HB, Brooks GA, Gladden LB. The anaerobic threshold: 50+ years
 Röcker K, Schotte O, Niess AM, Heitkamp HC, Dickhuth HH. Laufbandtestdaten und Wettkampfprognosen für den
 Langstreckenlauf (Treadmill testing and the prediction of race results in distance running). Dtsch Z Sportmed.
 1997;48(9):315-23.
+
+Simon G, Berg A, Dickhuth HH, Simon-Alt A, Keul J. Bestimmung der anaeroben Schwelle in Abhängigkeit vom Alter und
+von der Leistungsfähigkeit. Dtsch Z Sportmed. 1981;32(1):7-14.
 
 Skinner JS, McLellan TH. The transition from aerobic to anaerobic metabolism. Res Q Exerc Sport. 1980;51(1):234-48.
 [doi:10.1080/02701367.1980.10609285](https://doi.org/10.1080/02701367.1980.10609285)

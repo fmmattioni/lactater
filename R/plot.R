@@ -164,7 +164,7 @@ plot_threshold <- function(method, intensity, lactate, heart_rate, plot_data, da
     stage_layers(points, data, colours, label_rest = !ratio && !log_axes, rest_below = guide_over_rest) +
     marker_layers(
       intensity, drawn$y, label, x_range, y_range, log_axes, colours, below = isTRUE(drawn$below),
-      avoid = list(plot_data$line, drawn$path)
+      avoid = list(plot_data$line, plot_data$touch, drawn$path)
     ) +
     ggplot2::labs(
       title = method_label(method, bold = TRUE),
@@ -213,6 +213,14 @@ curve_layers <- function(plot_data, intensity, lactate, colours, sport) {
       )
     ))
     top <- max(top, plot_data$line$lactate)
+  }
+  if(!is.null(plot_data$touch)) {
+    ## Keul and Simon: the tangent at the threshold, which has the set slope
+    layers <- c(layers, list(
+      ggplot2::geom_line(
+        ggplot2::aes(intensity, lactate), plot_data$touch, colour = colours[["faint"]], linewidth = 0.5
+      )
+    ))
   }
   from <- if(!is.null(plot_data$baseline)) {
     c(intensity = NA, lactate = plot_data$baseline, label = "baseline")
@@ -603,6 +611,8 @@ method_note <- function(method, settings) {
       "The tangent to the lactate curve from the point in recovery where lactate is back at its end-of-exercise value",
       "(Stegmann et al., 1981)"
     ),
+    "Keul" = "Where the fitted curve rises by 1.26 mmol/L per km/h, a tangent at 51\u00b034' (Keul et al., 1979)",
+    "Simon" = "Where the fitted curve rises by 1 mmol/L per km/h, a tangent at 45\u00b0 (Simon et al., 1981)",
     ""
   )
   note

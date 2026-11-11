@@ -79,7 +79,8 @@ the relative split instead, with a warning.
 
 LT1 is usually a "first rise" threshold (\code{"Log-log"}, \code{"Bsln + 0.5"}, \code{"Bsln + 1.0"}, \code{"LTratio"}, \code{"LTP1"}), and
 LT2 a threshold aimed at the maximal lactate steady state (MLSS) or the second, abrupt rise (the Dmax family,
-\code{"LTP2"}, \code{"IAT"}, \code{"Stegmann"}, and \code{"Bsln + 1.5"}, which estimated the MLSS in two studies; Jamnick et al., 2020).
+\code{"LTP2"}, \code{"IAT"}, \code{"Stegmann"}, \code{"Keul"} and \code{"Simon"} (running), and \code{"Bsln + 1.5"}, which estimated the MLSS
+in two studies; Jamnick et al., 2020).
 These are two of the three categories of threshold concepts of Faude et al. (2009); fixed values such as
 \code{"OBLA 4.0"} are the third. Against a measured MLSS these landed from about 40 W below to 40 W above it on average, by
 method, protocol and athletes (Hauser et al., 2014; Ploszczyca et al., 2020), and whether the MLSS or the critical

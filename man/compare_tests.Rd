@@ -81,8 +81,8 @@ with their own implementation of each method; the open data do not say which rid
 defaults use every rider and are, if anything, too high (pairs of consecutive tests gave values of the same size,
 so a drift between the two groups does not explain them). Those tests have no resting sample, so Bsln+ rose from
 the first stage. To use the published values instead, give them: \code{cv = c("IAT" = 3.6, "Dmax" = 3.4)}.
-\code{Stegmann} and your own \code{fixed} or \code{baseline_plus} values have no default: their \code{verdict} is \code{NA} unless you
-give one.
+\code{Stegmann}, \code{Keul}, \code{Simon} and your own \code{fixed} or \code{baseline_plus} values have no default: their \code{verdict} is \code{NA}
+unless you give one.
 The best \code{cv} is the one of your own athletes, measured with your protocol and analyzer.
 }
 \examples{

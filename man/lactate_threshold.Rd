@@ -11,7 +11,8 @@ lactate_threshold(
   heart_rate_column = NULL,
   rpe_column = NULL,
   rpe_scale = c("6-20", "CR10"),
-  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT", "Stegmann"),
+  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT", "Keul",
+    "Simon", "Stegmann"),
   fit = c("3rd degree polynomial", "4th degree polynomial", "B-spline"),
   include_baseline = FALSE,
   sport = c("cycling", "running", "swimming", "rowing"),
@@ -61,8 +62,8 @@ rate. A heart rate or RPE column with no values, as when none was written on the
 0 to 10, with ratings above 10 allowed for an absolute maximum).}
 
 \item{method}{The method families to estimate, one or more of \code{"Log-log"}, \code{"OBLA"}, \code{"Bsln+"}, \code{"Dmax"},
-\code{"LTP"}, \code{"LTratio"}, \code{"IAT"} and \code{"Stegmann"}. Defaults to all of them (\code{Stegmann} only when \code{recovery} is
-given).}
+\code{"LTP"}, \code{"LTratio"}, \code{"IAT"}, \code{"Keul"}, \code{"Simon"} and \code{"Stegmann"}. Defaults to all of them (\code{Keul} and \code{Simon}
+only for running, \code{Stegmann} only when \code{recovery} is given).}
 
 \item{fit}{The curve fitted to the lactate values: \code{"3rd degree polynomial"} (default), \code{"4th degree polynomial"}
 or \code{"B-spline"} (a natural cubic regression spline with 4 degrees of freedom; with 6 stages it nearly passes
@@ -240,6 +241,18 @@ above the lactate at LTratio, on the same spline (as described by Heuberger et a
 uses an absolute lactate step, so it assumes blood lactate.
 }
 
+\subsection{Keul and Simon}{
+
+The individual anaerobic thresholds of Keul et al. (1979) and Simon et al. (1981), for running only: the speed at
+which a 3rd degree polynomial through the exercise stages rises by 1.26 mmol/L per km/h (Keul; a tangent at
+51°34') or by 1 mmol/L per km/h (Simon; 45°). Keul et al. took the mean slope at 4 mmol/L of 60 tests of 20
+cross-country skiers; Simon et al. took 45° as the point of the largest change in slope. Both tested on a treadmill
+at a 5\% grade with 3-min stages of 2 km/h, sampling earlobe blood, and set the slope on that protocol. A slope in
+watts or m/s has no counterpart in these papers, so the methods run only with \code{sport = "running"}. When the slope
+reaches the value more than once, the last crossing where it rises through it is used; \code{NA} when it never does
+within the stages.
+}
+
 \subsection{Stegmann}{
 
 The individual anaerobic threshold of Stegmann et al. (1981). After the test, blood lactate first rises and then
@@ -339,4 +352,10 @@ Treadmill Running: Relationship and Reproducibility. International Journal of Sp
 
 Stegmann H, Kindermann W, Schnabel A. Lactate kinetics and individual anaerobic threshold. International Journal
 of Sports Medicine. 1981;2(3):160–5. \doi{10.1055/s-2008-1034604}
+
+Keul J, Simon G, Berg A, Dickhuth HH, Goerttler I, Kübel R. Bestimmung der individuellen anaeroben Schwelle zur
+Leistungsbewertung und Trainingsgestaltung. Deutsche Zeitschrift für Sportmedizin. 1979;30(7):212–8.
+
+Simon G, Berg A, Dickhuth HH, Simon-Alt A, Keul J. Bestimmung der anaeroben Schwelle in Abhängigkeit vom Alter und
+von der Leistungsfähigkeit. Deutsche Zeitschrift für Sportmedizin. 1981;32(1):7–14.
 }

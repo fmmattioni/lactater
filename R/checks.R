@@ -44,7 +44,7 @@ lactate_checks <- function(x) {
   at_edge <- methods[!is.na(intensity) & distance_to_end < 0.01 * span]
   ## ModDmax only relies on a blood value when its 0.4 mmol/L default rise is kept
   absolute <- methods[
-    as.character(x$method_category) %in% c("OBLA", "Bsln+", "IAT") |
+    as.character(x$method_category) %in% c("OBLA", "Bsln+", "IAT", "Keul", "Simon") |
       (methods == "ModDmax" & abs(info$settings$moddmax_rise - 0.4) < 1e-9)
   ]
   first_lowest <- stages$lactate[1] - min(stages$lactate[-1])

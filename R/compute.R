@@ -1,5 +1,5 @@
 ## method categories in output order
-method_categories <- c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT", "Stegmann")
+method_categories <- c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio", "IAT", "Keul", "Simon", "Stegmann")
 
 ## what each method aims at, in the three categories of Faude et al. (2009): the first rise above baseline (LT1),
 ## the MLSS or the second, abrupt rise (LT2), and fixed lactate values. Bsln + 1.5 goes with LT2 as the rise that
@@ -38,6 +38,8 @@ compute_thresholds <- function(data, settings, method) {
       "LTP" = method_ltp,
       "LTratio" = method_ltratio,
       "IAT" = method_iat,
+      "Keul" = method_keul,
+      "Simon" = method_simon,
       "Stegmann" = method_stegmann
     )
     result <- method_function(data, curve, settings)

@@ -27,7 +27,7 @@ practice_table <- function(rows) {
 ```
 
 A threshold is only as good as the test behind it. From any table of numbers lactater computes 18 thresholds by
-default, two more on request (LTP1-Poly-ModD<sub>max</sub>, and Stegmann with recovery samples), and as many fixed or
+default (20 for running, with Keul and Simon), two more on request (LTP1-Poly-ModD<sub>max</sub>, and Stegmann with recovery samples), and as many fixed or
 baseline-plus targets as you set. But it cannot tell whether the athlete came to the test with empty glycogen stores,
 or whether the lactate was sampled from the fingertip in one test and the earlobe in the next. This article collects what the literature says
 about running a step test and analyzing it, as a checklist.

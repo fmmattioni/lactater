@@ -30,6 +30,8 @@ computed.
   LTP1 can be held flat (`ltp_fix_first_slope`); one turn point for submaximal tests (`ltp_breakpoints = 1`).
 * New `IAT` (Dickhuth et al., 1999) and `Stegmann` (Stegmann et al., 1981, from `recovery` samples and
   `stage_duration`).
+* New `Keul` and `Simon` for running (Keul et al., 1979; Simon et al., 1981): the speed where the polynomial rises by
+  1.26 or 1 mmol/L per km/h.
 * LTratio is the exact minimum of lactate / intensity on its B-spline; the exponential fit needs no starting values.
 * OBLA, Bsln+ and IAT solve the curve exactly for the target (#8, thanks @dierickxsimon; supersedes #10); with several
   crossings, the last one where lactate rises through the target.

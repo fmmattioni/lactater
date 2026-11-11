@@ -76,7 +76,7 @@ test_that("the report opens with one line and flags LT1 beside its number when t
   expect_equal(lactater:::html_lede(report), "A running step test of 6 stages, up to 16.0 km/h.")
   html <- as.character(lactater:::html_stats(report))
   expect_match(html, "<span class=\"stat-flag\">!</span> Methods disagree: 6.8&nbsp;to&nbsp;11.8&nbsp;km/h", fixed = TRUE)
-  expect_match(html, "8&nbsp;second-rise&nbsp;methods:&nbsp;10.4&nbsp;to&nbsp;14.1&nbsp;km/h", fixed = TRUE)
+  expect_match(html, "10&nbsp;second-rise&nbsp;methods:&nbsp;10.4&nbsp;to&nbsp;14.1&nbsp;km/h", fixed = TRUE)
 })
 
 test_that("labels keep clear of the lines beside them, and the zones table leaves no empty or repeated cell", {
