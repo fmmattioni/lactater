@@ -5,13 +5,7 @@
 \alias{autoplot.lactate_zones}
 \title{Training zones from two lactate thresholds}
 \usage{
-lactate_zones(
-  x,
-  lt1 = "Bsln + 0.5",
-  lt2 = "Log-Poly-ModDmax",
-  model = 3,
-  split = "relative"
-)
+lactate_zones(x, lt1 = NULL, lt2 = NULL, model = 3, split = "relative")
 
 \method{autoplot}{lactate_zones}(
   object,
@@ -23,8 +17,8 @@ lactate_zones(
 \arguments{
 \item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
 
-\item{lt1, lt2}{The thresholds that mark LT1 and LT2: a method in \code{x$method}, or an intensity. Default to
-\code{"Bsln + 0.5"} and \code{"Log-Poly-ModDmax"}; see \code{Details}.}
+\item{lt1, lt2}{The thresholds that mark LT1 and LT2: a method in \code{x$method}, or an intensity. Default to those
+chosen in \code{\link[=lactate_threshold]{lactate_threshold()}}, which are \code{"Bsln + 0.5"} and \code{"Log-Poly-ModDmax"} unless you set them; see \code{Details}.}
 
 \item{model}{The number of zones: \code{3} (default) or \code{5}.}
 

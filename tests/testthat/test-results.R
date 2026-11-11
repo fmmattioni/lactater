@@ -3,7 +3,7 @@ results <- lactate_threshold(demo_data, "intensity", "lactate", "heart_rate", pl
 test_that("lactate_threshold returns a lactate_thresholds tibble", {
   expect_s3_class(results, c("lactate_thresholds", "tbl_df"))
   expect_equal(names(results)[1:2], c("method_category", "method"))
-  expect_match(pillar::tbl_sum(results), "cycling, 3rd degree polynomial, 7 stages \\+ rest")
+  expect_match(pillar::tbl_sum(results)[[1]], "cycling, 3rd degree polynomial, 7 stages \\+ rest")
 })
 
 test_that("autoplot draws the overview and single methods", {

@@ -16,7 +16,7 @@
 \alias{report_save}
 \title{Build a test report step by step}
 \usage{
-report_start(x, lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax", dates = NULL)
+report_start(x, lt1 = NULL, lt2 = NULL, dates = NULL)
 
 report_header(report, name = NULL, date = NULL, ..., lab = NULL, logo = NULL)
 

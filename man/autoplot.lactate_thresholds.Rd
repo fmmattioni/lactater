@@ -5,13 +5,7 @@
 \alias{plot.lactate_thresholds}
 \title{Plot lactate thresholds}
 \usage{
-\method{autoplot}{lactate_thresholds}(
-  object,
-  method = NULL,
-  lt1 = "Bsln + 0.5",
-  lt2 = "Log-Poly-ModDmax",
-  ...
-)
+\method{autoplot}{lactate_thresholds}(object, method = NULL, lt1 = NULL, lt2 = NULL, ...)
 
 \method{plot}{lactate_thresholds}(x, method = NULL, ...)
 }
@@ -20,7 +14,8 @@
 
 \item{method}{A method to plot (one of \code{object$method}), or \code{NULL} for the overview.}
 
-\item{lt1, lt2}{The thresholds that mark LT1 and LT2, drawn in green in the overview, as in \code{\link[=lactate_zones]{lactate_zones()}}.}
+\item{lt1, lt2}{The thresholds that mark LT1 and LT2, drawn in green in the overview. Default to those
+chosen in \code{\link[=lactate_threshold]{lactate_threshold()}}.}
 
 \item{...}{Not used.}
 }
@@ -31,8 +26,8 @@ a \code{ggplot2} (one method) or \code{patchwork} (overview) object.
 Plots the result of \code{\link[=lactate_threshold]{lactate_threshold()}}. Without \code{method}, an overview: the fitted lactate
 curve on top and every threshold below, grouped by what the method aims at, on the same intensity axis, with a
 shaded band for how far the methods aimed at LT1 and at LT2 lie apart, so you can see at a glance how much the
-methods agree; the two that mark LT1 and LT2 (\code{lt1}, \code{lt2}, the
-defaults of \code{\link[=lactate_zones]{lactate_zones()}}) are drawn in green. With \code{method}, the plot of that one method:
+methods agree; the two that mark LT1 and LT2 (\code{lt1}, \code{lt2}, as chosen in
+\code{\link[=lactate_threshold]{lactate_threshold()}}) are drawn in green. With \code{method}, the plot of that one method:
 what the method fitted, the measured stages, and the threshold with its intensity, lactate and
 heart rate.
 }

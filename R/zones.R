@@ -51,8 +51,8 @@ zone_colours <- list(
 #' sample, so check that sample (see [lactate_diagnostics()]).
 #'
 #' @param x The result of [lactate_threshold()].
-#' @param lt1,lt2 The thresholds that mark LT1 and LT2: a method in `x$method`, or an intensity. Default to
-#' `"Bsln + 0.5"` and `"Log-Poly-ModDmax"`; see `Details`.
+#' @param lt1,lt2 The thresholds that mark LT1 and LT2: a method in `x$method`, or an intensity. Default to those
+#' chosen in [lactate_threshold()], which are `"Bsln + 0.5"` and `"Log-Poly-ModDmax"` unless you set them; see `Details`.
 #' @param model The number of zones: `3` (default) or `5`.
 #' @param split How to split the moderate and severe domains in the five-zone model: `"relative"` (default),
 #' `"seiler"`, or two intensities. Ignored with three zones.
@@ -110,8 +110,11 @@ zone_colours <- list(
 #' lactate_zones(results)
 #' lactate_zones(results, model = 5)
 #' lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5, split = "seiler")
-lactate_zones <- function(x, lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax", model = 3, split = "relative") {
+lactate_zones <- function(x, lt1 = NULL, lt2 = NULL, model = 3, split = "relative") {
   info <- lactater_info(x)
+  pair <- chosen_pair(info, lt1, lt2)
+  lt1 <- pair$lt1
+  lt2 <- pair$lt2
   if(!identical(as.numeric(model), 3) && !identical(as.numeric(model), 5))
     stop("`model` must be 3 or 5.", call. = FALSE)
   found <- as.character(x$method)[!is.na(info$intensity[as.character(x$method)])]

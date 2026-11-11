@@ -161,7 +161,10 @@ predict_performance <- function(x, method = NULL, equation = NULL) {
   missing <- setdiff(method, found)
   if(length(missing) > 0) stop(sprintf("Not found in this test: %s.", paste(missing, collapse = ", ")), call. = FALSE)
   if(length(method) == 0) stop("No threshold with an equation was found in this test.", call. = FALSE)
+  ## the athlete's LT2 first, when an equation takes it
+  lt2 <- chosen_pair(info)$lt2
   equations <- equations[equations$method %in% method, ]
+  equations <- equations[order(equations$method != lt2), ]
   threshold <- unname(info$intensity[equations$method])
   unit <- intensity_unit(sport)
 
@@ -213,7 +216,7 @@ predict_performance <- function(x, method = NULL, equation = NULL) {
   out$source <- equations$source
   protocols <- stats::setNames(equations$protocol, equations$source)
   attr(out, "lactater_performance") <- list(
-    sport = sport, protocols = protocols[!duplicated(names(protocols))],
+    sport = sport, protocols = protocols[!duplicated(names(protocols))], lt2 = lt2,
     plot = data.frame(
       event = out$event, method = out$method, threshold = threshold, value = intensity, low = intensity - half,
       high = intensity + half,
@@ -357,7 +360,18 @@ format_time <- function(seconds) {
 tbl_sum.lactate_performance <- function(x, ...) {
   performance <- attr(x, "lactater_performance")
   if(is.null(performance)) return(NextMethod())
-  c("Predicted performance" = paste0(performance$sport, ", with 95% prediction ranges"), performance$protocols)
+  lt2 <- performance$lt2
+  c(
+    "Predicted performance" = paste0(performance$sport, ", with 95% prediction ranges"),
+    ## an equation only holds for the threshold it was fitted on, so say when the athlete's LT2 has none
+    if(is.character(lt2)) c("LT2" = if(lt2 %in% x$method) {
+      paste0(lt2, ", shown first", if(length(unique(x$method)) > 1) "; the others are for comparison")
+    } else {
+      sprintf("%s has no equation here; these come from %s", lt2,
+              paste(unique(x$method), collapse = " and "))
+    }),
+    performance$protocols
+  )
 }
 
 #' @exportS3Method pillar::tbl_sum

@@ -72,6 +72,10 @@
 #' @param ci_level Confidence level when `ci = TRUE`. Defaults to `0.95`.
 #' @param seed A seed for the bootstrap replicates, so that the intervals are reproducible, or `NULL` to draw them
 #'   from the current random stream (then call `set.seed()` first for reproducibility).
+#' @param lt1,lt2 The thresholds that mark LT1 and LT2 for this athlete: a method (e.g. `"Log-log"`, `"LTP2"`) or an
+#'   intensity. Chosen once here, they are what [lactate_zones()], [test_report()], the overview plot and the header
+#'   of [compare_tests()] and [predict_performance()] use. Default to `"Bsln + 0.5"` and `"Log-Poly-ModDmax"`; see
+#'   [lactate_zones()] for why.
 #' @param .by Names of columns that identify separate tests (`"athlete"` or `athlete`, or `c("athlete", "date")`).
 #'   Each test is analyzed on its own and the results are bound together, with the `.by` columns first.
 #'
@@ -287,6 +291,8 @@ lactate_threshold <- function(
   n_boot = 500,
   ci_level = 0.95,
   seed = NULL,
+  lt1 = "Bsln + 0.5",
+  lt2 = "Log-Poly-ModDmax",
   .by = NULL
 ) {
 
@@ -352,6 +358,10 @@ lactate_threshold <- function(
   if(!is.null(seed) && (!is.numeric(seed) || length(seed) != 1 || !is.finite(seed)))
     stop("`seed` must be `NULL` or a single number.", call. = FALSE)
 
+  one_marker <- function(x) length(x) == 1 && !is.na(x) && (is.character(x) || is.numeric(x))
+  if(!one_marker(lt1) || !one_marker(lt2))
+    stop("`lt1` and `lt2` must each be one method or one intensity.", call. = FALSE)
+
   ## column names work quoted, unquoted, or from a variable that holds the name
   caller <- parent.frame()
   columns <- list(
@@ -372,7 +382,7 @@ lactate_threshold <- function(
       moddmax_rise = moddmax_rise, ltp_fix_first_slope = ltp_fix_first_slope, dmax_methods = dmax_methods,
       fixed = fixed, baseline_plus = baseline_plus, iat_rise = iat_rise, ltp_breakpoints = ltp_breakpoints,
       max_intensity = max_intensity, sample = sample, ci = ci, n_boot = n_boot, ci_level = ci_level, seed = seed,
-      rpe_scale = rpe_scale, stage_duration = stage_duration, site = site, grade = grade
+      rpe_scale = rpe_scale, stage_duration = stage_duration, site = site, grade = grade, lt1 = lt1, lt2 = lt2
     ))
     if(restrainer_given) arguments$loglog_restrainer <- loglog_restrainer
     return(lactate_threshold_by(.data, .by, arguments))
@@ -408,7 +418,9 @@ lactate_threshold <- function(
     recovery = recovery,
     stage_duration = stage_duration,
     site = site,
-    grade = grade
+    grade = grade,
+    lt1 = lt1,
+    lt2 = lt2
   )
   computed <- compute_thresholds(data, settings, method)
   curve <- computed$curve

@@ -35,6 +35,8 @@ lactate_threshold(
   n_boot = 500,
   ci_level = 0.95,
   seed = NULL,
+  lt1 = "Bsln + 0.5",
+  lt2 = "Log-Poly-ModDmax",
   .by = NULL
 )
 }
@@ -134,6 +136,11 @@ See \code{Details}. Defaults to \code{FALSE}.}
 
 \item{seed}{A seed for the bootstrap replicates, so that the intervals are reproducible, or \code{NULL} to draw them
 from the current random stream (then call \code{set.seed()} first for reproducibility).}
+
+\item{lt1, lt2}{The thresholds that mark LT1 and LT2 for this athlete: a method (e.g. \code{"Log-log"}, \code{"LTP2"}) or an
+intensity. Chosen once here, they are what \code{\link[=lactate_zones]{lactate_zones()}}, \code{\link[=test_report]{test_report()}}, the overview plot and the header
+of \code{\link[=compare_tests]{compare_tests()}} and \code{\link[=predict_performance]{predict_performance()}} use. Default to \code{"Bsln + 0.5"} and \code{"Log-Poly-ModDmax"}; see
+\code{\link[=lactate_zones]{lactate_zones()}} for why.}
 
 \item{.by}{Names of columns that identify separate tests (\code{"athlete"} or \code{athlete}, or \code{c("athlete", "date")}).
 Each test is analyzed on its own and the results are bound together, with the \code{.by} columns first.}

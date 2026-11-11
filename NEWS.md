@@ -74,6 +74,8 @@ computed.
 
 ## Zones, comparisons, performance
 
+* `lactate_threshold(lt1 = , lt2 = )` chooses the athlete's LT1 and LT2 once: the print, the overview, the zones, the
+  report and the header of `predict_performance()` follow that pair.
 * New `lactate_zones()`: three or five zones from LT1 and LT2 (Bsln + 0.5 and Log-Poly-ModDmax by default) at the
   intensity domains, with intensity, pace, lactate, heart rate and RPE; `split` sets the cuts inside the domains.
   Heart rate is drawn in a panel under the curve, or on a second axis (`heart_rate = "axis"`).

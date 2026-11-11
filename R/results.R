@@ -23,6 +23,33 @@ new_lactate_thresholds <- function(out, data, curve, settings, plot_data, intens
   out
 }
 
+#' The thresholds that mark LT1 and LT2
+#'
+#' What the caller asked for, otherwise what [lactate_threshold()] was given, otherwise the package defaults (a result
+#' saved before the choice was kept). For internal use only.
+#'
+#' @param info The `lactater` attribute of a result.
+#' @param lt1,lt2 A method, an intensity, or `NULL`.
+#' @return a list with `lt1` and `lt2`.
+#' @keywords internal
+chosen_pair <- function(info, lt1 = NULL, lt2 = NULL) {
+  first <- function(...) Find(Negate(is.null), list(...))
+  list(lt1 = first(lt1, info$settings$lt1, "Bsln + 0.5"), lt2 = first(lt2, info$settings$lt2, "Log-Poly-ModDmax"))
+}
+
+#' @rdname chosen_pair
+#' @return `pair_text()`: "83 W (Bsln + 0.5)" for each of the two that was found, named `LT1` and `LT2`.
+pair_text <- function(info) {
+  pair <- chosen_pair(info)
+  text <- vapply(pair, function(marker) {
+    value <- if(is.numeric(marker)) marker else if(marker %in% names(info$intensity)) info$intensity[[marker]] else NA
+    if(is.na(value)) return(NA_character_)
+    sprintf("%s (%s)", intensity_text(value, info$settings$sport), if(is.numeric(marker)) "your value" else marker)
+  }, "")
+  names(text) <- c("LT1", "LT2")
+  text[!is.na(text)]
+}
+
 #' @exportS3Method pillar::tbl_sum
 tbl_sum.lactate_thresholds <- function(x, ...) {
   info <- attr(x, "lactater")
@@ -38,6 +65,7 @@ tbl_sum.lactate_thresholds <- function(x, ...) {
       if(any(info$data$intensity == 0)) " + rest" else "",
       if(info$settings$sample != "blood") paste0(", ", info$settings$sample) else ""
     ),
+    pair_text(info),
     if(warnings > 0) c("Checks" = sprintf("%d warning%s, see lactate_checks()", warnings, if(warnings > 1) "s" else ""))
   )
 }
@@ -47,8 +75,8 @@ tbl_sum.lactate_thresholds <- function(x, ...) {
 #' Plots the result of [lactate_threshold()]. Without `method`, an overview: the fitted lactate
 #' curve on top and every threshold below, grouped by what the method aims at, on the same intensity axis, with a
 #' shaded band for how far the methods aimed at LT1 and at LT2 lie apart, so you can see at a glance how much the
-#' methods agree; the two that mark LT1 and LT2 (`lt1`, `lt2`, the
-#' defaults of [lactate_zones()]) are drawn in green. With `method`, the plot of that one method:
+#' methods agree; the two that mark LT1 and LT2 (`lt1`, `lt2`, as chosen in
+#' [lactate_threshold()]) are drawn in green. With `method`, the plot of that one method:
 #' what the method fitted, the measured stages, and the threshold with its intensity, lactate and
 #' heart rate.
 #'
@@ -57,7 +85,8 @@ tbl_sum.lactate_thresholds <- function(x, ...) {
 #'
 #' @param object,x The result of [lactate_threshold()].
 #' @param method A method to plot (one of `object$method`), or `NULL` for the overview.
-#' @param lt1,lt2 The thresholds that mark LT1 and LT2, drawn in green in the overview, as in [lactate_zones()].
+#' @param lt1,lt2 The thresholds that mark LT1 and LT2, drawn in green in the overview. Default to those
+#'   chosen in [lactate_threshold()].
 #' @param ... Not used.
 #'
 #' @return a `ggplot2` (one method) or `patchwork` (overview) object.
@@ -73,10 +102,10 @@ tbl_sum.lactate_thresholds <- function(x, ...) {
 #' )
 #' autoplot(results)
 #' autoplot(results, method = "Dmax")
-autoplot.lactate_thresholds <- function(object, method = NULL, lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax", ...) {
+autoplot.lactate_thresholds <- function(object, method = NULL, lt1 = NULL, lt2 = NULL, ...) {
   info <- lactater_info(object)
 
-  if(is.null(method)) return(plot_overview(object, info, chosen = c(lt1, lt2)))
+  if(is.null(method)) return(plot_overview(object, info, chosen = unlist(chosen_pair(info, lt1, lt2))))
 
   i <- match(method, as.character(object$method))
   if(is.na(i))

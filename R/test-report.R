@@ -35,8 +35,8 @@
 #'   protocol = "Cycle ergometer, 3-min stages of +25 W from 50 W, earlobe capillary blood",
 #'   open = FALSE
 #' )
-test_report <- function(x, file = "lactate-test-report.html", athlete = list(), lt1 = "Bsln + 0.5",
-                        lt2 = "Log-Poly-ModDmax", protocol = NULL, notes = NULL, pdf = FALSE, open = interactive(),
+test_report <- function(x, file = "lactate-test-report.html", athlete = list(), lt1 = NULL, lt2 = NULL,
+                        protocol = NULL, notes = NULL, pdf = FALSE, open = interactive(),
                         dates = NULL) {
   report <- do.call(report_header, c(list(report_start(x, lt1 = lt1, lt2 = lt2, dates = dates)), athlete))
   report <- if(is.null(report$series)) {
@@ -126,16 +126,23 @@ test_report <- function(x, file = "lactate-test-report.html", athlete = list(), 
 #'   report_zones(model = 3) |>
 #'   report_text("Training", "Two sessions a week in zone 2, one in zone 3.")
 #' report_save(report, tempfile(fileext = ".html"), open = FALSE)
-report_start <- function(x, lt1 = "Bsln + 0.5", lt2 = "Log-Poly-ModDmax", dates = NULL) {
+report_start <- function(x, lt1 = NULL, lt2 = NULL, dates = NULL) {
   rlang::check_installed("gt", reason = "to build the report.")
   series <- NULL
   if(!inherits(x, "lactate_thresholds") && is.list(x)) {
     series <- prepare_series(x, dates)
+    ## one pair for the whole series: the one of the latest test, unless given
+    pair <- chosen_pair(lactater_info(series$tests[[length(series$tests)]]), lt1, lt2)
+    lt1 <- pair$lt1
+    lt2 <- pair$lt2
     ## every test needs both thresholds, which is better found now than when the report is saved
     series$zones <- series_zones(series$tests, series$labels, lt1, lt2)
     x <- series$tests[[length(series$tests)]]
   }
   info <- lactater_info(x)
+  pair <- chosen_pair(info, lt1, lt2)
+  lt1 <- pair$lt1
+  lt2 <- pair$lt2
   structure(
     list(
       x = x, info = info, series = series, lt = list(lt1, lt2), three = lactate_zones(x, lt1 = lt1, lt2 = lt2),

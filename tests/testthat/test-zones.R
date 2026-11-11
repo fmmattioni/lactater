@@ -90,3 +90,16 @@ test_that("the zones plot shows the heart rate in a panel below, on a second axi
   no_hr <- lactate_zones(no_hr, lt1 = "Log-log", lt2 = "ModDmax")
   expect_false(inherits(autoplot(no_hr), "patchwork"))
 })
+
+test_that("LT1 and LT2 chosen in lactate_threshold() are what the other functions use", {
+  chosen <- lactate_threshold(demo_data, intensity, lactate, plot = FALSE, lt1 = "Log-log", lt2 = "LTP2")
+  expect_equal(attr(lactate_zones(chosen), "lactater_zones")$labels, c("Log-log", "LTP2"))
+  ## an argument still wins, and a result without the choice (saved by an older version) gets the defaults
+  expect_equal(attr(lactate_zones(chosen, lt2 = "Dmax"), "lactater_zones")$labels, c("Log-log", "Dmax"))
+  old <- chosen
+  attr(old, "lactater")$settings[c("lt1", "lt2")] <- NULL
+  expect_equal(attr(lactate_zones(old), "lactater_zones")$labels, c("Bsln + 0.5", "Log-Poly-ModDmax"))
+  expect_equal(pillar::tbl_sum(chosen)[c("LT1", "LT2")], c(LT1 = "101 W (Log-log)", LT2 = "160 W (LTP2)"))
+  expect_equal(suppressWarnings(predict_performance(chosen))$method[1], "LTP2")
+  expect_error(lactate_threshold(demo_data, intensity, lactate, lt1 = c("Log-log", "LTP1")), "one method or one")
+})
