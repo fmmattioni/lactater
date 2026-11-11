@@ -49,8 +49,7 @@ about running a step test and analyzing it, as a checklist.
 
 Read each point with its evidence in mind. Few come from guidelines: most come from single studies in small groups,
 often of trained men, and some from expert reviews. The last column of each table says which: a guideline, a
-meta-analysis, a review, single studies (with how many people), or no study we found. A dagger (&dagger;) marks the one
-study read from its abstract only.
+meta-analysis, a review, single studies (with how many people), or no study we found.
 
 ## What moves the curve
 
@@ -192,8 +191,9 @@ tribble(
   ([Bentley et al., 2007](https://doi.org/10.2165/00007256-200737070-00002); [Jamnick et al.,
   2020](https://doi.org/10.1007/s40279-020-01322-8)). [Jamnick et al.
   (2018)](https://doi.org/10.1371/journal.pone.0199794) compared stages of 1 to 10 min in 17 trained
-  men.",
-  "Reviews",
+  men. On a treadmill, 5-min stages put the 4 mmol/L threshold 0.1 m/s lower than 3-min stages, and closer to the MLSS;
+  the authors still proposed 3 min, to keep the test short (Heck et al., 1982).",
+  "Reviews; 1 study",
   "Number of stages",
   "Plan for six or more. lactater needs at least five for Log-log and six for two lactate turn points.",
   "No guideline sets a number. Six or more is common: [Grant et al. (2002)](https://doi.org/10.1007/s00421-002-0608-2)
@@ -218,9 +218,10 @@ tribble(
   "1 study, n = 9",
   "Pauses for sampling",
   "Keep pauses short, and the same between tests.",
-  "Short pauses to take the sample are common on a treadmill: [Dickhuth et al.
-  (1999)](https://doi.org/10.1055/s-2007-971105) used 30 s.",
-  "No study found"
+  "Pausing 1 min instead of 30 s put the 4 mmol/L threshold 0.07 m/s higher on average, in 9 people running 3.5-min
+  stages; the authors proposed 30 s (Heck et al., 1982), which [Dickhuth et al.
+  (1999)](https://doi.org/10.1055/s-2007-971105) also used.",
+  "1 study, n = 9"
 ) |>
   practice_table()
 ```
@@ -238,8 +239,9 @@ tribble(
   "Review",
   "Site",
   "Use the same site in every test.",
-  "Finger values were higher than earlobe and venous values in 312 trained athletes, and the authors preferred the
-  earlobe ([Dassonville et al., 1998](https://pubmed.ncbi.nlm.nih.gov/9638031/)&dagger;). Fingertip and earlobe
+  "In 312 trained people, on a cycle ergometer and a treadmill, finger values were higher than earlobe and venous
+  values, which agreed with each other; the authors preferred the earlobe, as less affected by lactate from the arms
+  and easier to sample ([Dassonville et al., 1998](https://pubmed.ncbi.nlm.nih.gov/9638031/)). Fingertip and earlobe
   differed by 9.2% on average in cycling, with 95%
   of differences between -25% and +59% ([Moran et al., 2012](https://doi.org/10.1519/JSC.0b013e318225f395)). The
   fingertip read 0.66 mmol/L higher than the earlobe on average, and 0.86 mmol/L between 4 and 8 mmol/L, in double
@@ -440,6 +442,9 @@ for clinicians. J Diabetes Sci Technol. 2007;1(4):558-69. [doi:10.1177/193229680
 Grant S, McMillan K, Newell J, et al. Reproducibility of the blood lactate threshold, 4 mmol/l marker, heart rate
 and ratings of perceived exertion during incremental treadmill exercise in humans. Eur J Appl Physiol.
 2002;87(2):159-66. [doi:10.1007/s00421-002-0608-2](https://doi.org/10.1007/s00421-002-0608-2)
+
+Heck H, Mader A, Liesen H, Hollmann W. Vorschlag zur Standardisierung leistungsdiagnostischer Untersuchungen auf dem
+Laufband. Dtsch Z Sportmed. 1982;33(9):304-7.
 
 Hopkins WG. Measures of reliability in sports medicine and science. Sports Med. 2000;30(1):1-15.
 [doi:10.2165/00007256-200030010-00001](https://doi.org/10.2165/00007256-200030010-00001)

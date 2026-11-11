@@ -17,8 +17,9 @@ test), \code{time} (minutes from the start of the bout) and \code{lactate} (mmol
 
 \item{rise}{The largest rise in lactate (mmol/L) from minute \code{from} to minute 30 of a steady bout. Defaults to \code{1}.}
 
-\item{from}{The minute the rise is measured from, to minute 30. Defaults to \code{10} (Heck et al., 1985; Beneke, 2003);
-\code{15} or \code{20} agreed best with the highest steady oxygen uptake in Iannetta et al. (2022).}
+\item{from}{The minute the rise is measured from, to minute 30. Defaults to \code{10} (Beneke, 2003). In 10 men cycling,
+the MLSS from minute 10 lay 8 W below the highest steady oxygen uptake on average, and from minute \code{15} or \code{20}
+2 W above it, where oxygen uptake was steady in 7 of the 10 rather than 9 (Iannetta et al., 2022).}
 
 \item{object}{The result of \code{\link[=lactate_mlss]{lactate_mlss()}}.}
 

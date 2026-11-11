@@ -19,8 +19,9 @@
 #'   test), `time` (minutes from the start of the bout) and `lactate` (mmol/L).
 #' @param x The result of [lactate_threshold()] for a step test of the same athlete, or `NULL`.
 #' @param rise The largest rise in lactate (mmol/L) from minute `from` to minute 30 of a steady bout. Defaults to `1`.
-#' @param from The minute the rise is measured from, to minute 30. Defaults to `10` (Heck et al., 1985; Beneke, 2003);
-#'   `15` or `20` agreed best with the highest steady oxygen uptake in Iannetta et al. (2022).
+#' @param from The minute the rise is measured from, to minute 30. Defaults to `10` (Beneke, 2003). In 10 men cycling,
+#'   the MLSS from minute 10 lay 8 W below the highest steady oxygen uptake on average, and from minute `15` or `20`
+#'   2 W above it, where oxygen uptake was steady in 7 of the 10 rather than 9 (Iannetta et al., 2022).
 #'
 #' @return a `lactate_mlss` list with `mlss` (the highest steady bout, `NA` when none was steady), `next_bout` (the
 #'   lowest bout above it, which was not steady, or `NA`), `bouts` (a tibble with one row per bout: `intensity`,

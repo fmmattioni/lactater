@@ -18,11 +18,12 @@ tests.
 ## The maximal lactate steady state (MLSS)
 
 The MLSS is the highest constant intensity at which blood lactate stays steady. The idea comes from German sports
-medicine in the 1970s. Mader et al. (1976) had proposed that the transition from aerobic to partly anaerobic
-metabolism lies at about 4 mmol/L. To test it, Heck and co-workers had men of varying fitness run on a treadmill at
-several constant speeds near that point, each run a 3-min warm-up and 25 min at the speed, with earlobe lactate every
-5 min, and took the highest speed at which lactate stayed steady. They called it "maximales Laktatgleichgewicht" in
-1982 ([Heck & Wackerhage, 2024](https://doi.org/10.1186/s13102-024-00827-3)), and in English, in 1985, the maximal
+medicine in the 1970s. Mader et al. (1976) proposed 4.0 mmol/L in a step test as the mark of the transition from
+aerobic to partly anaerobic metabolism: below it, they wrote, lactate stays constant or falls when the load is held,
+and above about 5 mmol/L it keeps rising. To test it, Heck and co-workers had men of varying fitness run on a
+treadmill at several constant speeds near that point, each run a 3-min warm-up and 25 min at the speed, with earlobe
+lactate every 5 min, and took the highest speed at which lactate stayed steady. They called it "maximales
+Laktatgleichgewicht" in 1982 (Heck et al., 1982; [Heck & Wackerhage, 2024](https://doi.org/10.1186/s13102-024-00827-3)), and in English, in 1985, the maximal
 lactate steady state: the speed at which lactate does not rise by "any more than 1 mmol/l during the last 20 min". In
 their 16 men it lay at 4.0 mmol/L on average, as Mader had predicted, but from 3.1 to 5.5 mmol/L between
 athletes ([Heck et al., 1985](https://doi.org/10.1055/s-2008-1025824)). Heck himself stresses that it is the highest
@@ -69,9 +70,10 @@ within 20 W either way, while CP overestimated it by 20 W ([Mattioni Maturana et
 
 Much of this disagreement comes from how each is determined. [Iannetta et al.
 (2022)](https://doi.org/10.1249/MSS.0000000000002831) compared several CP models and several windows for the lactate
-rise with the highest steady oxygen uptake of 10 men: with the best of each, and the rise judged from minute 15 or 20
-rather than minute 10, CP and the MLSS both came within a few watts of it on average, although every method still
-missed it in some participants. `lactate_mlss(from = 20)` uses such a later window. Across 10 studies, CP lay 12 W above the MLSS on average, with 95% limits of agreement from -19 to 44 W
+rise with the highest steady oxygen uptake of 10 men cycling, 243 W on average. With the rise judged from minute 15 or
+20, the MLSS lay 2 W above it on average, against 8 W below from minute 10, and the best CP models 1 to 5 W above.
+Every method still missed it in some participants: at the MLSS from minute 15 or 20, oxygen uptake was steady in 7 of
+the 10, against 9 from minute 10. `lactate_mlss(from = 20)` uses such a later window. Across 10 studies, CP lay 12 W above the MLSS on average, with 95% limits of agreement from -19 to 44 W
 ([Micheli et al., 2025](https://doi.org/10.7717/peerj.19060)), and [Jones et al.
 (2019)](https://doi.org/10.14814/phy2.14098) argue that CP, rather than the MLSS as usually measured, marks the maximal
 metabolic steady state.
@@ -139,6 +141,9 @@ Clark B, Macdermid PW. V̇La<sub>max</sub> correlates strongly with glycolytic p
 
 Heck H, Mader A, Hess G, Mücke S, Müller R, Hollmann W. Justification of the 4-mmol/l lactate threshold. Int J
 Sports Med. 1985;6(3):117-30. [doi:10.1055/s-2008-1025824](https://doi.org/10.1055/s-2008-1025824)
+
+Heck H, Mader A, Liesen H, Hollmann W. Vorschlag zur Standardisierung leistungsdiagnostischer Untersuchungen auf dem
+Laufband. Dtsch Z Sportmed. 1982;33(9):304-7.
 
 Heck H, Wackerhage H. The origin of the maximal lactate steady state (MLSS). BMC Sports Sci Med Rehabil.
 2024;16:36. [doi:10.1186/s13102-024-00827-3](https://doi.org/10.1186/s13102-024-00827-3)
