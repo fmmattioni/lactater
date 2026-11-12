@@ -124,7 +124,9 @@ how each method is computed.
 - New
   [`lactate_report()`](https://fmmattioni.github.io/lactater/reference/lactate_report.md)
   (a gt table) and
-  [`gt_lactater()`](https://fmmattioni.github.io/lactater/reference/gt_lactater.md).
+  [`gt_lactater()`](https://fmmattioni.github.io/lactater/reference/gt_lactater.md);
+  `options(lactater.web_font = FALSE)` leaves the web font out of the
+  tables.
 - New
   [`test_report()`](https://fmmattioni.github.io/lactater/reference/test_report.md):
   the test as a web page and a two-page PDF for the athlete or the
