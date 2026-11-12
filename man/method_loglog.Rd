@@ -4,31 +4,23 @@
 \alias{method_loglog}
 \title{Log-log}
 \usage{
-method_loglog(data_prepared, fit, sport, loglog_restrainer = 1, plot)
+method_loglog(data, curve, settings)
 }
 \arguments{
-\item{data_prepared}{The data retrieved from \code{prepare_data()}.}
+\item{data}{The data retrieved from \code{prepare_data()}.}
 
-\item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.}
+\item{curve}{The user-selected curve from \code{fit_curve()}.}
 
-\item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
-
-\item{loglog_restrainer}{A scalar from 0 to 1 indicating the percentage of the data that you would like to
-restrain for fitting the Log-Log method. For example, \code{1} means no restriction (fits using the whole data), and \code{0.5} means that
-only the first 50\% of the data will be used. Default to \code{1}.}
-
-\item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
+\item{settings}{The analysis settings.}
 }
 \value{
-a tibble with the following columns:
-\item{method}{the method used to estimate the lactate threshold}
-\item{fitting}{the fitting method used to predict the lactate curve}
-\item{intensity}{the intensity associated with the estimated lactate threshold}
-\item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{heart_rate}{the heart rate associated with the estimated lactate threshold}
-\item{plot}{the plot produced to display the lactate threshold}
+a list with the result \code{rows} (method, fitting, intensity, lactate) and the \code{plot_data}
+for each row.
 }
 \description{
-It applies the \code{Log-log} method.
+It applies the \code{Log-log} method. Two straight lines are fitted to log(lactate) vs log(intensity),
+split at the measured stage with the lowest total residual sum of squares, and the threshold is
+where they cross (see \code{fit_two_lines()}). The lactate at the threshold is read off the lines. The resting
+sample is never used: it has no exercise intensity.
 }
 \keyword{internal}

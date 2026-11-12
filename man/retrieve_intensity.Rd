@@ -4,22 +4,21 @@
 \alias{retrieve_intensity}
 \title{Retrieve intensity}
 \usage{
-retrieve_intensity(data_augmented, fit, model, lactate_value)
+retrieve_intensity(curve, lactate_value)
 }
 \arguments{
-\item{data_augmented}{The augmented data from the model.}
-
-\item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.}
-
-\item{model}{The model chosen in \code{fit}.}
+\item{curve}{A curve from \code{fit_curve()}.}
 
 \item{lactate_value}{The lactate value.}
 }
 \value{
-the intensity associated with the estimated lactate threshold
+the intensity associated with the estimated lactate threshold, or \code{NA} when the
+curve never rises through \code{lactate_value} within the tested range.
 }
 \description{
-Retrieves the intensity associated to a given lactate value.
-It is mainly for internal use but it is exported for possible extensions.
+Retrieves the intensity at which the fitted lactate curve reaches a given lactate value, by
+solving the fitted curve. When the curve crosses the value more than once (an early lactate dip,
+or a plateau at the end), the last crossing where lactate rises through the value is used: from
+there on, lactate stays above it.
 }
 \keyword{internal}

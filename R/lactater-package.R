@@ -4,5 +4,7 @@
 # The following block is used by usethis to automatically manage
 # roxygen namespace tags. Modify with care!
 ## usethis namespace: start
+#' @importFrom ggplot2 %+replace%
+#' @importFrom pillar tbl_sum
 ## usethis namespace: end
 NULL

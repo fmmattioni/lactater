@@ -1,130 +1,69 @@
 #' Retrieve intensity
 #'
-#' Retrieves the intensity associated to a given lactate value.
-#' It is mainly for internal use but it is exported for possible extensions.
+#' Retrieves the intensity at which the fitted lactate curve reaches a given lactate value, by
+#' solving the fitted curve. When the curve crosses the value more than once (an early lactate dip,
+#' or a plateau at the end), the last crossing where lactate rises through the value is used: from
+#' there on, lactate stays above it.
 #'
-#' @param data_augmented The augmented data from the model.
-#' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
-#' @param model The model chosen in `fit`.
+#' @param curve A curve from `fit_curve()`.
 #' @param lactate_value The lactate value.
 #'
-#' @return the intensity associated with the estimated lactate threshold
+#' @return the intensity associated with the estimated lactate threshold, or `NA` when the
+#' curve never rises through `lactate_value` within the tested range.
 #' @keywords internal
-#' @importFrom stats splinefun approx
-#' @importFrom utils tail
-retrieve_intensity <- function(data_augmented, fit, model, lactate_value) {
-
-  if(fit == "B-spline") {
-
-    # spline function
-    f1 <- splinefun(data_augmented$intensity, data_augmented$.fitted)
-
-    # get intensity
-    method_intensity <- pracma::findzeros(
-      function(x)
-        f1(x) - lactate_value, min(data_augmented$intensity), max(data_augmented$intensity)
-      )
-
-  } else {
-
-    method_intensity <- approx(
-      x = model$fitted.values,
-      y = model$model[, 2][, 1],
-      xout = lactate_value, ties = "ordered"
-    )$y
-
-    ## the following is necessary in case the lactate curve goes down and then increases again
-    ## if the above is NA, it means that two values were found, so the following will retrieve the higher value
-    if(is.na(method_intensity)) {
-
-      ## find where lactate curve start to increase again after going down
-      start_increasing <- dplyr::tibble(.fitted = model$fitted.values) %>%
-        dplyr::mutate(rowid = seq_along(.fitted), .before = 1) %>%
-        dplyr::mutate(diffs = .fitted - dplyr::lag(.fitted)) %>%
-        tidyr::drop_na() %>%
-        dplyr::filter(diffs < 0) %>%
-        dplyr::pull(rowid) %>%
-        tail(1)
-
-      n_row_data <- length(model$fitted.values)
-
-      method_intensity <- approx(
-        x = model$fitted.values[start_increasing:n_row_data],
-        y = model$model[, 2][, 1][start_increasing:n_row_data],
-        xout = lactate_value, ties = "ordered"
-      )$y
-    }
-
-  }
-
-  ## this will make sure that if two values were found, the highest value is retrieved
-  out <- max(method_intensity)
-
-  out
+#' @importFrom stats uniroot
+retrieve_intensity <- function(curve, lactate_value) {
+  x <- seq(curve$domain[1], curve$domain[2], length.out = 2001)
+  gap <- curve$predict(x) - lactate_value
+  rising <- which(gap[-length(gap)] <= 0 & gap[-1] > 0)
+  if (length(rising) == 0) return(NA_real_)
+  i <- max(rising)
+  uniroot(function(v) curve$predict(v) - lactate_value, lower = x[i], upper = x[i + 1], tol = 1e-8)$root
 }
 
 #' Retrieve lactate
 #'
-#' Retrieves the lactate associated to a given intensity value.
-#' It is mainly for internal use but it is exported for possible extensions.
+#' Retrieves the fitted lactate at given intensities, rounded to 0.1 mmol/L.
 #'
-#' @param model The model chosen in `fit`.
-#' @param intensity_value The intensity value.
+#' @param curve A curve from `fit_curve()`.
+#' @param intensity_value The intensity values.
 #'
 #' @return the lactate associated with the estimated lactate threshold
 #' @keywords internal
-#' @importFrom stats predict
-retrieve_lactate <- function(model, intensity_value) {
-
-  new_data <- data.frame(intensity = intensity_value)
-
-  out <- predict(object = model, newdata = new_data)
-
-  out <- round(x = out, digits = 1)
-
-  out
-
+retrieve_lactate <- function(curve, intensity_value) {
+  round(curve$predict(intensity_value), digits = 1)
 }
 
 #' Retrieve heart rate
 #'
-#' Builds a linear heart rate model from the raw incremental test data.
+#' Heart rate at given intensities, interpolated linearly between the measured stages. A
+#' straight line through the whole test misses the bend of the heart-rate curve at high
+#' intensities (2-6 bpm on `demo_data`). Outside the stages (e.g. below the first one) it is `NA`.
 #'
-#' @param raw_data The raw data.
+#' @param raw_data The raw data, with a `heart_rate` column.
+#' @param intensity_value The intensity values.
 #'
-#' @return a linear model (`lm`) for heart-rate prediction
+#' @return the heart rate (bpm, rounded) at each intensity.
 #' @keywords internal
-build_heart_rate_model <- function(raw_data) {
-
-  ## remove baseline value
-  raw_data <- raw_data[-1, ]
-
-  ## linear model heart rate vs intensity
-  lm(heart_rate ~ intensity, data = raw_data)
+#' @importFrom stats approx
+retrieve_heart_rate <- function(raw_data, intensity_value) {
+  retrieve_at_stages(raw_data, "heart_rate", intensity_value, digits = 0)
 }
 
-#' Retrieve heart rate
+#' Retrieve RPE
 #'
-#' Retrieves the heart rate associated to a given intensity value.
-#' It is mainly for internal use but it is exported for possible extensions.
+#' The rating of perceived exertion at given intensities, interpolated linearly between the measured stages
+#' like the heart rate, to 0.1. For internal use only.
 #'
-#' @param raw_data The raw data.
-#' @param intensity_value The intensity value.
-#' @param model_heart_rate A pre-fit heart-rate model. If `NULL`, it will be fit from `raw_data`.
-#'
-#' @return the heart rate associated with the estimated lactate threshold
+#' @inheritParams retrieve_heart_rate
+#' @return the RPE at each intensity.
 #' @keywords internal
-#' @importFrom stats predict.lm
-retrieve_heart_rate <- function(raw_data, intensity_value, model_heart_rate = NULL) {
+retrieve_rpe <- function(raw_data, intensity_value) {
+  retrieve_at_stages(raw_data, "rpe", intensity_value, digits = 1)
+}
 
-  if(is.null(model_heart_rate)) {
-    model_heart_rate <- build_heart_rate_model(raw_data = raw_data)
-  }
-
-  ## predict heart rate based on intensity value
-  out <- predict.lm(model_heart_rate, newdata = data.frame(intensity = intensity_value))
-
-  out <- round(x = out, digits = 0)
-
-  out
+retrieve_at_stages <- function(raw_data, column, intensity_value, digits) {
+  stages <- raw_data[raw_data$intensity > 0 & !is.na(raw_data[[column]]), ]
+  if (nrow(stages) < 2) return(rep(NA_real_, length(intensity_value)))
+  round(approx(stages$intensity, stages[[column]], xout = intensity_value)$y, digits)
 }

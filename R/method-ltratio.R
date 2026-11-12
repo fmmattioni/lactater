@@ -1,86 +1,69 @@
 #' Minimum Lactate-Intensity Ratio (LTratio)
 #'
-#' It applies the `LTratio` method.
+#' It applies the `LTratio` method: the intensity where lactate / intensity, on a B-spline fit, is
+#' lowest. The search runs over the exercise stages only.
 #'
-#' @param data_prepared The data retrieved from `prepare_data()`.
-#' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
-#' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
-#' @param plot A boolean to indicate whether to generate a plot from each one of the methods.
+#' @inheritParams method_obla
 #'
-#' @return a tibble with the following columns:
-#' \item{method}{the method used to estimate the lactate threshold}
-#' \item{fitting}{the fitting method used to predict the lactate curve}
-#' \item{intensity}{the intensity associated with the estimated lactate threshold}
-#' \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-#' \item{heart_rate}{the heart rate associated with the estimated lactate threshold}
-#' \item{plot}{the plot produced to display the lactate threshold}
-#'
+#' @return a list with the result `rows` (method, fitting, intensity, lactate) and the `plot_data`
+#' for each row.
 #' @keywords internal
-method_ltratio <- function(data_prepared, fit, sport, plot) {
-  model_heart_rate <- NULL
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
-  }
-
-  data_prepared_ltratio <- if(inherits(data_prepared$model[[1]], "glm")) {
-    data_prepared
-  } else {
-    prepare_fit(
-      .data = data_prepared$data[[1]],
-      fit = "B-spline",
-      include_baseline = data_prepared$bsln,
-      sport = {{ sport }}
-    )
-  }
-
-  data_augmented <- data_prepared_ltratio$data_augmented[[1]]
-
-  ## get min ratio
-  data_min_ratio <- data_augmented %>%
-    dplyr::mutate(ratio = .fitted / intensity) %>%
-    dplyr::slice(which.min(ratio))
-
-  data_processed <- data_prepared %>%
-    dplyr::mutate(
-      method = "LTratio",
-      fitting = "B-Spline (default)",
-      intensity = data_min_ratio$intensity,
-      lactate = round(x = data_min_ratio$.fitted, digits = 1)
-    ) %>%
-    tidyr::nest(data = -method)
-
-  if(plot) {
-    out <- data_processed %>%
-      dplyr::mutate(
-        plot = Map(function(data, method) plot_lactate(data_processed = data, method = method), data, method)
-      ) %>%
-      tidyr::unnest(cols = data)
-  } else {
-    out <- data_processed %>%
-      tidyr::unnest(cols = data)
-  }
-
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    out <- out %>%
-      dplyr::mutate(
-        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
-      )
-  }
-
-  if(sport == "swimming") {
-    out <- out %>%
-      dplyr::mutate(pace = convert_to_pace(speed = intensity))
-  }
-
-  out <- out %>%
-    dplyr::select(dplyr::any_of(c("method", "fitting", "intensity", "pace", "lactate", "heart_rate", "plot")))
-
-  switch (
-    sport,
-    "cycling" = out <- out %>% dplyr::mutate(intensity = round(x = intensity, digits = 1)),
-    "running" = out <- out %>% dplyr::mutate(intensity = round(x = intensity, digits = 2)),
-    "swimming" = out <- out %>% dplyr::mutate(intensity = round(x = intensity, digits = 3))
+method_ltratio <- function(data, curve, settings) {
+  minimum <- settings$ltratio
+  method_result(
+    method = "LTratio",
+    fitting = "B-Spline (default)",
+    intensity = minimum$intensity,
+    lactate = retrieve_lactate(minimum$spline, minimum$intensity),
+    plot_data = list(ratio = minimum$ratio, ratio_min = minimum$ratio_min, fitting = "B-spline")
   )
+}
 
-  out
+#' Individual Anaerobic Threshold (IAT)
+#'
+#' It applies the `IAT` method: the intensity at which the B-spline curve is `settings$iat_rise`
+#' (1.5 mmol/L by default) above the lactate at LTratio (Dickhuth et al., 1999).
+#'
+#' @inheritParams method_obla
+#'
+#' @return a list with the result `rows` (method, fitting, intensity, lactate) and the `plot_data`
+#' for each row.
+#' @keywords internal
+method_iat <- function(data, curve, settings) {
+  minimum <- settings$ltratio
+  start <- minimum$spline$predict(minimum$intensity)
+  target <- start + settings$iat_rise
+  method_result(
+    method = "IAT",
+    fitting = "B-Spline (default)",
+    intensity = retrieve_intensity(minimum$spline, target),
+    lactate = round(target, 1),
+    plot_data = list(
+      curve = curve_points(minimum$spline), from = c(intensity = minimum$intensity, lactate = start),
+      rise = settings$iat_rise, fitting = "B-spline"
+    )
+  )
+}
+
+#' LTratio minimum
+#'
+#' @inheritParams method_obla
+#'
+#' @return a list with the B-spline `spline`, the `intensity` of the minimum ratio, its value
+#' `ratio_min`, and the `ratio` curve over the exercise stages.
+#' @keywords internal
+ltratio_minimum <- function(data, curve, settings) {
+  spline <- if(curve$fit == "B-spline") curve else fit_curve(modeling_data(data, settings$include_baseline), "B-spline")
+  ratio <- function(x) spline$predict(x) / x
+
+  ## the ratio is only meaningful during exercise, not at the positioned resting sample
+  grid <- seq(min(data$intensity[data$intensity > 0]), spline$domain[2], length.out = 2001)
+  intensity <- refine_extremum(ratio, grid)$minimum
+
+  list(
+    spline = spline,
+    intensity = intensity,
+    ratio_min = ratio(intensity),
+    ratio = data.frame(intensity = grid, ratio = ratio(grid))
+  )
 }

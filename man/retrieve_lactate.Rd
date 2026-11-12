@@ -4,18 +4,17 @@
 \alias{retrieve_lactate}
 \title{Retrieve lactate}
 \usage{
-retrieve_lactate(model, intensity_value)
+retrieve_lactate(curve, intensity_value)
 }
 \arguments{
-\item{model}{The model chosen in \code{fit}.}
+\item{curve}{A curve from \code{fit_curve()}.}
 
-\item{intensity_value}{The intensity value.}
+\item{intensity_value}{The intensity values.}
 }
 \value{
 the lactate associated with the estimated lactate threshold
 }
 \description{
-Retrieves the lactate associated to a given intensity value.
-It is mainly for internal use but it is exported for possible extensions.
+Retrieves the fitted lactate at given intensities, rounded to 0.1 mmol/L.
 }
 \keyword{internal}

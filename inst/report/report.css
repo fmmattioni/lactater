@@ -1,0 +1,119 @@
+/* the report of test_report() and report_save(): one continuous page on screen, A4 pages in print */
+:root {
+  --ink: #11181f;
+  --muted: #5b6672;
+  --rule: #d9dde3;
+  --navy: #183a53;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0 auto;
+  max-width: 860px;
+  padding: 0 0 40px;
+  background: #fff;
+  color: var(--ink);
+  font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+main, footer { padding: 0 32px; }
+/* sections stack; the stages and every method, two narrow tables for the record, sit side by side, and each takes
+   the whole width when alone or on a phone */
+main { display: flex; flex-wrap: wrap; align-items: flex-start; column-gap: 32px; }
+main > section { flex: 1 1 100%; min-width: 0; }
+main > section.test { flex: 2 1 260px; }
+main > section.methods { flex: 3 1 360px; }
+/* who was tested and where, on one dark field */
+.band {
+  padding: 22px 32px 20px;
+  background: var(--navy);
+  color: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.band-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  opacity: 0.85;
+}
+.band-top img { display: block; max-height: 36px; width: auto; }
+.band h1 { margin: 0 0 10px; font-size: 28px; font-weight: 600; line-height: 1.2; }
+.band dl { display: flex; flex-wrap: wrap; gap: 6px 28px; margin: 0; }
+.band dl div { display: flex; flex-direction: column; }
+.band dt { font-size: 12px; opacity: 0.7; }
+.band dd { margin: 0; font-weight: 600; }
+h2 { margin: 30px 0 8px; font-size: 18px; font-weight: 600; line-height: 1.3; }
+h2.claim { margin-top: 28px; font-size: 26px; letter-spacing: -0.01em; }
+p { margin: 0 0 10px; }
+.lede { font-size: 15px; }
+/* the summary of one test opens with its text, under the band */
+.lede:first-child { margin-top: 24px; }
+.caption, figcaption { font-size: 13px; color: var(--muted); }
+/* the three numbers that answer the test, under one rule */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin: 18px 0 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--ink);
+}
+.stat p { margin: 0; }
+.stat-label { font-size: 13px; color: var(--muted); }
+.stat-value { font-size: 30px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.stat-detail { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stat-warning { color: var(--ink); }
+.stat-flag { color: #b45309; font-weight: 600; }
+/* a subscript (Dmax, HRmax) must not make its line taller than its neighbors */
+sub, sup { line-height: 0; }
+figure { margin: 18px 0 0; }
+figure img { display: block; width: 100%; height: auto !important; }
+figcaption { margin-top: 2px; }
+footer { margin-top: 32px; font-size: 12px; color: var(--muted); }
+@media (max-width: 640px) {
+  main, footer, .band { padding-left: 16px; padding-right: 16px; }
+  .stats { grid-template-columns: 1fr; gap: 16px; }
+}
+/* in print, the page number at the foot of every page */
+@page {
+  size: A4;
+  margin: 11mm 13mm 13mm;
+  @bottom-right {
+    content: counter(page) " of " counter(pages);
+    font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+    font-size: 8pt;
+    color: #5b6672;
+  }
+}
+@media print {
+  body { max-width: none; padding: 0; font-size: 11.5px; line-height: 1.45; }
+  main, footer { padding: 0; }
+  main { column-gap: 24px; }
+  .band { padding: 14px 18px 12px; }
+  .band-top { margin-bottom: 8px; font-size: 11px; }
+  .band h1 { font-size: 22px; margin-bottom: 6px; }
+  .band dt { font-size: 10px; }
+  h2 { margin-top: 14px; margin-bottom: 4px; font-size: 14px; }
+  h2.claim { margin-top: 14px; font-size: 20px; }
+  .lede { font-size: 12px; }
+  .lede:first-child { margin-top: 12px; }
+  p { margin-bottom: 5px; }
+  .caption, figcaption { font-size: 10.5px; }
+  .stats { margin-top: 8px; gap: 24px; padding-top: 8px; }
+  .stat-label, .stat-detail { font-size: 11px; }
+  .stat-value { font-size: 24px; }
+  figure { margin-top: 8px; }
+  footer { margin-top: 10px; font-size: 9.5px; }
+  .page-break { break-before: page; }
+  section.page-break + section > h2:first-child { margin-top: 0; }
+  /* a section moves to the next page whole, its heading with its table; one with a chart may break between the
+     chart and its table, and the table then moves whole */
+  section, figure, .stat, tr, .gt_table { break-inside: avoid; }
+  section:has(figure) { break-inside: auto; }
+  .gt_table .gt_row, .gt_table .gt_group_heading { padding-top: 2px !important; padding-bottom: 2px !important; }
+  h2 { break-after: avoid; }
+}

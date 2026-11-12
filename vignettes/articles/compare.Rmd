@@ -1,0 +1,253 @@
+---
+title: "Comparing tests"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5, dpi = 110, out.width = "100%")
+library(lactater)
+plex <- requireNamespace("systemfonts", quietly = TRUE) &&
+  isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
+if (plex) options(lactater.font = "IBM Plex Sans")
+```
+
+A step test is most useful the second time: did the athlete improve, by how much, and is that more than the noise
+of the test? This article uses the six tests of one trained cyclist in `lactate_tests` (real data from Trinity
+College Dublin, CC BY 4.0), over five and a half years.
+
+```{r, message = FALSE}
+library(lactater)
+library(dplyr)
+
+series <- lactate_tests |>
+  filter(athlete == "cyclist_series")
+series |>
+  distinct(test, day)
+
+analyse <- function(d) {
+  series |>
+    filter(day == d) |>
+    lactate_threshold(intensity, lactate, heart_rate, plot = FALSE)
+}
+before <- analyse(0)
+after <- analyse(58)
+```
+
+Before comparing, check both tests on their own (see [Checking the analysis](checking.html)), and make sure they
+were run the same way: the same protocol, sampling site, sample type and analyzer (see [Best
+practices](best-practices.html)).
+
+## Is the change real?
+
+A threshold moves between two tests even when fitness does not, through day-to-day variation and the error of the
+analyzer and the method. `compare_tests()` gives every change an interval from the test-retest variation of the
+method ([Hopkins, 2000](https://doi.org/10.2165/00007256-200030010-00001); [Swinton et al., 2018](https://doi.org/10.3389/fnut.2018.00041)), and three columns to read it by: the `noise` (what two
+tests of that method usually differ by when nothing changed), the `ratio` of the change to it, and a `verdict`,
+"beyond the noise" when the whole interval is on one side of zero, or of the smallest worthwhile change you set with
+`swc`. There is no agreed level for that interval: 90% is the default, 95% the classic choice, and narrower ones are
+defended for decisions in practice (Swinton et al., 2018); set it with `level`. At 90%, an unchanged threshold is
+called a gain in 5% of comparisons and a loss in 5%: a one-sided test for a gain at 5%, which [Sainani
+(2018)](https://doi.org/10.1249/MSS.0000000000001645) recommends in place of graded terms. "Within the noise" does not
+mean that nothing changed. With a `cv` of 4% to 5%, a threshold has to move by about 10% to lie beyond the noise, so
+one pair of tests rarely settles it, and a series of tests says more (below). lactater does not turn the interval
+into "likely" or "very likely": those terms read it as the probability of a true change, which it is not ([Lohse et
+al., 2020](https://doi.org/10.1371/journal.pone.0235318)).
+
+Read the verdict of the LT1 and LT2 you chose in `lactate_threshold()`, which the header gives, and choose `level`
+and `swc` before you look. Every method has its own verdict, and with 18 of them some lie beyond the noise by chance:
+in 157 pairs of consecutive tests of the cyclists of Heuberger et al. (2018), each method did in 6% to 15% of pairs,
+but at least one of them in 50%. [Sainani & Chamari (2022)](https://doi.org/10.1123/ijspp.2022-0023) ask for the
+outcome to be named beforehand when many are tested: here, that is the pair you chose.
+
+```{r}
+comparison <- compare_tests(before, after)
+comparison |>
+  select(method, before, after, change, change_low, change_high, cv, noise, ratio, verdict)
+```
+
+The default test-retest variation of each method (the `cv` column) is lactater's own calculation on the open data of
+[Heuberger et al. (2018)](https://doi.org/10.1371/journal.pone.0206846): the five step tests of each of 47 trained male cyclists, about two weeks apart, analyzed with
+`lactate_reliability()`. It is about 4% to 6% for the thresholds aimed at LT2 and 8% to 11% for Bsln + 0.5, Log-log,
+LT<sub>ratio</sub> and LTP1, so a first-rise threshold has to move about twice as far before the change is clear. These
+defaults are on the careful side: the published values are lower (3.4% to 4.3% for D<sub>max</sub>, IAT, 4 mmol/L and
+ModD<sub>max</sub> in the placebo riders of the same study; 3.4% to 3.7% for Bsln+ in a ramp test, [Pallares et al.,
+2016](https://doi.org/10.1371/journal.pone.0163389)), and `?compare_tests` lists both, to give the published ones with `cv` if you prefer them. The best
+`cv` is still the one of your own athletes with your own protocol: measure it with `lactate_reliability()`.
+The defaults come from cyclists and are used for every sport, and the notes say so when the tests are not cycling.
+For running, no open test-retest data were found to compute them the same way. Published typical errors are about
+0.3 to 0.8 km/h (2% to 6%) in 22 trained men ([Cerezuela-Espejo et al., 2018](https://doi.org/10.3389/fphys.2018.01320),
+from the SDs of their differences) and 0.4 to 1.4 km/h in 19 healthy, untrained people ([Gavin et al.,
+2014](https://doi.org/10.1016/j.jsams.2013.08.006)), close to the cycling defaults.
+`attr(comparison, "notes")` lists what could make two tests hard to compare: a
+different protocol, sample type or resting sample, or a fall in peak lactate, which also moves the curve to the
+right.
+
+## How far did the curve move?
+
+Thresholds are single points; the whole curve tells more. `curve_shift()` gives the intensity gained at each lactate,
+and the lactate saved at the intensities you choose.
+
+```{r}
+curve_shift(before, after, intensity = c(250, 300))
+autoplot(comparison)
+```
+
+## Did the curve shift, or change its shape?
+
+Training can move the whole curve to the right, or change its shape: a later or a gentler rise. `curve_shape()`
+fits both tests with the exponential plus constant, `lactate = a + b * exp(c * intensity)` ([Hughson et al., 1987](https://doi.org/10.1152/jappl.1987.62.5.1975)),
+twice: once with one shape for both tests, the second moved sideways by a shift, and once with a shape for each
+test. An extra-sum-of-squares F test ([Motulsky & Ransnas, 1987](https://doi.org/10.1096/fasebj.1.5.3315805)) and
+AICc ([Hurvich & Tsai, 1989](https://doi.org/10.1093/biomet/76.2.297)) compare the two fits, and the shift comes
+with a confidence interval.
+
+```{r}
+shape <- curve_shape(before, after)
+shape
+autoplot(shape)
+```
+
+In the first 58 days the curve moved by about 24 W, and one shape describes both tests. Five and a half years later,
+it is a different story:
+
+```{r}
+later <- curve_shape(before, analyse(2046))
+later
+autoplot(later)
+```
+
+Read the result with care:
+
+* **Little power.** "No shape change detected" is not proof that the shape is the same. In simulated tests of a
+  trained cyclist, a baseline 0.5 mmol/L higher was found in 96% of pairs with 8 stages per test, but in 20% with 6.
+* **An approximate p-value.** The F test is exact only for models that are linear in their parameters ([Motulsky &
+  Ransnas, 1987](https://doi.org/10.1096/fasebj.1.5.3315805)); here it fell below 0.05 in 8% to 10% of simulated
+  pairs with no change of shape. The verdict also asks AICc, and was wrong in 1% to 6%.
+* **A shift is not always fitness.** In this model, a shift to the right is the same as a proportional fall of
+  lactate above baseline. Better endurance, low glycogen stores and overreaching can all produce it ([Maassen & Busse,
+  1989](https://doi.org/10.1007/BF00637384); [Faude et al., 2009](https://doi.org/10.2165/00007256-200939060-00003)), so check the peak lactate, the diet before the test and the performance too.
+* **The curve must fit.** The exponential cannot follow an early lactate dip; check both tests with
+  `lactate_diagnostics()` first.
+
+## A series of tests
+
+For up to five tests, the plot of `lactate_trend()` shows where the curve moved and what that did to the training
+zones: every lactate curve, the latest in blue and the first in dark gray, above the five zones of each test from the LT1 and LT2 you
+choose. `day` takes the date of each test, or the days since the first. The test dates are not in `lactate_tests`, so
+this example starts on a made-up date, with five of the six tests:
+
+```{r, fig.height = 8.5}
+days <- c(0, 163, 1107, 1865, 2046)
+tests <- purrr::map(days, analyse)
+trend <- lactate_trend(!!!tests, day = as.Date("2019-01-14") + days)
+autoplot(trend, lt1 = "Bsln + 0.5", lt2 = "ModDmax")
+```
+
+The curve did not move in a straight line: in the third test, three years in, both thresholds sat below those of the
+first test, with a higher peak lactate at the same peak power. `lactate_trend()` also fits a straight line to each
+threshold, with its 90% interval (set it with `level`), to show the direction without reading too much into one
+test:
+
+```{r}
+trend |>
+  filter(method %in% c("Bsln + 0.5", "ModDmax", "OBLA 4.0", "IAT"))
+```
+
+For longer series, such as monitoring over a season, the plot shows each threshold over time instead (`view =
+"thresholds"`, the default above five tests): each test as a dot, against a gray band for the noise of the method
+around the first test, where 90% of test-to-test changes fall when nothing changed ([Hopkins,
+2000](https://doi.org/10.2165/00007256-200030010-00001)). Every test is one more look: with nothing changed, at least
+one dot falls outside the band in 24% of series with three later tests and in 43% with eight, so one dark dot in a
+long series is weak evidence, and the trend line is the answer for the series.
+
+To report a series to the athlete or the coach, give `test_report()` two to five tests and their dates: the report
+starts with the progress, then describes the latest test ([see an
+example](https://fmmattioni.github.io/lactater/report-series-example.html)).
+
+## Comparing athletes
+
+Per kg of body mass, and as a percentage of the highest intensity and heart rate of the test:
+
+```{r}
+body_mass <- series |>
+  filter(day == 58) |>
+  pull(body_mass) |>
+  first()
+
+relative_thresholds(after, body_mass = body_mass) |>
+  filter(method %in% c("Log-log", "ModDmax", "IAT")) |>
+  select(method, intensity, intensity_per_kg, percent_peak, percent_peak_heart_rate)
+```
+
+A fixed lactate concentration falls at a similar percentage of peak power in trained and untrained people ([Maassen &
+Busse, 1989](https://doi.org/10.1007/BF00637384)), so a percentage of peak does not rank fitness on its own.
+
+### Against the population
+
+For people who are not athletes, such as clients, patients and students, `reference_percentiles()` places the power
+at 3 mmol/L and at 1 mmol/L above the resting lactate on the percentiles of the German population of the same age and
+sex: 5,190 people aged 14 to 64 from two national health surveys, whose thresholds were computed with lactater
+([Fiedler et al., 2025](https://doi.org/10.1080/02640414.2025.2517913)). It gives the percentile and the standing in plain words, such as "top 25%". Here the
+demo test, for a man of 31 and 72 kg:
+
+```{r}
+demo <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
+reference_percentiles(demo, age = 31, sex = "male", body_mass = 72)
+```
+
+The reference tests started at 25 W and added 25 W every 2 min, with earlobe blood. Percentiles only transfer between
+tests run the same way: shorter stages put the thresholds at higher intensities ([Bentley et al.,
+2007](https://doi.org/10.2165/00007256-200737070-00002)), so the 3-min stages of `demo_data` make this man look a little weaker than he would on the reference
+protocol. Trained cyclists land above the 97.5th percentile, so use these values for the general population, not to rank
+athletes. `report_reference()` adds this comparison to a test report.
+
+## References
+
+Bentley DJ, Newell J, Bishop D. Incremental exercise test design and analysis: implications for performance
+diagnostics in endurance athletes. Sports Med. 2007;37(7):575-86. [doi:10.2165/00007256-200737070-00002](https://doi.org/10.2165/00007256-200737070-00002)
+
+Cerezuela-Espejo V, Courel-Ibáñez J, Morán-Navarro R, Martínez-Cava A, Pallarés JG. The relationship between lactate
+and ventilatory thresholds in runners: validity and reliability of exercise test performance parameters. Front
+Physiol. 2018;9:1320. [doi:10.3389/fphys.2018.01320](https://doi.org/10.3389/fphys.2018.01320)
+
+Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid are they? Sports Med. 2009;39(6):469-90.
+[doi:10.2165/00007256-200939060-00003](https://doi.org/10.2165/00007256-200939060-00003)
+
+Fiedler J, Thron M, Altmann S, Härtel S, Barsch F, Schlenker L, Krug S, Bös K, Woll A. Reference standards for power
+at the lactate threshold 2 for cycle ergometry throughout the lifespan in Germany. J Sports Sci. 2025;43(16):1654-64.
+[doi:10.1080/02640414.2025.2517913](https://doi.org/10.1080/02640414.2025.2517913)
+
+Gavin JP, Willems MET, Myers SD. Reproducibility of lactate markers during 4 and 8 min stage incremental running: a
+pilot study. J Sci Med Sport. 2014;17(6):635-9. [doi:10.1016/j.jsams.2013.08.006](https://doi.org/10.1016/j.jsams.2013.08.006)
+
+Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive
+value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
+[doi:10.1371/journal.pone.0206846](https://doi.org/10.1371/journal.pone.0206846)
+
+Hopkins WG. Measures of reliability in sports medicine and science. Sports Med. 2000;30(1):1-15.
+[doi:10.2165/00007256-200030010-00001](https://doi.org/10.2165/00007256-200030010-00001)
+
+Hurvich CM, Tsai CL. Regression and time series model selection in small samples. Biometrika. 1989;76(2):297-307.
+[doi:10.1093/biomet/76.2.297](https://doi.org/10.1093/biomet/76.2.297)
+
+Hughson RL, Weisiger KH, Swanson GD. Blood lactate concentration increases as a continuous function in progressive
+exercise. J Appl Physiol. 1987;62(5):1975-81. [doi:10.1152/jappl.1987.62.5.1975](https://doi.org/10.1152/jappl.1987.62.5.1975)
+
+Maassen N, Busse MW. The relationship between lactic acid and work load: a measure for endurance capacity or an
+indicator of carbohydrate deficiency? Eur J Appl Physiol Occup Physiol. 1989;58(7):728-37. [doi:10.1007/BF00637384](https://doi.org/10.1007/BF00637384)
+
+Motulsky HJ, Ransnas LA. Fitting curves to data using nonlinear regression: a practical and nonmathematical review.
+FASEB J. 1987;1(5):365-74. [doi:10.1096/fasebj.1.5.3315805](https://doi.org/10.1096/fasebj.1.5.3315805)
+
+Pallares JG, Moran-Navarro R, Ortega JF, Fernandez-Elias VE, Mora-Rodriguez R. Validity and reliability of
+ventilatory and blood lactate thresholds in well-trained cyclists. PLOS ONE. 2016;11(9):e0163389.
+[doi:10.1371/journal.pone.0163389](https://doi.org/10.1371/journal.pone.0163389)
+
+Sainani KL. The problem with "magnitude-based inference". Med Sci Sports Exerc. 2018;50(10):2166-76.
+[doi:10.1249/MSS.0000000000001645](https://doi.org/10.1249/MSS.0000000000001645)
+
+Sainani KL, Chamari K. Wish list for improving the quality of statistics in sport science. Int J Sports Physiol
+Perform. 2022;17(5):673-4. [doi:10.1123/ijspp.2022-0023](https://doi.org/10.1123/ijspp.2022-0023)
+
+Swinton PA, Hemingway BS, Saunders B, Gualano B, Dolan E. A statistical framework to interpret individual response to
+intervention: paving the way for personalized nutrition and exercise prescription. Front Nutr. 2018;5:41.
+[doi:10.3389/fnut.2018.00041](https://doi.org/10.3389/fnut.2018.00041)

@@ -2,17 +2,24 @@
 % Please edit documentation in R/convert.R
 \name{convert_to_pace}
 \alias{convert_to_pace}
-\title{Convert m/s to s/100m}
+\title{Convert intensity to pace}
 \usage{
-convert_to_pace(speed)
+convert_to_pace(intensity, sport = "swimming")
 }
 \arguments{
-\item{speed}{The speed to convert to pace.}
+\item{intensity}{The intensity to convert.}
+
+\item{sport}{The sport.}
 }
 \value{
-the converted pace
+the pace, rounded to 0.1 s.
 }
 \description{
-It converts speed, in m/s, to pace, in s/100m.
+\itemize{
+\item swimming: speed in m/s to pace in s/100 m;
+\item running: speed in km/h to pace in s/km;
+\item rowing: power in W to split in s/500 m, with the Concept2 relation \code{watts = 2.80 / pace^3}
+(pace in s/m).
+}
 }
 \keyword{internal}

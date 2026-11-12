@@ -4,20 +4,19 @@
 \alias{retrieve_heart_rate}
 \title{Retrieve heart rate}
 \usage{
-retrieve_heart_rate(raw_data, intensity_value, model_heart_rate = NULL)
+retrieve_heart_rate(raw_data, intensity_value)
 }
 \arguments{
-\item{raw_data}{The raw data.}
+\item{raw_data}{The raw data, with a \code{heart_rate} column.}
 
-\item{intensity_value}{The intensity value.}
-
-\item{model_heart_rate}{A pre-fit heart-rate model. If \code{NULL}, it will be fit from \code{raw_data}.}
+\item{intensity_value}{The intensity values.}
 }
 \value{
-the heart rate associated with the estimated lactate threshold
+the heart rate (bpm, rounded) at each intensity.
 }
 \description{
-Retrieves the heart rate associated to a given intensity value.
-It is mainly for internal use but it is exported for possible extensions.
+Heart rate at given intensities, interpolated linearly between the measured stages. A
+straight line through the whole test misses the bend of the heart-rate curve at high
+intensities (2-6 bpm on \code{demo_data}). Outside the stages (e.g. below the first one) it is \code{NA}.
 }
 \keyword{internal}

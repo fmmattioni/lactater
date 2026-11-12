@@ -36,6 +36,7 @@ test_that("individual methods return expected number of rows", {
   expect_equal(nrow(do.call(lactate_threshold, c(common_args, list(method = "Dmax")))), 5)
   expect_equal(nrow(do.call(lactate_threshold, c(common_args, list(method = "LTP")))), 2)
   expect_equal(nrow(do.call(lactate_threshold, c(common_args, list(method = "LTratio")))), 1)
+  expect_equal(nrow(do.call(lactate_threshold, c(common_args, list(method = "IAT")))), 1)
 })
 
 test_that("input validation errors are informative", {
@@ -60,8 +61,8 @@ test_that("input validation errors are informative", {
   invalid_data_missing <- demo_data
   invalid_data_missing$lactate[3] <- NA_real_
 
-  expect_error(
-    lactate_threshold(
+  expect_warning(
+    missing_dropped <- lactate_threshold(
       .data = invalid_data_missing,
       intensity_column = "intensity",
       lactate_column = "lactate",
@@ -72,7 +73,21 @@ test_that("input validation errors are informative", {
       sport = "cycling",
       plot = FALSE
     ),
-    "cannot contain missing values"
+    "Dropped 1 row"
+  )
+  expect_equal(nrow(missing_dropped), 5)
+
+  zero_lactate <- demo_data
+  zero_lactate$lactate[2] <- 0
+  expect_error(
+    lactate_threshold(zero_lactate, "intensity", "lactate", method = "OBLA", plot = FALSE),
+    "must be > 0"
+  )
+
+  unsorted <- demo_data[c(1, 3, 2, 4:8), ]
+  expect_error(
+    lactate_threshold(unsorted, "intensity", "lactate", method = "OBLA", plot = FALSE),
+    "strictly increasing"
   )
 
   expect_error(
@@ -87,7 +102,7 @@ test_that("input validation errors are informative", {
       sport = "cycling",
       plot = FALSE
     ),
-    "At least 3 rows"
+    "At least 3 exercise stages"
   )
 
   expect_error(

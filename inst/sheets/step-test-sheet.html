@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lactate step test: recording sheet</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+  @page { size: A4; margin: 10mm 12mm; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { font-family: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif; font-size: 10.5px; color: #11181f; }
+  /* one A4 page: the notes take whatever height the rest leaves */
+  .sheet { max-width: 186mm; height: 277mm; margin: 0 auto; display: flex; flex-direction: column; }
+  header { display: flex; justify-content: space-between; align-items: baseline; padding-bottom: 6px;
+           border-bottom: 1.5px solid #11181f; }
+  h1 { margin: 0; font-size: 18px; font-weight: 600; }
+  .wordmark { font-family: "IBM Plex Mono", monospace; font-weight: 500; font-size: 10.5px; }
+  h2 { margin: 10px 0 3px; font-size: 11.5px; font-weight: 600; }
+  .hint { font-weight: 400; color: #5b6672; }
+  .fields { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px 12px; }
+  .fields.three { grid-template-columns: repeat(3, 1fr); }
+  .fields.two { grid-template-columns: repeat(2, 1fr); }
+  .field { display: flex; align-items: flex-end; gap: 4px; height: 22px; }
+  .field span { white-space: nowrap; color: #5b6672; }
+  .field i { flex: 1; border-bottom: 1px solid #9aa4ae; height: 14px; }
+  .wide { grid-column: span 2; }
+  .choice { color: #11181f; }
+  table { width: 100%; border-collapse: collapse; margin-top: 2px; }
+  th { font-size: 9.5px; text-align: left; font-weight: 600; padding: 3px 4px; border-bottom: 1.5px solid #11181f; }
+  td { height: 24px; border-bottom: 1px solid #c9d0d8; padding: 0 4px; }
+  td + td { border-left: 1px solid #e6e9ee; }
+  td:first-child { color: #5b6672; width: 8%; }
+  .recovery th:first-child, .recovery td:first-child { width: 22%; }
+  .notes { flex: 1; display: flex; flex-direction: column; min-height: 30mm; }
+  .lines { flex: 1; background-image: repeating-linear-gradient(to bottom, transparent 0, transparent 23px, #c9d0d8 23px, #c9d0d8 24px); }
+  footer { padding-top: 6px; border-top: 1px solid #d9dde3; font-size: 9px; color: #5b6672; }
+  code { font-family: "IBM Plex Mono", monospace; font-size: 9px; }
+</style>
+</head>
+<body>
+<div class="sheet">
+  <header>
+    <h1>Lactate step test: recording sheet</h1>
+    <span class="wordmark">lactater</span>
+  </header>
+
+  <h2>Athlete</h2>
+  <div class="fields">
+    <div class="field wide"><span>Name</span><i></i></div>
+    <div class="field"><span>Date</span><i></i></div>
+    <div class="field"><span>Time of day</span><i></i></div>
+    <div class="field"><span>Sport</span><i></i></div>
+    <div class="field"><span>Sex</span><i></i></div>
+    <div class="field"><span>Age</span><i></i></div>
+    <div class="field"><span>Body mass (kg)</span><i></i></div>
+  </div>
+
+  <h2>The 24 to 48 h before</h2>
+  <div class="fields two">
+    <div class="field"><span>Last meal (time, what)</span><i></i></div>
+    <div class="field"><span>Caffeine (mg, time)</span><i></i></div>
+    <div class="field"><span>Training in the last 48 h</span><i></i></div>
+    <div class="field"><span>Sleep, illness, other</span><i></i></div>
+  </div>
+
+  <h2>Protocol</h2>
+  <div class="fields three">
+    <div class="field"><span>Ergometer</span><i></i></div>
+    <div class="field"><span>Start</span><i></i></div>
+    <div class="field"><span>Increment</span><i></i></div>
+    <div class="field"><span>Stage duration</span><i></i></div>
+    <div class="field"><span>Pause for sampling</span><i></i></div>
+    <div class="field"><span>Treadmill grade (%)</span><i></i></div>
+    <div class="field"><span>Site: <span class="choice">&#9744; earlobe &#9744; fingertip &#9744; other</span></span><i></i></div>
+    <div class="field"><span>Sample: <span class="choice">&#9744; whole blood &#9744; plasma</span></span><i></i></div>
+    <div class="field"><span>Analyzer, calibrated at</span><i></i></div>
+    <div class="field"><span>Room (&deg;C, % humidity)</span><i></i></div>
+    <div class="field"><span>RPE scale: <span class="choice">&#9744; 6-20 &#9744; CR10</span></span><i></i></div>
+    <div class="field"><span>Tester</span><i></i></div>
+  </div>
+
+  <h2>Stages <span class="hint">sample in the last 30 s of each stage, heart rate and RPE in the same window</span></h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Stage</th><th>Intensity (W or km/h)</th><th>Clock time</th><th>Lactate (mmol/L)</th>
+        <th>Heart rate (bpm)</th><th>RPE</th><th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Rest</td><td>0</td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>1</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>2</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>3</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>4</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>5</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>6</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>7</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>8</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>9</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>10</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>11</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+      <tr><td>12</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+
+  <h2>End of the test and recovery <span class="hint">recovery samples are for Stegmann's threshold; sample until lactate is back below its last value</span></h2>
+  <div class="fields three">
+    <div class="field"><span>Why it ended</span><i></i></div>
+    <div class="field"><span>Time in the last stage (s)</span><i></i></div>
+    <div class="field"><span>Peak heart rate (bpm)</span><i></i></div>
+  </div>
+  <table class="recovery">
+    <thead><tr><th>Minutes after the end</th><th>1</th><th>3</th><th>5</th><th>7</th><th>10</th><th>15</th></tr></thead>
+    <tbody><tr><td>Lactate</td><td></td><td></td><td></td><td></td><td></td><td></td></tr></tbody>
+  </table>
+
+  <div class="notes">
+    <h2>Notes</h2>
+    <div class="lines"></div>
+  </div>
+
+  <footer>
+    Into lactater: one row per stage with <code>intensity</code>, <code>lactate</code> and, if recorded,
+    <code>heart_rate</code> and <code>rpe</code>; the resting sample is the row with intensity 0 (the CSV template that
+    comes with this sheet has these columns). A last stage that was not completed goes in at its time-weighted
+    intensity: the last completed stage plus the increment &times; the seconds done / the seconds of a full stage, or is
+    left out with <code>max_intensity</code>. Recovery samples go in <code>recovery</code>, as minutes and lactate, with
+    <code>stage_duration</code>.
+  </footer>
+</div>
+</body>
+</html>

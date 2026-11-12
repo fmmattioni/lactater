@@ -1,3 +1,78 @@
 pre, code, pre code {
   white-space: pre !important;
 }
+
+/* the package name in running text (wrapped by extra.js): set in the code face, as a package identifier */
+.lactater-name {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.94em;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+/* hierarchy from size, weight and space, not from rules, rails or capitals */
+.template-home h2,
+.template-article h2 {
+  font-size: 1.55rem;
+  font-weight: 600;
+  margin-top: 3rem;
+  margin-bottom: 0.75rem;
+}
+.template-article h3 {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* figures on a light card, so they read well in dark mode too */
+.template-home img:not(.logo),
+.template-article img {
+  background: #fcfcfb;
+  border-radius: 0.25rem;
+}
+
+/* V with a dot above, drawn: the web font has no combining dot (see extra.js) */
+.vdot {
+  position: relative;
+}
+.vdot::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0.08em;
+  width: 0.15em;
+  height: 0.15em;
+  margin-left: -0.075em;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* gt tables own the full width of the text column and never spill over its right edge */
+.template-article .gt_table,
+.template-home .gt_table {
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+.template-article div[id] > .gt_table { table-layout: auto; }
+
+/* the step test at a glance, in the best-practices article: five columns of text, no boxes */
+.test-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  column-gap: 1.75rem;
+  row-gap: 1rem;
+  margin: 1.75rem 0 2.25rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+.test-step h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 0.35rem;
+}
+.test-step ul {
+  padding-left: 1rem;
+  margin: 0;
+}

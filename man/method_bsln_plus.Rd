@@ -4,27 +4,22 @@
 \alias{method_bsln_plus}
 \title{Bsln+}
 \usage{
-method_bsln_plus(data_prepared, fit, sport, plot)
+method_bsln_plus(data, curve, settings)
 }
 \arguments{
-\item{data_prepared}{The data retrieved from \code{prepare_data()}.}
+\item{data}{The data retrieved from \code{prepare_data()}.}
 
-\item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.}
+\item{curve}{The user-selected curve from \code{fit_curve()}.}
 
-\item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
-
-\item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
+\item{settings}{The analysis settings.}
 }
 \value{
-a tibble with the following columns:
-\item{method}{the method used to estimate the lactate threshold}
-\item{fitting}{the fitting method used to predict the lactate curve}
-\item{intensity}{the intensity associated with the estimated lactate threshold}
-\item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{heart_rate}{the heart rate associated with the estimated lactate threshold}
-\item{plot}{the plot produced to display the lactate threshold}
+a list with the result \code{rows} (method, fitting, intensity, lactate) and the \code{plot_data}
+for each row.
 }
 \description{
-It applies the \verb{Bsln+} methods: \verb{Bsln+ 0.5 mmol/L}, \verb{Bsln+ 1.0 mmol/L}, and \verb{Bsln+ 1.5 mmol/L}.
+It applies the \verb{Bsln+} methods: the intensity at which the fitted curve reaches each rise in
+\code{settings$baseline_plus} (0.5, 1.0, and 1.5 mmol/L by default) above the baseline. The baseline is the
+first sample: the resting sample when there is one, otherwise the first stage.
 }
 \keyword{internal}

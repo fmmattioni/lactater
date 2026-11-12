@@ -10,313 +10,160 @@ knitr::opts_chunk$set(
   comment = "#>",
   fig.path = "man/figures/readme/README-",
   out.width = "100%",
-  dpi = 300,
+  dpi = 200,
+  dev = "ragg_png",
   fig.align = "center",
   warning = FALSE,
   message = FALSE
 )
+plex <- requireNamespace("systemfonts", quietly = TRUE) &&
+  isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
+if (plex) options(lactater.font = "IBM Plex Sans")
 ```
 
-# lactater <img src='man/figures/logo.png' align="right" height="240" />
+<div align="center">
+
+<a href="https://fmmattioni.github.io/lactater/"><img src="man/figures/logo.png" width="200px" alt="lactater logo"/></a>
 
 <!-- badges: start -->
-[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![CRAN status](https://www.r-pkg.org/badges/version/lactater)](https://CRAN.R-project.org/package=lactater)
 [![R-CMD-check](https://github.com/fmmattioni/lactater/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/fmmattioni/lactater/actions/workflows/R-CMD-check.yaml)
-[![Monthly downloads badge](https://cranlogs.r-pkg.org/badges/last-month/lactater?color=blue)](https://CRAN.R-project.org/package=lactater)
-[![Total downloads badge](https://cranlogs.r-pkg.org/badges/grand-total/lactater?color=blue)](https://CRAN.R-project.org/package=lactater)
+[![Codecov test coverage](https://codecov.io/gh/fmmattioni/lactater/graph/badge.svg)](https://app.codecov.io/gh/fmmattioni/lactater)
+[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
+[![Monthly downloads](https://cranlogs.r-pkg.org/badges/last-month/lactater?color=blue)](https://CRAN.R-project.org/package=lactater)
+[![Total downloads](https://cranlogs.r-pkg.org/badges/grand-total/lactater?color=blue)](https://CRAN.R-project.org/package=lactater)
 <!-- badges: end -->
 
-The goal of `lactater` is to provide tools for making it easier to analyze **lactate thresholds**.
+</div>
+
+**lactater** takes the lactate samples of a step incremental test and gives you the thresholds, how sure they are,
+what to double-check, the training zones they make, how they changed since the last test, and a report for the
+athlete. It computes the methods sport scientists use, each as its original paper defined it: Log-log, OBLA, Bsln+,
+the D<sub>max</sub> family, the lactate turn points, LT<sub>ratio</sub>, and the individual anaerobic thresholds of
+Dickhuth, of Stegmann and, for running, of Keul and of Simon. It is written for teaching too: every function and article says what the evidence behind it
+is.
+
+## What it does
+
+| To | Use | You get |
+|---|---|---|
+| Estimate the thresholds | `lactate_threshold()` | every method at once, with heart rate, RPE and pace at each threshold |
+| Know how sure each one is | `ci = TRUE` | bootstrap intervals for the noise of the samples |
+| Check the data and the fit | `lactate_checks()`, `lactate_diagnostics()`, `lactate_fit_quality()` | what to double-check, residuals, influential stages, how much each threshold rests on one stage |
+| Make training zones | `lactate_zones()` | three or five zones from LT1 and LT2 (Bsln + 0.5 and Log-Poly-ModDmax unless you choose others), with intensity, pace, heart rate, RPE and lactate |
+| Compare two tests | `compare_tests()`, `curve_shift()`, `curve_shape()` | each change against the noise of the method (its `noise`, the `ratio` of the change to it, and whether it lies beyond it), and how far and how the curve moved |
+| Measure your own noise | `lactate_reliability()` | the test-retest typical error of each threshold from your repeated tests, for `compare_tests()` |
+| Follow a series of tests | `lactate_trend()` | the curves and zones of up to five tests, and a trend for longer series |
+| Compare athletes | `relative_thresholds()` | thresholds per kg and as a percentage of peak intensity and heart rate |
+| Compare with the population | `reference_percentiles()` | the percentile of power at 3 mmol/L and at baseline + 1 mmol/L among German adults of the same age and sex (cycling, general population) |
+| Count training | `training_load()` | time in each zone and the polarization index |
+| Predict a race | `predict_performance()`, `calibrate_performance()` | race time or time-trial power with a 95% range, from published equations or your own |
+| Report the test | `test_report()`, `report_start()` | a web page and PDF for the athlete or the coach |
+| Record a test | the [web form](https://fmmattioni.github.io/lactater/step-test-form.html), `read_recording()`, `recording_sheet()` | a form that saves itself and downloads an .xlsx lactater reads; a printable sheet and a CSV template |
+| Check the MLSS | `lactate_mlss()` | the maximal lactate steady state from constant-load bouts, and how far each threshold lies from it |
+| Analyze a sprint test | `vlamax()` | the maximal lactate accumulation rate (V&#775;La<sub>max</sub>) |
+| Practice | `lactate_tests`, `demo_data` | 16 real and simulated tests across sports and fitness levels |
+
+## The charts
+
+Every result has a plot, made to explain itself. Click a chart for its help page; the method plots, the diagnostics,
+the comparisons, the training load and the race prediction have their own.
+
+```{r gallery, include = FALSE}
+library(lactater)
+library(dplyr)
+
+gallery <- function(plot, name, width = 7.5, height = 5.2) {
+  ggplot2::ggsave(
+    sprintf("man/figures/readme/gallery-%s.png", name), plot,
+    width = width, height = height, dpi = 150, device = ragg::agg_png
+  )
+}
+results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, rpe_column = rpe, plot = FALSE)
+gallery(autoplot(results), "overview", height = 7)
+five <- lactate_zones(results, model = 5)
+gallery(autoplot(five), "zones", height = 7)
+
+series <- filter(lactate_tests, athlete == "cyclist_series")
+analyse <- function(d) lactate_threshold(filter(series, day == d), intensity, lactate, heart_rate, plot = FALSE)
+days <- c(0, 163, 1107, 1865, 2046)
+tests <- lapply(days, analyse)
+## the test dates are not in the data: an example start date
+trend <- lactate_trend(!!!tests, day = as.Date("2019-01-14") + days)
+gallery(autoplot(trend, lt1 = "Bsln + 0.5", lt2 = "ModDmax"), "series", height = 9.1)
+
+## four of the method plots, with recovery samples (simulated) for Stegmann
+recovery <- data.frame(time = c(1, 3, 5, 7, 10), lactate = c(9.3, 9.6, 9.0, 8.2, 7.1))
+with_recovery <- lactate_threshold(demo_data, intensity, lactate, heart_rate, recovery = recovery,
+                                   stage_duration = 3, plot = FALSE)
+methods <- lapply(c("Log-log", "LTP1", "IAT", "Stegmann"), function(m) autoplot(with_recovery, method = m))
+gallery(plot_methods(methods, ncol = 2), "methods", width = 10.5, height = 9.5)
+gallery(autoplot(lactate_diagnostics(results)), "diagnostics", width = 9, height = 10)
+
+```
+
+<table>
+<tr>
+<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/autoplot.lactate_thresholds.html"><img src="man/figures/readme/gallery-overview.png" alt="Every threshold of a test on one intensity axis, grouped by what the method aims at, with a table of lactate, heart rate and percentages of peak"></a><br><b>One test, every method</b>: each threshold on one axis, grouped by what it aims at, with its values. <code>autoplot(results)</code></td>
+<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/lactate_zones.html"><img src="man/figures/readme/gallery-zones.png" alt="Five training zones on the lactate curve, colored by intensity domain, with the heart rate of the stages in a panel below"></a><br><b>Training zones</b>: three or five, colored by intensity domain, with the heart rate at LT1 and LT2. <code>autoplot(lactate_zones(...))</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/lactate_trend.html"><img src="man/figures/readme/gallery-series.png" alt="The lactate curves of five tests, the latest in blue and the first in dark gray, then their heart rate, above the five training zones of each test"></a><br><b>Up to five tests</b>: where the curve, the heart rate and the zones moved, by date. <code>autoplot(lactate_trend(...))</code></td>
+<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/report-example.html"><img src="man/figures/readme/report-page.png" alt="The first page of a test report: LT1 and LT2, what they mean, and the training zones"></a><br><b>A report for the athlete</b>: the whole test on two A4 pages, as a web page and PDF. <code>test_report(results)</code></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/articles/methods.html"><img src="man/figures/readme/gallery-methods.png" alt="Four method plots: the two Log-log lines, the three LTP segments, the IAT rise above LTratio, and the Stegmann tangent from the recovery samples"></a><br><b>Each method, as its paper defined it</b>: what it fitted, the stages, and the threshold with its lactate and heart rate. <code>autoplot(results, method = "LTP1")</code></td>
+<td width="50%" valign="top"><a href="https://fmmattioni.github.io/lactater/reference/lactate_diagnostics.html"><img src="man/figures/readme/gallery-diagnostics.png" alt="Six panels checking the lactate curve: the fit, residuals, normality, influential stages, a leave-one-stage-out grid and which curve predicts best"></a><br><b>Checking the curve</b>: residuals, influential stages, and how far each threshold moves without each stage. <code>autoplot(lactate_diagnostics(results))</code></td>
+</tr>
+</table>
 
 ## Installation
 
-You can install the released version of `lactater` from [CRAN](https://CRAN.R-project.org/package=lactater) with:
-
-``` r
+```r
 install.packages("lactater")
+
+# development version
+# install.packages("pak")
+pak::pak("fmmattioni/lactater")
 ```
 
-You can install the development version of `lactater` from [Github](https://github.com/fmmattioni/lactater) with:
+## Get started
 
-``` r
-# install.packages("remotes")
-remotes::install_github("fmmattioni/lactater")
-```
-
-## Demo data
+One row per stage: intensity, lactate and, if you have them, heart rate and RPE; the resting sample is the row with
+intensity 0. `lactate_threshold()` estimates every method at once, `autoplot()` shows how they agree, and
+`lactate_zones()` turns the two you choose into training zones:
 
 ```{r}
-library(lactater)
+results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
+results
 
-demo_data
+lactate_zones(results, model = 5)
 ```
 
-## Usage
+Add `ci = TRUE` for bootstrap intervals, `lactate_checks()` for what to double-check, `compare_tests()` for a second
+test and `test_report()` for a web page and PDF for the athlete (see [a
+cyclist](https://fmmattioni.github.io/lactater/report-example.html) and [a
+runner](https://fmmattioni.github.io/lactater/report-running-example.html)). The [web
+form](https://fmmattioni.github.io/lactater/step-test-form.html) records a test and downloads an .xlsx that
+`read_recording()` reads, and the [cheatsheet](https://fmmattioni.github.io/lactater/cheatsheet.html) puts the
+whole package on two pages (also as a [PDF](https://fmmattioni.github.io/lactater/lactater-cheatsheet.pdf)).
+[Get started](https://fmmattioni.github.io/lactater/articles/lactater.html) walks through
+all of it.
 
-With `lactater` you can easily estimate lactate thresholds using one or multiple methods:
+## Learn more
 
-```{r}
-results_overall <- lactate_threshold(
-  .data = demo_data, 
-  intensity_column = "intensity", 
-  lactate_column = "lactate", 
-  heart_rate_column = "heart_rate",
-  method = c("Log-log", "OBLA", "Bsln+", "Dmax", "LTP", "LTratio"),
-  fit = "3rd degree polynomial", 
-  include_baseline = TRUE, 
-  sport = "cycling",
-  plot = TRUE
-)
-```
+* [Get started](https://fmmattioni.github.io/lactater/articles/lactater.html): the whole workflow, task by task.
+* [Best practices for a step test](https://fmmattioni.github.io/lactater/articles/best-practices.html): how to run a
+  test, as a checklist with sources.
+* [The methods and the evidence](https://fmmattioni.github.io/lactater/articles/methods.html) and [Checking the
+  analysis](https://fmmattioni.github.io/lactater/articles/checking.html): how each method is computed, what the
+  studies say, and how to check a result.
+* [Training zones](https://fmmattioni.github.io/lactater/articles/zones.html), [training
+  load](https://fmmattioni.github.io/lactater/articles/training-load.html), [comparing
+  tests](https://fmmattioni.github.io/lactater/articles/compare.html) and [predicting
+  performance](https://fmmattioni.github.io/lactater/articles/performance.html): what to do with the thresholds.
+* [Beyond the step test](https://fmmattioni.github.io/lactater/articles/beyond-the-step-test.html) and [the example
+  data](https://fmmattioni.github.io/lactater/articles/example-data.html).
 
-```{r echo=FALSE}
-results_overall
-```
-
-```{r echo=FALSE, fig.width=16, fig.height=11}
-plot_methods(results_overall$plot)
-```
-
-
-## You can also choose one method:
-
-### Log-log
-
-```{r}
-results_loglog <- lactate_threshold(
-  .data = demo_data, 
-  intensity_column = "intensity", 
-  lactate_column = "lactate", 
-  heart_rate_column = "heart_rate",
-  method = "Log-log",
-  fit = "3rd degree polynomial", 
-  include_baseline = TRUE, 
-  sport = "cycling",
-  plot = TRUE
-)
-```
-
-```{r echo=FALSE}
-results_loglog
-```
-
-```{r echo=FALSE}
-plot_methods(results_loglog$plot)
-```
-
-### OBLA
-
-```{r}
-results_obla <- lactate_threshold(
-  .data = demo_data, 
-  intensity_column = "intensity", 
-  lactate_column = "lactate", 
-  heart_rate_column = "heart_rate",
-  method = "OBLA",
-  fit = "3rd degree polynomial", 
-  include_baseline = TRUE, 
-  sport = "cycling",
-  plot = TRUE
-)
-```
-
-```{r echo=FALSE}
-results_obla
-```
-
-```{r echo=FALSE, fig.width=10, fig.height=7}
-plot_methods(results_obla$plot)
-```
-
-### Bsln+
-
-```{r}
-results_bsln_plus <- lactate_threshold(
-  .data = demo_data, 
-  intensity_column = "intensity", 
-  lactate_column = "lactate", 
-  heart_rate_column = "heart_rate",
-  method = "Bsln+",
-  fit = "3rd degree polynomial", 
-  include_baseline = TRUE, 
-  sport = "cycling",
-  plot = TRUE
-)
-```
-
-```{r echo=FALSE}
-results_bsln_plus
-```
-
-```{r echo=FALSE, fig.width=6, fig.height=6}
-plot_methods(results_bsln_plus$plot, ncol = 2)
-```
-
-### Dmax
-
-```{r}
-results_dmax <- lactate_threshold(
-  .data = demo_data, 
-  intensity_column = "intensity", 
-  lactate_column = "lactate", 
-  heart_rate_column = "heart_rate",
-  method = "Dmax",
-  fit = "3rd degree polynomial", 
-  include_baseline = TRUE, 
-  sport = "cycling",
-  plot = TRUE
-)
-```
-
-```{r echo=FALSE}
-results_dmax
-```
-
-```{r echo=FALSE, fig.width=10, fig.height=6}
-plot_methods(results_dmax$plot)
-```
-
-### LTP
-
-```{r}
-results_ltp <- lactate_threshold(
-  .data = demo_data, 
-  intensity_column = "intensity", 
-  lactate_column = "lactate", 
-  heart_rate_column = "heart_rate",
-  method = "LTP",
-  fit = "3rd degree polynomial", 
-  include_baseline = TRUE, 
-  sport = "cycling",
-  plot = TRUE
-)
-```
-
-```{r echo=FALSE}
-results_ltp
-```
-
-```{r echo=FALSE, fig.width=10, fig.height=5}
-plot_methods(results_ltp$plot)
-```
-
-### LTratio
-
-```{r}
-results_ltratio <- lactate_threshold(
-  .data = demo_data, 
-  intensity_column = "intensity", 
-  lactate_column = "lactate", 
-  heart_rate_column = "heart_rate",
-  method = "LTratio",
-  fit = "3rd degree polynomial", 
-  include_baseline = TRUE, 
-  sport = "cycling",
-  plot = TRUE
-)
-```
-
-```{r echo=FALSE}
-results_ltratio
-```
-
-```{r echo=FALSE}
-plot_methods(results_ltratio$plot)
-```
-
-## Lactate curve
-
-In case you would like to retrieve the data for producing your own plots, you can use the `lactate_curve()` function:
-
-```{r}
-data_lactate_curve <- lactate_curve(
-  .data = demo_data,
-  intensity_column = "intensity",
-  lactate_column = "lactate",
-  heart_rate_column = "heart_rate",
-  fit = "3rd degree polynomial",
-  include_baseline = FALSE,
-  sport = "cycling"
-)
-
-data_lactate_curve
-```
-
-And then you easily produce plots like the following:
-
-```{r}
-library(ggplot2)
-
-ggplot() +
-  geom_path(data = data_lactate_curve$lactate_curve, aes(intensity, lactate)) +
-  geom_point(data = data_lactate_curve$data, aes(intensity, lactate), size = 4) +
-  theme_light()
-
-ggplot() +
-  geom_path(data = data_lactate_curve$heart_rate_response, aes(intensity, heart_rate)) +
-  geom_point(data = data_lactate_curve$data, aes(intensity, heart_rate), size = 4) +
-  theme_light()
-```
-
-You can also combine the results from the `lactate_threshold()` function to plot the results:
-
-```{r}
-ggplot() +
-  geom_path(data = data_lactate_curve$lactate_curve, aes(intensity, lactate)) +
-  geom_point(data = data_lactate_curve$data, aes(intensity, lactate), size = 4) +
-  geom_point(data = results_overall, aes(intensity, lactate, color = method), size = 3) +
-  theme_light()
-```
-
-You can also compare the lactate curves after a training period, for example:
-
-```{r}
-data_after_training <- tibble::tribble(
-  ~step, ~length, ~intensity, ~lactate, ~heart_rate,
-     0L,      0L,         0L,     0.93,         88L,
-     1L,      3L,        50L,     0.98,        108L,
-     2L,      3L,        75L,     1.12,        126L,
-     3L,      3L,       100L,     1.6,         138L,
-     4L,      3L,       125L,      2.1,        156L,
-     5L,      3L,       150L,     3.75,        169L,
-     6L,      3L,       175L,     4.98,        182L,
-     7L,      3L,       200L,     7.78,        190L,
-     8L,      3L,       225L,     10.12,       199L
-  )
-
-data_lactate_curve_after_training <- lactate_curve(
-  .data = data_after_training,
-  intensity_column = "intensity",
-  lactate_column = "lactate",
-  heart_rate_column = "heart_rate",
-  fit = "3rd degree polynomial",
-  include_baseline = FALSE,
-  sport = "cycling"
-)
-```
-
-
-```{r}
-ggplot() +
-  geom_path(data = data_lactate_curve$lactate_curve, aes(intensity, lactate, color = "before training")) +
-  geom_point(data = data_lactate_curve$data, aes(intensity, lactate, color = "before training"), size = 4) +
-  geom_path(data = data_lactate_curve_after_training$lactate_curve, aes(intensity, lactate, color = "after training")) +
-  geom_point(data = data_lactate_curve_after_training$data, aes(intensity, lactate, color = "after training"), size = 4) +
-  theme_light() +
-  labs(color = NULL)
-
-ggplot() +
-  geom_path(data = data_lactate_curve$heart_rate_response, aes(intensity, heart_rate, color = "before training")) +
-  geom_point(data = data_lactate_curve$data, aes(intensity, heart_rate, color = "before training"), size = 4) +
-  geom_path(data = data_lactate_curve_after_training$heart_rate_response, aes(intensity, heart_rate, color = "after training")) +
-  geom_point(data = data_lactate_curve_after_training$data, aes(intensity, heart_rate, color = "after training"), size = 4) +
-  theme_light() +
-  labs(color = NULL)
-```
-
-## Related work
-
-* [lactate-R](http://www.uiginn.com/lactate/lactate-r.html)
-* [cycleRtools](https://github.com/cran/cycleRtools)
-* [exPhysR](https://github.com/dhammarstrom/exPhysR)
+**lactater** 1.0 fixed several calculations of earlier versions; see [what
+changed](https://fmmattioni.github.io/lactater/articles/whats-new.html).

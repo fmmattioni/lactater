@@ -1,0 +1,101 @@
+results <- lactate_threshold(demo_data, "intensity", "lactate", "heart_rate", plot = FALSE)
+
+test_that("ci adds intervals that contain the estimate", {
+  set.seed(1)
+  with_ci <- lactate_threshold(
+    demo_data, "intensity", "lactate",
+    method = c("OBLA", "Dmax"), plot = FALSE, ci = TRUE, n_boot = 60
+  )
+  expect_true(all(c("intensity_low", "intensity_high") %in% names(with_ci)))
+  ok <- !is.na(with_ci$intensity_low)
+  expect_true(all(with_ci$intensity_low[ok] <= with_ci$intensity[ok] + 0.1))
+  expect_true(all(with_ci$intensity_high[ok] >= with_ci$intensity[ok] - 0.1))
+  expect_error(lactate_threshold(demo_data, "intensity", "lactate", ci = TRUE, n_boot = 5), "n_boot")
+})
+
+test_that("a threshold that was not found gets no interval", {
+  # nearly straight on log-log: the two Log-log lines cross outside the stages
+  straight <- data.frame(
+    intensity = c(0, 100 * 1.25^(0:4)),
+    lactate = c(0.8, exp(0.4 * c(1, 2.1, 3.1, 3.8, 5.1) - 0.5))
+  )
+  set.seed(1)
+  res <- lactate_threshold(straight, intensity, lactate, method = "Log-log", plot = FALSE, ci = TRUE, n_boot = 30)
+  expect_true(is.na(res$intensity))
+  expect_true(is.na(res$intensity_low) && is.na(res$intensity_high))
+  expect_true(all(is.na(attr(res, "lactater")$intervals)))
+})
+
+test_that(".by analyses each test on its own", {
+  two <- rbind(transform(demo_data, athlete = "A"), transform(fixtures$noisy, athlete = "B"))
+  by <- lactate_threshold(two, intensity, lactate, method = "OBLA", plot = FALSE, .by = "athlete")
+  expect_equal(names(by)[1], "athlete")
+  expect_equal(nrow(by), 10)
+  one <- lactate_threshold(fixtures$noisy, intensity, lactate, method = "OBLA", plot = FALSE)
+  expect_equal(by$intensity[by$athlete == "B"], one$intensity)
+  expect_error(lactate_threshold(two, intensity, lactate, .by = "team"), ".by")
+})
+
+test_that("pace follows the sport", {
+  expect_equal(convert_to_pace(12, "running"), 300)
+  expect_equal(convert_to_pace(2.80 / 0.25^3, "rowing"), 125) # Concept2: 179.2 W is a 2:05 split
+  expect_equal(format_pace(125, "rowing"), "2:05 /500 m")
+  rowing <- lactate_threshold(demo_data, "intensity", "lactate", method = "OBLA", sport = "rowing", plot = FALSE)
+  expect_true("pace" %in% names(rowing))
+})
+
+test_that("lactate_zones uses the chosen LT1 and LT2", {
+  zones <- lactate_zones(results, lt1 = "Log-log", lt2 = "Dmax")
+  expect_s3_class(zones, "lactate_zones")
+  expect_equal(zones$intensity_to[1], results$intensity[results$method == "Log-log"])
+  expect_equal(zones$intensity_from[3], results$intensity[results$method == "Dmax"])
+  expect_true(is.na(zones$intensity_from[1]) && is.na(zones$intensity_to[3]))
+  expect_equal(lactate_zones(results, lt1 = 100, lt2 = 150)$intensity_from[2:3], c(100, 150))
+  expect_error(lactate_zones(results, lt1 = "Dmax", lt2 = "Log-log"), "below LT2")
+  expect_error(lactate_zones(results, lt1 = "Nope"), "lt1")
+  ## a result without the default pair says which default is missing and how to choose
+  ltp_only <- lactate_threshold(demo_data, intensity, lactate, method = "LTP", plot = FALSE)
+  expect_error(lactate_zones(ltp_only), "(Bsln + 0.5, the default) is not in these results. Choose it with `lt1 =`",
+               fixed = TRUE)
+  expect_s3_class(lactate_zones(ltp_only, lt1 = "LTP1", lt2 = "LTP2"), "lactate_zones")
+  expect_s3_class(autoplot(zones), "ggplot")
+})
+
+test_that("lactate_checks flags problems", {
+  checks <- lactate_checks(results)
+  ## 7 stages leave the three-segment LTP fit 1 degree of freedom: a note, not a warning
+  expect_equal(checks$status[checks$check == "Stages"], "note")
+  expect_match(checks$details[checks$check == "Stages"], "1 degree")
+  female <- lactate_threshold(lactate_tests[lactate_tests$test == "cycling_female", ], intensity, lactate, plot = FALSE)
+  expect_equal(lactate_checks(female)$status[1], "ok")
+  five <- lactate_checks(lactate_threshold(demo_data[1:6, ], intensity, lactate, method = "OBLA", plot = FALSE))
+  ## without LTP the stage count is not an LTP problem
+  expect_equal(five$status[five$check == "Stages"], "ok")
+  sweat <- lactate_threshold(fixtures$plateau_x3, "intensity", "lactate", plot = FALSE, sample = "sweat")
+  sweat_checks <- lactate_checks(sweat)
+  expect_equal(sweat_checks$status[sweat_checks$check == "Sample type"], "warning")
+  expect_equal(sweat_checks$status[sweat_checks$check == "Final stage"], "ok")
+  no_rest <- lactate_checks(lactate_threshold(fixtures$no_rest, "intensity", "lactate", method = "OBLA", plot = FALSE))
+  expect_equal(no_rest$status[no_rest$check == "Resting sample"], "note")
+  expect_match(pillar::tbl_sum(sweat)[["Checks"]], "warning")
+  ## printed as a checklist with the counts on top
+  expect_output(print(sweat_checks), "10 checks: [0-9] passed, [0-9] notes?, [1-9] warnings?")
+  expect_output(print(sweat_checks[sweat_checks$check == "Final stage", ]), "^1 check: 1 passed")
+})
+
+test_that("lactate_fit_quality compares the curves on the same points", {
+  quality <- lactate_fit_quality(results)
+  expect_equal(quality$fit[quality$used], "3rd degree polynomial")
+  expect_true(all(quality$r_squared > 0.9 & quality$r_squared <= 1))
+  expect_equal(unique(quality$n_points), 7)
+})
+
+test_that("compare_tests reports the change for shared methods", {
+  faster <- transform(demo_data, intensity = intensity * 1.05)
+  after <- lactate_threshold(faster, "intensity", "lactate", method = "OBLA", plot = FALSE)
+  before <- lactate_threshold(demo_data, "intensity", "lactate", method = c("OBLA", "Dmax"), plot = FALSE)
+  comparison <- compare_tests(before, after)
+  expect_equal(nrow(comparison), 5)
+  expect_true(all(abs(comparison$change_percent - 5) < 0.2))
+  expect_s3_class(autoplot(comparison), "ggplot")
+})

@@ -4,9 +4,10 @@ on:
   push:
     branches: [main, master]
   pull_request:
-    branches: [main, master]
 
-name: R-CMD-check
+name: R-CMD-check.yaml
+
+permissions: read-all
 
 jobs:
   R-CMD-check:
@@ -29,7 +30,7 @@ jobs:
       R_KEEP_PKG_SOURCE: yes
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
       - uses: r-lib/actions/setup-pandoc@v2
 
@@ -37,23 +38,13 @@ jobs:
         with:
           r-version: ${{ matrix.config.r }}
           http-user-agent: ${{ matrix.config.http-user-agent }}
-          use-public-rspm: true
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck, any::lintr, any::covr
+          extra-packages: any::rcmdcheck
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
-
-      - name: Lint package
-        if: matrix.config.os == 'ubuntu-latest' && matrix.config.r == 'release'
-        run: lintr::lint_package()
-        shell: Rscript {0}
-
-      - name: Compute coverage
-        if: matrix.config.os == 'ubuntu-latest' && matrix.config.r == 'release'
-        run: cov <- covr::package_coverage(); print(covr::percent_coverage(cov))
-        shell: Rscript {0}
+          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'

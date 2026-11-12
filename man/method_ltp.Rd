@@ -2,29 +2,30 @@
 % Please edit documentation in R/method-ltp.R
 \name{method_ltp}
 \alias{method_ltp}
-\title{Lactate Turning Point (LTP)}
+\title{Lactate turn points (LTP)}
 \usage{
-method_ltp(data_prepared, fit, sport, plot)
+method_ltp(data, curve, settings)
 }
 \arguments{
-\item{data_prepared}{The data retrieved from \code{prepare_data()}.}
+\item{data}{The data retrieved from \code{prepare_data()}.}
 
-\item{fit}{The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.}
+\item{curve}{The user-selected curve from \code{fit_curve()}.}
 
-\item{sport}{The sport at which the incremental test was performed. One of \code{cycling}, \code{running}, or \code{swimming}.}
-
-\item{plot}{A boolean to indicate whether to generate a plot from each one of the methods.}
+\item{settings}{The analysis settings.}
 }
 \value{
-a tibble with the following columns:
-\item{method}{the method used to estimate the lactate threshold}
-\item{fitting}{the fitting method used to predict the lactate curve}
-\item{intensity}{the intensity associated with the estimated lactate threshold}
-\item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-\item{heart_rate}{the heart rate associated with the estimated lactate threshold}
-\item{plot}{the plot produced to display the lactate threshold}
+a list with the result \code{rows} (method, fitting, intensity, lactate) and the \code{plot_data}
+for each row.
 }
 \description{
-It applies the \code{LTP} methods: \code{LTP1}, and \code{LTP2}.
+It applies the \code{LTP} methods: \code{LTP1}, and \code{LTP2}. A three-segment continuous linear regression
+is fitted to the measured points; the two breakpoints with the lowest residual sum of squares
+are found by exhaustive search (see \code{fit_breakpoints()}). With \code{ltp_fix_first_slope} the first
+segment is flat. Hofmann et al. (1997) and Pokan et al. (1997) fitted each turn point with its own
+two-line regression inside a window, on tests with 1-min or 90-s stages; with the 6 to 10 stages of a
+typical step test those windows hold too few stages, so the three segments are fitted together.
+With \code{settings$ltp_breakpoints = 1} (a submaximal test) two segments are fitted, the breakpoint is
+LTP1 and LTP2 is \code{NA}. The lactate at each turn point is read off the fitted segments. The resting
+sample is never used: it has no exercise intensity.
 }
 \keyword{internal}

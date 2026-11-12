@@ -1,0 +1,202 @@
+---
+title: "The example data"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7.5, fig.height = 4.6, dpi = 110, out.width = "100%")
+library(lactater)
+plex <- requireNamespace("systemfonts", quietly = TRUE) &&
+  isTRUE(suppressMessages(systemfonts::require_font("IBM Plex Sans", fallback = "sans")))
+if (plex) options(lactater.font = "IBM Plex Sans")
+```
+
+`lactate_tests` holds 16 incremental step tests, one row per stage, so you can try every part of lactater on data
+that looks like what you will collect. Twelve are real tests from two open datasets (Trinity College Dublin, and
+[Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846); both CC BY 4.0); four are simulated where no open data exists. This article walks through
+them: what each sport looks like, and the cases that need care.
+
+```{r, message = FALSE}
+library(lactater)
+library(dplyr)
+library(gt)
+
+lactate_tests |>
+  distinct(sport, test, description, source) |>
+  gt(groupname_col = "sport") |>
+  cols_label(test = "Test", description = "Description", source = "Source") |>
+  tab_style(cell_text(font = "IBM Plex Mono", size = px(13)), cells_body(columns = test)) |>
+  gt_lactater() |>
+  tab_options(row_group.text_transform = "capitalize")
+```
+
+A small helper analyses one test, with heart rate and RPE when they were recorded (the RPE of the four simulated
+tests is simulated too):
+
+```{r}
+analyse <- function(name, ...) {
+  one <- lactate_tests |>
+    filter(test == name)
+  hr <- if (!anyNA(one$heart_rate)) "heart_rate"
+  rating <- if (!anyNA(one$rpe)) "rpe"
+  one |>
+    lactate_threshold(
+      intensity, lactate, heart_rate_column = hr, rpe_column = rating, sport = first(one$sport), plot = FALSE, ...
+    )
+}
+```
+
+## How far apart do the methods land?
+
+Every method answers a slightly different question, so on the same test they land at different intensities. Here,
+for each test, the lowest and highest threshold as a percentage of the highest intensity of the test:
+
+```{r}
+spread <- lactate_tests |>
+  distinct(test, sport) |>
+  mutate(thresholds = purrr::map(test, \(name) {
+    analyse(name, ltp_breakpoints = if (name == "submaximal") 1 else 2) |>
+      relative_thresholds() |>
+      select(method, percent_peak)
+  })) |>
+  tidyr::unnest(thresholds) |>
+  summarise(
+    thresholds = sum(!is.na(percent_peak)),
+    lowest = round(min(percent_peak, na.rm = TRUE)),
+    highest = round(max(percent_peak, na.rm = TRUE)),
+    .by = c(test, sport)
+  )
+spread
+```
+
+In every test the thresholds span a wide part of the intensity range, from the first rise of lactate to the methods
+aimed at the maximal lactate steady state. That is why a threshold means little without the name of its method,
+and why [Training zones](zones.html) asks you to choose LT1 and LT2.
+
+## Cycling: an elite and a trained rider
+
+Power in watts, 3-min stages. The elite rider reached 440 W, 6.6 W/kg; the trained female rider 300 W, 5.0 W/kg.
+Same methods, very different curves.
+
+```{r, fig.height = 8}
+elite <- analyse("cycling_elite")
+autoplot(elite)
+```
+
+Per kg of body mass, and as a percentage of the highest power, the two riders can be compared:
+
+```{r}
+female <- analyse("cycling_female")
+body_mass <- function(name) {
+  lactate_tests |>
+    filter(test == name) |>
+    pull(body_mass) |>
+    first()
+}
+
+bind_rows(
+  cycling_elite = relative_thresholds(elite, body_mass("cycling_elite")),
+  cycling_female = relative_thresholds(female, body_mass("cycling_female")),
+  .id = "rider"
+) |>
+  filter(method %in% c("LTP1", "LTP2")) |>
+  select(rider, method, intensity, intensity_per_kg, percent_peak)
+```
+
+## Running: speed and pace
+
+Treadmill speed in km/h at 0% grade. lactater adds the pace (s/km) and shows it as minutes per km in the plots.
+
+```{r}
+running <- analyse("running")
+running |>
+  filter(method %in% c("Log-log", "OBLA 4.0", "LTP2")) |>
+  select(method, intensity, pace, lactate, heart_rate)
+autoplot(running, "LTP2")
+```
+
+`running_recreational` is a simulated recreational runner tested on the protocol of [Roecker et al.
+(1998)](https://doi.org/10.1097/00005768-199810000-00014) (2% grade, +2 km/h every 3 min from 6 km/h), so
+`predict_performance()` applies their race-time equations as published.
+
+## Rowing: power and the 500 m split
+
+Ergometer power in watts, with 1 min of rest between 3-min stages. The `pace` column is the Concept2 split (s/500 m),
+from `watts = 2.80 / pace^3` with pace in s/m.
+
+```{r}
+rowing <- analyse("rowing")
+rowing |>
+  filter(method %in% c("Log-log", "ModDmax", "IAT")) |>
+  select(method, intensity, pace, lactate)
+```
+
+## Swimming: speed in m/s (simulated)
+
+A 7 x 200 m step test, +0.05 m/s per step. Speeds are shown to 0.01 m/s, and the pace per 100 m.
+
+```{r}
+swimming <- analyse("swimming")
+swimming |>
+  filter(method %in% c("Log-log", "ModDmax", "IAT")) |>
+  select(method, intensity, pace, heart_rate, rpe)
+autoplot(swimming, "ModDmax")
+```
+
+## Cases that need care
+
+### An early lactate dip
+
+Lactate can fall after the first stage, when the warm-up was hard or short. `lactate_checks()` flags it, because
+it shapes D<sub>max</sub> and the baseline of Bsln+.
+
+```{r}
+dip <- analyse("cycling_early_dip")
+lactate_checks(dip)
+autoplot(dip, "Dmax")
+```
+
+### No resting sample, 5-min steps
+
+The [Heuberger et al. (2018)](https://doi.org/10.1371/journal.pone.0206846) test starts at 175 W with no resting sample. Bsln+ then uses the first stage as its
+baseline, and `lactate_checks()` says so.
+
+```{r}
+no_rest <- analyse("cycling_5min_no_rest")
+lactate_checks(no_rest) |>
+  filter(check == "Resting sample")
+```
+
+### A submaximal test
+
+The simulated client stopped at about 3 mmol/L, before the second turn point. Fitting two turn points would invent
+one; `ltp_breakpoints = 1` fits only LTP1, and `lactate_checks()` suggests it when peak lactate stays low.
+
+```{r}
+lactate_checks(analyse("submaximal")) |>
+  filter(check %in% c("Thresholds found", "Peak lactate"))
+
+submaximal <- analyse("submaximal", ltp_breakpoints = 1)
+submaximal |>
+  filter(method %in% c("LTP1", "LTP2", "OBLA 4.0")) |>
+  select(method, intensity, lactate)
+```
+
+## One athlete over five and a half years
+
+The six `cycling_series` tests come from one rider. See [Comparing tests](compare.html)
+for how to tell a real change from noise.
+
+```{r}
+lactate_tests |>
+  filter(athlete == "cyclist_series") |>
+  lactate_threshold(intensity, lactate, method = "LTP", plot = FALSE, .by = "day") |>
+  select(day, method, intensity, lactate)
+```
+
+## References
+
+Heuberger JAAC, Gal P, Stuurman FE, de Muinck Keizer WAS, Mejia Miranda Y, Cohen AF. Repeatability and predictive
+value of lactate threshold concepts in endurance sports. PLOS ONE. 2018;13(11):e0206846.
+[doi:10.1371/journal.pone.0206846](https://doi.org/10.1371/journal.pone.0206846)
+
+Trinity College Dublin graded exercise test data. Zenodo. [doi:10.5281/zenodo.10841412](https://doi.org/10.5281/zenodo.10841412)

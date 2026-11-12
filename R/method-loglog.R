@@ -1,97 +1,44 @@
 #' Log-log
 #'
-#' It applies the `Log-log` method.
+#' It applies the `Log-log` method. Two straight lines are fitted to log(lactate) vs log(intensity),
+#' split at the measured stage with the lowest total residual sum of squares, and the threshold is
+#' where they cross (see `fit_two_lines()`). The lactate at the threshold is read off the lines. The resting
+#' sample is never used: it has no exercise intensity.
 #'
-#' @param data_prepared The data retrieved from `prepare_data()`.
-#' @param fit The fit you would like to use for finding the lactate values associated to each one of the lactate thresholds.
-#' @param sport The sport at which the incremental test was performed. One of `cycling`, `running`, or `swimming`.
-#' @param loglog_restrainer A scalar from 0 to 1 indicating the percentage of the data that you would like to
-#' restrain for fitting the Log-Log method. For example, `1` means no restriction (fits using the whole data), and `0.5` means that
-#' only the first 50% of the data will be used. Default to `1`.
-#' @param plot A boolean to indicate whether to generate a plot from each one of the methods.
+#' @inheritParams method_obla
 #'
-#' @return a tibble with the following columns:
-#' \item{method}{the method used to estimate the lactate threshold}
-#' \item{fitting}{the fitting method used to predict the lactate curve}
-#' \item{intensity}{the intensity associated with the estimated lactate threshold}
-#' \item{lactate}{the lactate concentration associated with the estimated lactate threshold}
-#' \item{heart_rate}{the heart rate associated with the estimated lactate threshold}
-#' \item{plot}{the plot produced to display the lactate threshold}
-#'
+#' @return a list with the result `rows` (method, fitting, intensity, lactate) and the `plot_data`
+#' for each row.
 #' @keywords internal
-#' @importFrom stats lm
-method_loglog <- function(data_prepared, fit, sport, loglog_restrainer = 1, plot) {
-  model_heart_rate <- NULL
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    model_heart_rate <- build_heart_rate_model(raw_data = data_prepared$data[[1]])
-  }
-
-  data_interpolated <- data_prepared$data_interpolated[[1]] %>%
-    dplyr::filter(intensity > 0) %>%
-    dplyr::mutate(
-      intensity = log(intensity),
-      lactate = log(lactate)
-    ) %>%
-    ## filter data according to loglog_restrainer
-    dplyr::slice(seq(loglog_restrainer * dplyr::n()))
-
-  if(nrow(data_interpolated) < 4) {
-    stop("Log-log method requires at least 4 interpolated data points after applying `loglog_restrainer`.", call. = FALSE)
-  }
-
-  linear_fit <- lm(lactate ~ intensity, data = data_interpolated)
-
-  segmented_fit <- tryCatch(
-    segmented::segmented(
-      obj = linear_fit,
-      npsi = 1, # 1 breakpoint
-      control = segmented::seg.control(it.max = 1000)
-    ),
-    error = function(e) {
-      stop("Log-log breakpoint estimation failed. Try lowering `loglog_restrainer` or reviewing your data quality.", call. = FALSE)
-    }
+method_loglog <- function(data, curve, settings) {
+  breakpoint <- loglog_breakpoint(data, settings$loglog_restrainer)
+  method_result(
+    method = "Log-log",
+    fitting = user_fitting(settings),
+    intensity = breakpoint$intensity,
+    lactate = round(exp(predict_breakpoints(breakpoint$fit, log(breakpoint$intensity))), 1),
+    plot_data = list(breakpoints = breakpoint$fit, log = TRUE, fitting = "two straight lines, log-log")
   )
+}
 
-  method_intensity <- segmented_fit$psi[,2]
+#' Log-log breakpoint
+#'
+#' Fits two straight lines to log(lactate) vs log(intensity) of the measured points and returns the
+#' unrounded intensity where they cross. For internal use only.
+#'
+#' @param points The measured points (`intensity`, `lactate`) used for the fit.
+#' @param loglog_restrainer The share of the points to use (see [lactate_threshold()]).
+#'
+#' @return a list with the breakpoint `intensity` and the `fit` from `fit_two_lines()` (in log-log space).
+#' @keywords internal
+loglog_breakpoint <- function(points, loglog_restrainer = 1) {
+  points <- points[points$intensity > 0, ]
+  points <- points[seq_len(floor(loglog_restrainer * nrow(points))), ]
 
-  method_intensity <- exp(method_intensity)
-
-  out <- data_prepared %>%
-    dplyr::mutate(
-      method = "Log-log",
-      fitting = paste({{ fit }}, "(user-defined)", sep = " "),
-      intensity = method_intensity,
-      lactate = retrieve_lactate(model = model[[1]], intensity_value = method_intensity)
-    ) %>%
-    dplyr::mutate(segmented_object = list(segmented_fit)) %>%
-    dplyr::mutate(loglog_restrainer = loglog_restrainer)
-
-  if(plot) {
-    out <- out %>%
-      dplyr::mutate(plot = list(plot_lactate(data_processed = ., method = method)))
+  if(nrow(points) < 5) {
+    stop("Log-log method requires at least 5 measured stages after applying `loglog_restrainer`.", call. = FALSE)
   }
 
-  if("heart_rate" %in% colnames(data_prepared$data[[1]])) {
-    out <- out %>%
-      dplyr::mutate(
-        heart_rate = round(stats::predict(model_heart_rate, newdata = data.frame(intensity = intensity)), digits = 0)
-      )
-  }
-
-  if(sport == "swimming") {
-    out <- out %>%
-      dplyr::mutate(pace = convert_to_pace(speed = intensity))
-  }
-
-  out <- out %>%
-    dplyr::select(dplyr::any_of(c("method", "fitting", "intensity", "pace", "lactate", "heart_rate", "plot")))
-
-  switch (
-    sport,
-    "cycling" = out <- out %>% dplyr::mutate(intensity = round(x = intensity, digits = 1)),
-    "running" = out <- out %>% dplyr::mutate(intensity = round(x = intensity, digits = 2)),
-    "swimming" = out <- out %>% dplyr::mutate(intensity = round(x = intensity, digits = 3))
-  )
-
-  out
+  fit <- fit_two_lines(log(points$intensity), log(points$lactate))
+  list(intensity = exp(fit$psi), fit = fit)
 }
