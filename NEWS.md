@@ -70,7 +70,8 @@ computed.
   at each boundary, to hand to the athlete.
 * `options(lactater.style = "night")` and `"journal"`, `options(lactater.font = )`, and `theme_lactater()` for your
   own plots.
-* New `lactate_report()` (a gt table) and `gt_lactater()`.
+* New `lactate_report()` (a gt table) and `gt_lactater()`; `options(lactater.web_font = FALSE)` leaves the web font
+  out of the tables.
 * New `test_report()`: the test as a web page and a two-page PDF for the athlete or the coach; `report_start()` and
   the `report_*()` steps build one part by part; two to five tests of one athlete give a progress report.
 * New `recording_sheet()`: a web form, a printable sheet and a CSV template; `read_recording()` reads the form's

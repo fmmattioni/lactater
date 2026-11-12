@@ -17,7 +17,8 @@ the gt table.
 \description{
 Gives a gt table the look of the tables in lactater's reports and articles, so your own tables can match them:
 IBM Plex Sans, the full width of the page, bold column labels over one dark rule, light rules between rows, bold
-row groups, and no fills or colors. Needs the gt package.
+row groups, and no fills or colors. Needs the gt package. \code{options(lactater.web_font = FALSE)} leaves out the link
+to the web font (IBM Plex Sans is then used when installed), which keeps a self-contained page small.
 }
 \examples{
 \dontshow{if (requireNamespace("gt", quietly = TRUE)) withAutoprint(\{ # examplesIf}

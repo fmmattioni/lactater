@@ -89,7 +89,8 @@ lactate_report <- function(x, title = "Lactate thresholds") {
 #'
 #' Gives a gt table the look of the tables in lactater's reports and articles, so your own tables can match them:
 #' IBM Plex Sans, the full width of the page, bold column labels over one dark rule, light rules between rows, bold
-#' row groups, and no fills or colors. Needs the gt package.
+#' row groups, and no fills or colors. Needs the gt package. `options(lactater.web_font = FALSE)` leaves out the link
+#' to the web font (IBM Plex Sans is then used when installed), which keeps a self-contained page small.
 #'
 #' @param table A gt table.
 #' @param size The font size, in pixels.
@@ -104,7 +105,11 @@ gt_lactater <- function(table, size = 14) {
   rlang::check_installed("gt", reason = "to style the table.")
   ink <- lactater_colours("light")[["ink"]]
   table |>
-    gt::opt_table_font(font = list(gt::google_font("IBM Plex Sans"), gt::default_fonts())) |>
+    gt::opt_table_font(font = c(
+      ## the web font is downloaded and embedded by a self-contained page (2 MB per table): the vignette turns it off
+      if(getOption("lactater.web_font", TRUE)) list(gt::google_font("IBM Plex Sans")),
+      list("IBM Plex Sans", gt::default_fonts())
+    )) |>
     gt::tab_options(
       table.width = gt::pct(100), table.font.size = gt::px(size), table.font.color = ink,
       table.background.color = "transparent", table.border.top.style = "hidden",
