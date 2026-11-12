@@ -16,6 +16,8 @@ knitr::opts_chunk$set(
   dpi = 110,
   out.width = "100%"
 )
+## the web font of the tables would be embedded in this page (8 MB); the website keeps it
+options(lactater.web_font = identical(Sys.getenv("IN_PKGDOWN"), "true"))
 ```
 
 ```{r setup, message = FALSE}
