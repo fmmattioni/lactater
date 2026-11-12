@@ -1,6 +1,7 @@
 # Combine lactate threshold methods into one plot
 
-Combine lactate threshold methods into one plot
+The one-line note under each title is dropped: it would crowd a grid of
+small panels.
 
 ## Usage
 

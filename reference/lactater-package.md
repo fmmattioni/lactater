@@ -1,10 +1,14 @@
 # lactater: Tools for Analyzing Lactate Thresholds
 
 Set of tools for analyzing lactate thresholds from a step incremental
-test to exhaustion. Easily analyze the methods Log-log, Onset of Blood
-Lactate Accumulation (OBLA), Baseline plus (Bsln+), Dmax, Lactate
-Turning Point (LTP), and Lactate / Intensity ratio (LTratio) in cycling,
-running, or swimming. Beaver WL, Wasserman K, Whipp BJ (1985)
+test to exhaustion. Estimate Log-log, Onset of Blood Lactate
+Accumulation (OBLA), Baseline plus (Bsln+), the Dmax family, Lactate
+Turn Points (LTP), the Lactate / Intensity ratio (LTratio), and the
+Individual Anaerobic Thresholds of Dickhuth (IAT) and Stegmann in
+cycling, running, swimming, or rowing, with bootstrap confidence
+intervals, data-quality checks, training zones, test comparisons,
+training load, and the maximal lactate accumulation rate (VLamax).
+Beaver WL, Wasserman K, Whipp BJ (1985)
 [doi:10.1152/jappl.1985.59.6.1936](https://doi.org/10.1152/jappl.1985.59.6.1936)
 . Heck H, Mader A, Hess G, Mücke S, Müller R, Hollmann W (1985)
 [doi:10.1055/s-2008-1025824](https://doi.org/10.1055/s-2008-1025824) .
@@ -33,9 +37,30 @@ Bishop D, Jenkins DG, Mackinnon LT (1998)
 [doi:10.1097/00005768-199708000-00009](https://doi.org/10.1097/00005768-199708000-00009)
 . Dickhuth H-H, Yin L, Niess A, et al. (1999)
 [doi:10.1055/s-2007-971105](https://doi.org/10.1055/s-2007-971105) .
+Stegmann H, Kindermann W, Schnabel A (1981)
+[doi:10.1055/s-2008-1034604](https://doi.org/10.1055/s-2008-1034604) .
+Heuberger JAAC, Gal P, Stuurman FE, et al. (2018)
+[doi:10.1371/journal.pone.0206846](https://doi.org/10.1371/journal.pone.0206846)
+. Meixner B, Nusser V, Koehler K, et al. (2024)
+[doi:10.14814/phy2.16086](https://doi.org/10.14814/phy2.16086) .
+
+## See also
+
+Useful links:
+
+- <https://fmmattioni.github.io/lactater/>
+
+- <https://github.com/fmmattioni/lactater>
+
+- Report bugs at <https://github.com/fmmattioni/lactater/issues>
 
 ## Author
 
 **Maintainer**: Felipe Mattioni Maturana
 <felipe.mattioni@med.uni-tuebingen.de>
 ([ORCID](https://orcid.org/0000-0002-4221-6104))
+
+Authors:
+
+- Felipe Mattioni Maturana <felipe.mattioni@med.uni-tuebingen.de>
+  ([ORCID](https://orcid.org/0000-0002-4221-6104))

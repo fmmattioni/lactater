@@ -7,12 +7,17 @@
 
 ## Citation
 
+Source:
+[`DESCRIPTION`](https://github.com/fmmattioni/lactater/blob/main/DESCRIPTION)
+
 Mattioni Maturana F (2026). *lactater: Tools for Analyzing Lactate
-Thresholds*. R package version 0.3.0.
+Thresholds*. R package version 1.0.0,
+<https://fmmattioni.github.io/lactater/>.
 
     @Manual{,
       title = {lactater: Tools for Analyzing Lactate Thresholds},
       author = {Felipe {Mattioni Maturana}},
       year = {2026},
-      note = {R package version 0.3.0},
+      note = {R package version 1.0.0},
+      url = {https://fmmattioni.github.io/lactater/},
     }

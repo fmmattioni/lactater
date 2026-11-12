@@ -6,75 +6,55 @@ It applies the `Dmax` methods: `"Dmax"`, `"ModDmax"`, `"Exp-Dmax"`,
 ## Usage
 
 ``` r
-method_dmax(data_prepared, sport, loglog_restrainer = 1, plot)
+method_dmax(data, curve, settings)
 ```
 
 ## Arguments
 
-- data_prepared:
+- data:
 
   The data retrieved from
   [`prepare_data()`](https://fmmattioni.github.io/lactater/reference/prepare_data.md).
 
-- sport:
+- curve:
 
-  The sport at which the incremental test was performed. One of
-  `cycling`, `running`, or `swimming`.
+  The user-selected curve from
+  [`fit_curve()`](https://fmmattioni.github.io/lactater/reference/fit_curve.md).
 
-- loglog_restrainer:
+- settings:
 
-  A scalar from 0 to 1 indicating the percentage of the data that you
-  would like to restrain for fitting the Log-Log method - This is going
-  to be used in the `Log-Poly-ModDmax` and `Log-Exp-ModDmax` methods
-  only. For example, `1` means no restriction (fits using the whole
-  data), and `0.5` means that only the first 50% of the data will be
-  used. Default to `1`.
-
-- plot:
-
-  A boolean to indicate whether to generate a plot from each one of the
-  methods.
-
-  ### Fit
-
-  The `method_dmax()` function does not have a `fit` argument because
-  all the `Dmax` methods have their own default fitting methods:
-
-  - Dmax = 3rd degree polynomial
-
-  - ModDmax = 3rd degree polynomial
-
-  - Exp-Dmax = exponential
-
-  - Log-Poly-ModDmax = 3rd degree polynomial
-
-  - Log-Exp-ModDmax = exponential
+  The analysis settings.
 
 ## Value
 
-a tibble with the following columns:
+a list with the result `rows` (method, fitting, intensity, lactate) and
+the `plot_data` for each row.
 
-- method:
+## Details
 
-  the method used to estimate the lactate threshold
+Every variant looks for the point on the fitted curve that lies furthest
+below a straight line between two anchors. The variants differ in the
+fitted curve and in where the line starts:
 
-- fitting:
+- Dmax: 3rd degree polynomial, from the first stage.
 
-  the fitting method used to predict the lactate curve
+- ModDmax: 3rd degree polynomial, from the stage preceding the first
+  rise of at least `moddmax_rise` mmol/L.
 
-- intensity:
+- Exp-Dmax: exponential plus constant, from the first stage.
 
-  the intensity associated with the estimated lactate threshold
+- LTP1-Poly-ModDmax: 3rd degree polynomial, from LTP1 (only when
+  requested in `dmax_methods`).
 
-- lactate:
+- Log-Poly-ModDmax: 3rd degree polynomial, from the Log-log threshold.
 
-  the lactate concentration associated with the estimated lactate
-  threshold
+- Log-Exp-ModDmax: exponential plus constant, from the Log-log
+  threshold.
 
-- heart_rate:
-
-  the heart rate associated with the estimated lactate threshold
-
-- plot:
-
-  the plot produced to display the lactate threshold
+The line always ends at the last stage. The resting sample is never
+used. With `settings$dmax_anchor = "observed"` the line's ends sit at
+the measured lactate of the start and end stages instead of on the
+fitted curve; the Log-log and LTP1 starts have no measured value, so
+they always sit on the curve. `"original"` follows each paper: on the
+curve for Dmax and Exp-Dmax, at the measured values for the ModDmax
+variants.

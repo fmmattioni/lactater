@@ -1,23 +1,24 @@
 # Retrieve lactate
 
-Retrieves the lactate associated to a given intensity value. It is
-mainly for internal use but it is exported for possible extensions.
+Retrieves the fitted lactate at given intensities, rounded to 0.1
+mmol/L.
 
 ## Usage
 
 ``` r
-retrieve_lactate(model, intensity_value)
+retrieve_lactate(curve, intensity_value)
 ```
 
 ## Arguments
 
-- model:
+- curve:
 
-  The model chosen in `fit`.
+  A curve from
+  [`fit_curve()`](https://fmmattioni.github.io/lactater/reference/fit_curve.md).
 
 - intensity_value:
 
-  The intensity value.
+  The intensity values.
 
 ## Value
 

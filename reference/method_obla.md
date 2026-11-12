@@ -1,61 +1,32 @@
 # Onset of Blood Lactate Accumulation (OBLA)
 
-It applies the `OBLA` methods: `OBLA 2.0 mmol/L`, `OBLA 2.5 mmol/L`,
-`OBLA 3.0 mmol/L`, `OBLA 3.5 mmol/L`, and `OBLA 4.0 mmol/L`.
+It applies the `OBLA` methods: the intensity at which the fitted curve
+reaches each fixed concentration in `settings$fixed` (2.0, 2.5, 3.0,
+3.5, and 4.0 mmol/L by default).
 
 ## Usage
 
 ``` r
-method_obla(data_prepared, fit, sport, plot)
+method_obla(data, curve, settings)
 ```
 
 ## Arguments
 
-- data_prepared:
+- data:
 
   The data retrieved from
   [`prepare_data()`](https://fmmattioni.github.io/lactater/reference/prepare_data.md).
 
-- fit:
+- curve:
 
-  The fit you would like to use for finding the lactate values
-  associated to each one of the lactate thresholds.
+  The user-selected curve from
+  [`fit_curve()`](https://fmmattioni.github.io/lactater/reference/fit_curve.md).
 
-- sport:
+- settings:
 
-  The sport at which the incremental test was performed. One of
-  `cycling`, `running`, or `swimming`.
-
-- plot:
-
-  A boolean to indicate whether to generate a plot from each one of the
-  methods.
+  The analysis settings.
 
 ## Value
 
-a tibble with the following columns:
-
-- method:
-
-  the method used to estimate the lactate threshold
-
-- fitting:
-
-  the fitting method used to predict the lactate curve
-
-- intensity:
-
-  the intensity associated with the estimated lactate threshold
-
-- lactate:
-
-  the lactate concentration associated with the estimated lactate
-  threshold
-
-- heart_rate:
-
-  the heart rate associated with the estimated lactate threshold
-
-- plot:
-
-  the plot produced to display the lactate threshold
+a list with the result `rows` (method, fitting, intensity, lactate) and
+the `plot_data` for each row.

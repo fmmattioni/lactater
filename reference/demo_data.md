@@ -1,7 +1,8 @@
 # Demo data
 
 A dataset containing the lactate and heart rate data collected from a
-step-incremental test as an example
+step-incremental test as an example, with a simulated rating of
+perceived exertion
 
 ## Usage
 
@@ -11,7 +12,7 @@ demo_data
 
 ## Format
 
-A data frame with 8 rows and 5 variables:
+A data frame with 8 rows and 6 variables:
 
 - step:
 
@@ -32,3 +33,10 @@ A data frame with 8 rows and 5 variables:
 - heart_rate:
 
   the heart rate associated with that step.
+
+- rpe:
+
+  the rating of perceived exertion (Borg 6-20). Simulated: about 11 at 2
+  mmol/L and 14 at 4 mmol/L, close to the means of 2,560 adults at the
+  first rise in lactate (10.8) and at 4 mmol/L (14.1; Scherr et al.,
+  2013), and 19 at the last stage.

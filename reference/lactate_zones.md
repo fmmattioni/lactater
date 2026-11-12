@@ -1,0 +1,235 @@
+# Training zones from two lactate thresholds
+
+Builds three or five training zones from a first (LT1) and a second
+(LT2) lactate threshold, with the zone boundaries placed at the
+boundaries of the exercise intensity domains: below LT1 is the moderate
+domain, from LT1 to LT2 the heavy domain, and above LT2 the severe
+domain (Jamnick et al., 2020). You choose which thresholds mark LT1 and
+LT2.
+
+## Usage
+
+``` r
+lactate_zones(x, lt1 = NULL, lt2 = NULL, model = 3, split = "relative")
+
+# S3 method for class 'lactate_zones'
+autoplot(
+  object,
+  heart_rate = getOption("lactater.heart_rate", "panel"),
+  view = c("curve", "ruler"),
+  ...
+)
+```
+
+## Arguments
+
+- x:
+
+  The result of
+  [`lactate_threshold()`](https://fmmattioni.github.io/lactater/reference/lactate_threshold.md).
+
+- lt1, lt2:
+
+  The thresholds that mark LT1 and LT2: a method in `x$method`, or an
+  intensity. Default to those chosen in
+  [`lactate_threshold()`](https://fmmattioni.github.io/lactater/reference/lactate_threshold.md),
+  which are `"Bsln + 0.5"` and `"Log-Poly-ModDmax"` unless you set them;
+  see `Details`.
+
+- model:
+
+  The number of zones: `3` (default) or `5`.
+
+- split:
+
+  How to split the moderate and severe domains in the five-zone model:
+  `"relative"` (default), `"seiler"`, or two intensities. Ignored with
+  three zones.
+
+- object:
+
+  The result of `lactate_zones()`.
+
+- heart_rate:
+
+  How the plot shows the heart rate of the stages, when the test has it:
+  `"panel"` (default), in a panel under the curve on the same intensity
+  axis, read at LT1 and LT2; `"axis"`, on the lactate plot against a
+  second axis, as many lab reports do; or `"none"`.
+  `options(lactater.heart_rate = "axis")` sets it for every plot and
+  report.
+
+- view:
+
+  `"curve"` (default), the zones on the lactate curve; or `"ruler"`, one
+  bar of the zones over the intensity, pace, heart rate and RPE at each
+  boundary, to hand to the athlete.
+
+- ...:
+
+  Not used.
+
+## Value
+
+a `lactate_zones` tibble with one row per zone: `zone`, `domain`,
+`description`, `intensity_from`, `intensity_to`, the matching `pace`
+range (running, swimming, rowing), the `lactate` range on the fitted
+curve (`NA` at a boundary outside the stages, where the curve is not
+extrapolated), and the `heart_rate` and `rpe` ranges (when available; a
+boundary below the first stage is extrapolated from the first three
+stages). The first zone has no lower bound and the last no upper bound.
+Plot it with
+[`autoplot()`](https://ggplot2.tidyverse.org/reference/autoplot.html).
+
+## Details
+
+- **Three zones** (`model = 3`): zone 1 below LT1, zone 2 from LT1 to
+  LT2, zone 3 above LT2 (Hofmann & Tschakert, 2017).
+
+- **Five zones** (`model = 5`): zones 1 and 2 split the moderate domain,
+  zone 3 is the heavy domain, and zones 4 and 5 split the severe domain,
+  as in the five-zone scale described by Seiler (2010) and Tonnessen et
+  al. (2014), where zones 1-2 lie below LT1, zone 3 between LT1 and LT2,
+  and zones 4-5 above LT2. The two splits inside a domain are set by
+  `split`. The five zones are not named: the scale gives them no names,
+  and the names of other scales belong to other boundaries (the
+  "threshold" level of the five-level scale in Jamnick et al., 2020,
+  Table 1, lies around LT2, not above it). The two splits:
+
+  - `"relative"` (default): zone 1\|2 at 75% of LT1, and zone 4\|5
+    halfway between LT2 and the highest intensity of the test. In the
+    five-zone scale of Seiler (2010, Table 1), zone 2 starts at 66% of
+    the maximal oxygen uptake and zone 3 at 81%; converted with the
+    oxygen cost of cycling and running (Glass & Dwyer, 2007), our own
+    calculation, that puts zone 2 at about 77% of the power at LT1 and
+    80% of the running speed. Sitko et al. (2025) place zone 2
+    "immediately below" LT1, at about 80% to 90% of the heart rate at
+    LT1, which on the cycling tests of
+    [lactate_tests](https://fmmattioni.github.io/lactater/reference/lactate_tests.md)
+    (our count, where that heart rate falls within the stages) starts it
+    at a median of about 65% of the power at LT1. 75% lies between the
+    two and needs no heart rate. Zone 5 starts at 94% of the maximal
+    oxygen uptake, halfway between the start of zone 4 (88%) and the
+    maximum. Both cuts are approximations: no physiological marker
+    separates them (Bishop et al., 2025), and the scale's zones are
+    "somewhat arbitrary" (Seiler, 2010).
+
+  - `"seiler"`: where the fitted curve reaches 1.5 mmol/L (zone 1\|2)
+    and 6.0 mmol/L (zone 4\|5), the blood lactate limits of the
+    five-zone scale in Seiler (2010). A cut that falls outside its
+    domain, or is not reached, uses the relative split instead, with a
+    warning.
+
+  - Two intensities, `c(zone 1|2, zone 4|5)`, for your own cuts.
+
+LT1 is usually a "first rise" threshold (`"Log-log"`, `"Bsln + 0.5"`,
+`"Bsln + 1.0"`, `"LTratio"`, `"LTP1"`), and LT2 a threshold aimed at the
+maximal lactate steady state (MLSS) or the second, abrupt rise (the Dmax
+family, `"LTP2"`, `"IAT"`, `"Stegmann"`, `"Keul"` and `"Simon"`
+(running), and `"Bsln + 1.5"`, which estimated the MLSS in two studies;
+Jamnick et al., 2020). These are two of the three categories of
+threshold concepts of Faude et al. (2009); fixed values such as
+`"OBLA 4.0"` are the third. Against a measured MLSS these landed from
+about 40 W below to 40 W above it on average, by method, protocol and
+athletes (Hauser et al., 2014; Ploszczyca et al., 2020), and whether the
+MLSS or the critical power marks the boundary between the heavy and
+severe domains is debated (Jones et al., 2019). Different choices give
+different zones, so report which ones you used.
+
+The default pair has the best evidence for each boundary and moves least
+with a single stage. Bsln + 0.5 is among the most defensible markers of
+the moderate-heavy boundary (Jamnick et al., 2020), and Log-Poly-ModDmax
+estimated the MLSS with 4-min stages (Jamnick et al., 2018). Left out
+one stage at a time on the cycling tests of
+[lactate_tests](https://fmmattioni.github.io/lactater/reference/lactate_tests.md),
+Bsln + 0.5 moved by a median 1.7% (jackknife standard error) and
+Log-Poly-ModDmax by 8.6%, against 23% for LTP1, whose three-segment fit
+has few stages to spare in a step test. Bsln + 0.5 rests on a single
+baseline sample, so check that sample (see
+[`lactate_diagnostics()`](https://fmmattioni.github.io/lactater/reference/lactate_diagnostics.md)).
+
+## References
+
+Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid
+are they? Sports Medicine. 2009;39(6):469-490.
+
+Hofmann P, Tschakert G. Intensity- and duration-based options to
+regulate endurance training. Frontiers in Physiology. 2017;8:337.
+
+Bishop DJ, Beck B, Biddle SJH, et al. Physical activity and exercise
+intensity terminology: a joint American College of Sports Medicine
+(ACSM) expert statement and Exercise and Sport Science Australia (ESSA)
+consensus statement. Medicine & Science in Sports & Exercise.
+2025;57(11):2599-2613. doi:10.1249/MSS.0000000000003795
+
+Glass S, Dwyer GB, editors. ACSM's metabolic calculations handbook.
+Baltimore: Lippincott Williams & Wilkins; 2007.
+
+Hauser T, Adam J, Schulz H. Comparison of selected lactate threshold
+parameters with maximal lactate steady state in cycling. International
+Journal of Sports Medicine. 2014;35(6):517-521.
+
+Jamnick NA, Botella J, Pyne DB, Bishop DJ. Manipulating graded exercise
+test variables affects the validity of the lactate threshold and
+VO2peak. PLOS ONE. 2018;13(7):e0199794.
+
+Jamnick NA, Pettitt RW, Granata C, Pyne DB, Bishop DJ. An examination
+and critique of current methods to determine exercise intensity. Sports
+Medicine. 2020;50(10):1729-1756.
+
+Jones AM, Burnley M, Black MI, Poole DC, Vanhatalo A. The maximal
+metabolic steady state: redefining the 'gold standard'. Physiological
+Reports. 2019;7(10):e14098.
+
+Ploszczyca K, Jazic D, Piotrowicz Z, Chalimoniuk M, Langfort J, Czuba M.
+Comparison of maximal lactate steady state with anaerobic threshold
+determined by various methods based on graded exercise test with
+3-minute stages in elite cyclists. BMC Sports Science, Medicine and
+Rehabilitation. 2020;12:70.
+
+Seiler S. What is best practice for training intensity and duration
+distribution in endurance athletes? International Journal of Sports
+Physiology and Performance. 2010;5(3):276-291.
+
+Sitko S, Artetxe X, Bonnevie-Svendsen M, et al. What is "zone 2
+training"?: experts' viewpoint on definition, training methods, and
+expected adaptations. International Journal of Sports Physiology and
+Performance. 2025;20(11):1614-1617. doi:10.1123/ijspp.2024-0303
+
+Tonnessen E, Sylta O, Haugen TA, Hem E, Svendsen IS, Seiler S. The road
+to gold: training and peaking characteristics in the year prior to a
+gold medal endurance performance. PLOS ONE. 2014;9(7):e101796.
+
+## Examples
+
+``` r
+results <- lactate_threshold(demo_data, intensity, lactate, heart_rate, plot = FALSE)
+lactate_zones(results)
+#> # A tibble: 3 × 9
+#>   zone   domain  description intensity_from intensity_to lactate_from lactate_to
+#>   <chr>  <chr>   <chr>                <dbl>        <dbl>        <dbl>      <dbl>
+#> 1 Zone 1 modera… below LT1               NA           83         NA          1.4
+#> 2 Zone 2 heavy   LT1 to LT2              83          149          1.4        4.2
+#> 3 Zone 3 severe  above LT2              149           NA          4.2       NA  
+#> # ℹ 2 more variables: heart_rate_from <dbl>, heart_rate_to <dbl>
+lactate_zones(results, model = 5)
+#> # A tibble: 5 × 9
+#>   zone   domain  description intensity_from intensity_to lactate_from lactate_to
+#>   <chr>  <chr>   <chr>                <dbl>        <dbl>        <dbl>      <dbl>
+#> 1 Zone 1 modera… below LT1               NA           62         NA          1.1
+#> 2 Zone 2 modera… below LT1               62           83          1.1        1.4
+#> 3 Zone 3 heavy   LT1 to LT2              83          149          1.4        4.2
+#> 4 Zone 4 severe  above LT2              149          170          4.2        6.1
+#> 5 Zone 5 severe  above LT2              170           NA          6.1       NA  
+#> # ℹ 2 more variables: heart_rate_from <dbl>, heart_rate_to <dbl>
+lactate_zones(results, lt1 = "Log-log", lt2 = "ModDmax", model = 5, split = "seiler")
+#> # A tibble: 5 × 9
+#>   zone   domain  description intensity_from intensity_to lactate_from lactate_to
+#>   <chr>  <chr>   <chr>                <dbl>        <dbl>        <dbl>      <dbl>
+#> 1 Zone 1 modera… below LT1               NA           86         NA          1.5
+#> 2 Zone 2 modera… below LT1               86          101          1.5        1.8
+#> 3 Zone 3 heavy   LT1 to LT2             101          140          1.8        3.6
+#> 4 Zone 4 severe  above LT2              140          169          3.6        6  
+#> 5 Zone 5 severe  above LT2              169           NA          6         NA  
+#> # ℹ 2 more variables: heart_rate_from <dbl>, heart_rate_to <dbl>
+```
