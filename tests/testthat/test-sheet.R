@@ -52,3 +52,40 @@ test_that("a CSV gives the stages and the defaults, and wrong files stop", {
   utils::write.csv(data.frame(power = 1:3), power, row.names = FALSE)
   expect_error(read_recording(power), "intensity")
 })
+
+test_that("an incomplete last stage is time-weighted", {
+  ## the nominal last stage: 200 W, of which 2 of 3 min were completed
+  nominal <- transform(demo_data, intensity = replace(intensity, intensity == 191, 200))
+  run <- function(data = nominal, ...) lactate_threshold(data, intensity, lactate, method = "Dmax", plot = FALSE, ...)
+  weighted <- run(stage_duration = 3, last_stage_duration = 2)
+  expect_equal(max(attr(weighted, "lactater")$data$intensity), 175 + 2 / 3 * 25)
+  expect_equal(run(stage_duration = 3, last_stage_duration = 3)$intensity, run()$intensity)
+  expect_error(run(last_stage_duration = 2), "stage_duration")
+  expect_error(run(stage_duration = 3, last_stage_duration = 4), "last_stage_duration")
+  expect_warning(run(demo_data, stage_duration = 3, last_stage_duration = 2), "time-weighted already")
+  expect_error(
+    lactate_threshold(lactate_tests, intensity, lactate, stage_duration = 3, last_stage_duration = 2, .by = "test"),
+    "one test at a time"
+  )
+})
+
+test_that("read_recording time-weights a whole last step, and keeps one that is already shorter", {
+  skip_if_not_installed("readxl")
+  read <- function(last) {
+    file <- file.path(tempdir(), paste0(last, ".xlsx"))
+    file.create(file)
+    local_mocked_bindings(
+      excel_sheets = function(...) c("stages", "test"),
+      read_excel = function(path, sheet, ...) {
+        if(sheet == "stages") return(data.frame(intensity = c(0, 150, 175, last), lactate = c(1, 4.2, 6.7, 8.6)))
+        data.frame(field = c("stage_duration", "last_stage_s"), value = c("3", "120"))
+      },
+      .package = "readxl"
+    )
+    read_recording(file)
+  }
+  expect_message(test <- read(200), "191.7 instead of 200")
+  expect_equal(max(test$stages$intensity), 175 + 2 / 3 * 25)
+  expect_no_message(test <- read(191))
+  expect_equal(max(test$stages$intensity), 191)
+})

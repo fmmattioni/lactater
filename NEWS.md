@@ -40,6 +40,8 @@ computed.
 * The resting sample is the row with intensity 0, placed one median step before the first stage when fitted.
 * Own targets: `fixed` (OBLA), `baseline_plus` (Bsln+), `iat_rise` (IAT), `moddmax_rise` (ModDmax), `dmax_methods`
   (adds `"LTP1-Poly-ModDmax"`), `max_intensity` (drop stages above it).
+* New `last_stage_duration`: the intensity of a last stage that was not completed is time-weighted (Kuipers et al.,
+  2003); `read_recording()` does it from the form's time in the last stage.
 * New sport `"rowing"`; running, swimming and rowing get a `pace` column.
 * Column arguments take a bare name, a string or a variable; `heart_rate_column` is optional; new `rpe_column` and
   `rpe_scale`.

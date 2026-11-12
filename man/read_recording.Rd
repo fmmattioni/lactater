@@ -13,7 +13,9 @@ read_recording(file)
 a list with
 \itemize{
 \item \code{stages}: one row per stage, the resting sample first, with \code{intensity}, \code{lactate}, \code{heart_rate} and \code{rpe} (and
-\code{clock_time} and \code{notes} from the form);
+\code{clock_time} and \code{notes} from the form). When the form has a "time in the last stage" shorter than the stage
+duration, the intensity of the last stage is time-weighted, as \code{lactate_threshold(last_stage_duration = )} does,
+and a message says so. A last step that is already smaller than the one before is taken as weighted and kept;
 \item \code{recovery}: the recovery samples (\code{time}, in minutes, and \code{lactate}) for the Stegmann threshold, or \code{NULL};
 \item \code{athlete}: \code{name}, \code{date}, \code{sex}, \code{age} and \code{body_mass}, as recorded, for \code{test_report(athlete = )} or
 \code{\link[=report_header]{report_header()}};

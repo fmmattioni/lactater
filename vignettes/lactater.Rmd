@@ -69,8 +69,10 @@ demo_data
 
 Your own test comes in with `read.csv("test.csv")` in those columns, or with `read_recording()` from the .xlsx of
 the [web form](https://fmmattioni.github.io/lactater/step-test-form.html). Rows with a missing lactate (a missed
-sample) are dropped with a warning. If the last stage was not completed, enter its time-weighted intensity (as
-`demo_data` does for its 2-min last stage at 191 W), or leave it out with `max_intensity`. How to collect data that does the methods justice is in [Best practices for a step
+sample) are dropped with a warning. If the last stage was not completed, give the minutes completed in `last_stage_duration`
+(with `stage_duration`) and its intensity is time-weighted for you: 2 of 3 min at 200 W after 175 W count as 191.7 W
+(`demo_data` already has its 2-min last stage at 191 W). `read_recording()` does the same from the form's time in the
+last stage. Or leave the stage out with `max_intensity`. How to collect data that does the methods justice is in [Best practices for a step
 test](https://fmmattioni.github.io/lactater/articles/best-practices.html).
 
 ## Estimate the thresholds

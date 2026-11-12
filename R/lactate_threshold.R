@@ -57,6 +57,11 @@
 #' @param stage_duration The duration of each stage, in minutes, or `NULL`. Stegmann needs it to put the recovery
 #'   minutes on the intensity axis, and [predict_performance()], [reference_percentiles()] and [compare_tests()] check
 #'   it against their protocols (a different stage length moves the thresholds).
+#' @param last_stage_duration The minutes completed in the last stage when the test ended before the stage did, or
+#'   `NULL` (the last stage was completed). The intensity of the last stage is then time-weighted: the stage before it
+#'   plus the completed share of the increment (Kuipers et al., 2003), so 2 of 3 min at 200 W after 175 W count as
+#'   191.7 W. Needs `stage_duration`. The lactate of a short last stage had less time to rise; `max_intensity` leaves
+#'   the stage out instead.
 #' @param site Where the blood was sampled: `"earlobe"`, `"fingertip"`, `"venous"`, `"other"`, or `NULL` (not
 #'   recorded). It does not change the calculations; [predict_performance()], [reference_percentiles()] and
 #'   [compare_tests()] check it against their protocols.
@@ -261,6 +266,10 @@
 #' Dickhuth H-H, Yin L, Niess A, et al. Ventilatory, Lactate-Derived and Catecholamine Thresholds During Incremental
 #' Treadmill Running: Relationship and Reproducibility. International Journal of Sports Medicine. 1999;20(02):122–7.
 #'
+#' Kuipers H, Rietjens G, Verstappen F, Schoenmakers H, Hofman G. Effects of stage duration in incremental running
+#' tests on physiological variables. International Journal of Sports Medicine. 2003;24(7):486–91.
+#' doi:10.1055/s-2003-42020
+#'
 #' Stegmann H, Kindermann W, Schnabel A. Lactate kinetics and individual anaerobic threshold. International Journal
 #' of Sports Medicine. 1981;2(3):160–5. \doi{10.1055/s-2008-1034604}
 #'
@@ -300,6 +309,7 @@ lactate_threshold <- function(
   ltp_breakpoints = 2,
   recovery = NULL,
   stage_duration = NULL,
+  last_stage_duration = NULL,
   site = NULL,
   grade = NULL,
   max_intensity = NULL,
@@ -368,6 +378,13 @@ lactate_threshold <- function(
   if(!is.null(stage_duration) &&
        (!is.numeric(stage_duration) || length(stage_duration) != 1 || is.na(stage_duration) || stage_duration <= 0))
     stop("`stage_duration` must be `NULL` or a single positive number of minutes.", call. = FALSE)
+  if(!is.null(last_stage_duration)) {
+    if(is.null(stage_duration)) stop("`last_stage_duration` needs `stage_duration`.", call. = FALSE)
+    if(!is.numeric(last_stage_duration) || length(last_stage_duration) != 1 || is.na(last_stage_duration) ||
+         last_stage_duration <= 0 || last_stage_duration > stage_duration)
+      stop("`last_stage_duration` must be `NULL` or the minutes completed in the last stage, up to `stage_duration`.",
+           call. = FALSE)
+  }
   sites <- c("earlobe", "fingertip", "venous", "other")
   if(!is.null(site) && (!is.character(site) || length(site) != 1 || !site %in% sites))
     stop(sprintf("`site` must be `NULL` or one of: %s.", paste(sites, collapse = ", ")), call. = FALSE)
@@ -400,6 +417,8 @@ lactate_threshold <- function(
   if(is.symbol(by_expression) && rlang::as_name(by_expression) %in% names(.data)) .by <- rlang::as_name(by_expression)
   if(!is.null(.by)) {
     if(!is.null(recovery)) stop("`recovery` works with one test at a time, not with `.by`.", call. = FALSE)
+    if(!is.null(last_stage_duration))
+      stop("`last_stage_duration` works with one test at a time, not with `.by`.", call. = FALSE)
     arguments <- c(columns, list(
       method = method, fit = fit, include_baseline = include_baseline, sport = sport,
       plot = plot, dmax_anchor = dmax_anchor,
@@ -413,6 +432,13 @@ lactate_threshold <- function(
   }
 
   data <- do.call(prepare_data, c(list(.data = .data, rpe_scale = rpe_scale), columns))
+  if(!is.null(last_stage_duration)) {
+    steps <- utils::tail(diff(data$intensity), 2)
+    if(length(steps) == 2 && steps[2] < steps[1] && last_stage_duration < stage_duration)
+      warning("The last step is already smaller than the one before: is its intensity time-weighted already?",
+              call. = FALSE)
+    data$intensity <- weight_last_stage(data$intensity, last_stage_duration / stage_duration)
+  }
   if(!is.null(max_intensity)) {
     ## the recovery times count from the real end of the test, so its last stage must stay
     if(!is.null(recovery) && any(data$intensity > max_intensity))
@@ -441,6 +467,7 @@ lactate_threshold <- function(
     ci_level = ci_level,
     recovery = recovery,
     stage_duration = stage_duration,
+    last_stage_duration = last_stage_duration,
     site = site,
     grade = grade,
     lt1 = lt1,

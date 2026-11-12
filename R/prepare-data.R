@@ -73,6 +73,23 @@ prepare_data <- function(
   out
 }
 
+#' Time-weight the intensity of an incomplete last stage
+#'
+#' The stage before it plus the completed share of the increment: `completed + t / T * increment` (Kuipers et al.,
+#' 2003).
+#'
+#' @param intensity The intensities, in increasing order.
+#' @param share The share of the last stage that was completed (`t / T`).
+#'
+#' @return `intensity` with its last value replaced.
+#' @keywords internal
+weight_last_stage <- function(intensity, share) {
+  n <- length(intensity)
+  if(n < 2 || intensity[n - 1] == 0) stop("An incomplete last stage needs a completed stage before it.", call. = FALSE)
+  intensity[n] <- intensity[n - 1] + share * (intensity[n] - intensity[n - 1])
+  intensity
+}
+
 #' Position the resting sample
 #'
 #' The resting sample (intensity 0) is placed one step before the first stage, so it can be

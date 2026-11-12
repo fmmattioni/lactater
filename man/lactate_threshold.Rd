@@ -28,6 +28,7 @@ lactate_threshold(
   ltp_breakpoints = 2,
   recovery = NULL,
   stage_duration = NULL,
+  last_stage_duration = NULL,
   site = NULL,
   grade = NULL,
   max_intensity = NULL,
@@ -114,6 +115,12 @@ end-of-exercise value; Stegmann et al. (1981) sampled at 1, 2, 5 and 10 min.}
 \item{stage_duration}{The duration of each stage, in minutes, or \code{NULL}. Stegmann needs it to put the recovery
 minutes on the intensity axis, and \code{\link[=predict_performance]{predict_performance()}}, \code{\link[=reference_percentiles]{reference_percentiles()}} and \code{\link[=compare_tests]{compare_tests()}} check
 it against their protocols (a different stage length moves the thresholds).}
+
+\item{last_stage_duration}{The minutes completed in the last stage when the test ended before the stage did, or
+\code{NULL} (the last stage was completed). The intensity of the last stage is then time-weighted: the stage before it
+plus the completed share of the increment (Kuipers et al., 2003), so 2 of 3 min at 200 W after 175 W count as
+191.7 W. Needs \code{stage_duration}. The lactate of a short last stage had less time to rise; \code{max_intensity} leaves
+the stage out instead.}
 
 \item{site}{Where the blood was sampled: \code{"earlobe"}, \code{"fingertip"}, \code{"venous"}, \code{"other"}, or \code{NULL} (not
 recorded). It does not change the calculations; \code{\link[=predict_performance]{predict_performance()}}, \code{\link[=reference_percentiles]{reference_percentiles()}} and
@@ -349,6 +356,10 @@ anaerobic metabolism. Med Sci Sports Exerc. 1997;29(8):1040–7.
 
 Dickhuth H-H, Yin L, Niess A, et al. Ventilatory, Lactate-Derived and Catecholamine Thresholds During Incremental
 Treadmill Running: Relationship and Reproducibility. International Journal of Sports Medicine. 1999;20(02):122–7.
+
+Kuipers H, Rietjens G, Verstappen F, Schoenmakers H, Hofman G. Effects of stage duration in incremental running
+tests on physiological variables. International Journal of Sports Medicine. 2003;24(7):486–91.
+doi:10.1055/s-2003-42020
 
 Stegmann H, Kindermann W, Schnabel A. Lactate kinetics and individual anaerobic threshold. International Journal
 of Sports Medicine. 1981;2(3):160–5. \doi{10.1055/s-2008-1034604}

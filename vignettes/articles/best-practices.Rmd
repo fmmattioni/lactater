@@ -158,8 +158,9 @@ tribble(
   "Hydration",
   "Start every test equally hydrated.",
   "In a meta-analysis of studies that dehydrated adults before exercise, by 3.6% of body mass on average, the oxygen
-  uptake at the lactate threshold was 4.4% lower (95% CI 1.7-7.1%; [Deshayes et al., 2020](https://doi.org/10.1007/s40279-019-01223-5)). In 7 moderately
-  trained women, losing 2.6% of body mass moved the Log-log threshold from 72% to 66% of V&#775;O<sub>2max</sub> ([Moquin &
+  uptake at the lactate threshold was 4.4% lower (95% CI 1.7-7.1%; [Deshayes et al.,
+  2020](https://doi.org/10.1007/s40279-019-01223-5)). In 7 moderately trained women, losing 2.6% of body mass moved
+  the Log-log threshold from 72% to 66% of V&#775;O<sub>2max</sub> ([Moquin &
   Mazzeo, 2000](https://doi.org/10.1097/00005768-200002000-00021)).",
   "Meta-analysis",
   "Time of day",
@@ -206,7 +207,8 @@ tribble(
   "Review",
   "End of the test",
   "Go to exhaustion when you use methods that rely on the last stage (the D<sub>max</sub> family and LTP2). If the
-  athlete stopped during the last stage, enter its time-weighted intensity, or leave it out with `max_intensity`.",
+  athlete stopped during the last stage, record the time completed: `last_stage_duration` time-weights its intensity
+  ([Kuipers et al., 2003](https://doi.org/10.1055/s-2003-42020)). Or leave the stage out with `max_intensity`.",
   "These methods change with the final lactate ([Bentley et al.,
   2007](https://doi.org/10.2165/00007256-200737070-00002); [Jamnick et al.,
   2020](https://doi.org/10.1007/s40279-020-01322-8)).",
@@ -275,9 +277,11 @@ tribble(
   analyzers all read lower than a laboratory
   analyzer, most at the highest
   concentrations, which \"would overestimate the ability of the athlete\" ([Bonaventura et al.,
-  2015](https://pmc.ncbi.nlm.nih.gov/articles/PMC4306774/)). With four current hand-held analyzers the direction depended on the device: against a
+  2015](https://pmc.ncbi.nlm.nih.gov/articles/PMC4306774/)). With four current hand-held analyzers the direction
+  depended on the device: against a
   laboratory analyzer they read 10% lower to 42% higher, and a second laboratory analyzer read 32% lower; at 3 mmol/L
-  their 95% prediction intervals were 0.6 to 0.9 mmol/L wide (venous blood; [Mentzoni et al., 2024](https://doi.org/10.1007/s00421-024-05572-6)).",
+  their 95% prediction intervals were 0.6 to 0.9 mmol/L wide (venous blood; [Mentzoni et al.,
+  2024](https://doi.org/10.1007/s00421-024-05572-6)).",
   "3 studies"
 ) |>
   practice_table()

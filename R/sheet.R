@@ -42,7 +42,9 @@ recording_sheet <- function(dir = ".", open = interactive()) {
 #'
 #' @return a list with
 #' * `stages`: one row per stage, the resting sample first, with `intensity`, `lactate`, `heart_rate` and `rpe` (and
-#'   `clock_time` and `notes` from the form);
+#'   `clock_time` and `notes` from the form). When the form has a "time in the last stage" shorter than the stage
+#'   duration, the intensity of the last stage is time-weighted, as `lactate_threshold(last_stage_duration = )` does,
+#'   and a message says so. A last step that is already smaller than the one before is taken as weighted and kept;
 #' * `recovery`: the recovery samples (`time`, in minutes, and `lactate`) for the Stegmann threshold, or `NULL`;
 #' * `athlete`: `name`, `date`, `sex`, `age` and `body_mass`, as recorded, for `test_report(athlete = )` or
 #'   [report_header()];
@@ -90,6 +92,20 @@ read_recording <- function(file) {
     stop("The stages need the columns `intensity` and `lactate`.", call. = FALSE)
   }
   number <- function(x) if(is.null(x)) NULL else suppressWarnings(as.numeric(sub(",", ".", x, fixed = TRUE)))
+  ## an incomplete last stage counts for the share of it that was completed
+  share <- number(fields$last_stage_s) / 60 / number(fields$stage_duration)
+  ## only when the last step is a whole one: a shorter step was already weighted by whoever recorded it
+  steps <- utils::tail(diff(stages$intensity), 2)
+  whole_step <- length(steps) == 2 && isTRUE(all.equal(steps[1], steps[2]))
+  if(length(share) == 1 && !is.na(share) && share > 0 && share < 1 && whole_step) {
+    recorded <- stages$intensity
+    stages$intensity <- weight_last_stage(recorded, share)
+    message(sprintf(
+      "The last stage lasted %s of %s s: its intensity is time-weighted, %s instead of %s.",
+      fields$last_stage_s, 60 * number(fields$stage_duration), format(round(utils::tail(stages$intensity, 1), 1)),
+      format(utils::tail(recorded, 1))
+    ))
+  }
   athlete <- list(name = fields$name, date = fields$date, sex = fields$sex, age = number(fields$age),
                   body_mass = number(fields$body_mass))
   sport <- if(!is.null(fields$sport)) fields$sport else "cycling"
@@ -97,7 +113,8 @@ read_recording <- function(file) {
     stages = stages, recovery = recovery, athlete = athlete[!vapply(athlete, is.null, logical(1))], sport = sport,
     sample = if(!is.null(fields$sample)) fields$sample else "blood",
     rpe_scale = if(!is.null(fields$rpe_scale)) fields$rpe_scale else "6-20",
-    stage_duration = number(fields$stage_duration), site = if(!is.null(fields$site) && nzchar(fields$site)) fields$site, grade = number(fields$treadmill_grade),
+    stage_duration = number(fields$stage_duration),
+    site = if(!is.null(fields$site) && nzchar(fields$site)) fields$site, grade = number(fields$treadmill_grade),
     protocol = recording_protocol(fields, sport), details = fields
   )
 }
