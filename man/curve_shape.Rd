@@ -22,7 +22,8 @@ stages each.}
 \value{
 a \code{lactate_shape} list with \code{shift} (intensity units, positive when the curve moved to the right),
 \code{shift_low} and \code{shift_high}, \code{f}, \code{df1}, \code{df2}, \code{p_value}, \code{aicc_shift} and \code{aicc_free}, \code{verdict}
-(\code{"shape changed"} when the F test and AICc both prefer the free shape, \code{"shift"} otherwise: none was detected), the peak lactate of both tests and the two
+(\code{"shape changed"} when the F test and AICc both prefer the free shape, \code{"shift"} otherwise: none
+was detected), the peak lactate of both tests and the two
 exponential \code{curves}. Print it for a summary, and plot it with \code{\link[=autoplot]{autoplot()}}: the two fitted curves, and the first one
 moved by the shift (dashed).
 }

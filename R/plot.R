@@ -452,8 +452,8 @@ stage_points <- function(points, colours, outline = colours[["curve"]]) {
 #'
 #' The label sits above the threshold, to the left when there is room (above a rising curve the plot is
 #' empty) and to the right otherwise; with `below`, below the curve and to the right, when the threshold leaves room
-#' under it. A label steps over (or, below the curve, under) the lines of `avoid`, the Dmax line and the drawn curve, when one
-#' would cross it. For internal use only.
+#' under it. A label steps over (or, below the curve, under) the lines of `avoid`, the Dmax line and the drawn
+#' curve, when one would cross it. For internal use only.
 #'
 #' @param x,y Where the threshold sits.
 #' @param label A list with the `value` and the `detail` lines.

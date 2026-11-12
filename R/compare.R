@@ -625,8 +625,9 @@ list_to_thresholds <- function(info) {
 #' @param object The result of [lactate_trend()].
 #' @param method The methods to plot in the `"thresholds"` view. Defaults to ModDmax, IAT, OBLA 4.0 and Dmax, which have
 #' a published test-retest variation (see [compare_tests()]), when present.
-#' @param view `"curves"`, the default for up to five tests: the lactate curves of all tests (the latest in blue, the first in dark
-#' gray, the tests between in light gray), to see where along the intensity range the curve moved, then their heart rate with LT1 and LT2 as filled points (the
+#' @param view `"curves"`, the default for up to five tests: the lactate curves of all tests (the latest in blue, the
+#' first in dark gray, the tests between in light gray), to see where along the intensity range the curve moved, then
+#' their heart rate with LT1 and LT2 as filled points (the
 #' latest test labeled), above the five training zones of each test from `lt1` and `lt2`. `"thresholds"`, the default
 #' for more tests: one panel per method, each test as a dot (with its own bootstrap interval when computed, at the
 #' `ci_level` of [lactate_threshold()]) and a gray band for the noise of the method around the first test, at the
@@ -774,7 +775,8 @@ plot_series <- function(tests, labels, lt1, lt2) {
     ggplot2::geom_label(
       ggplot2::aes(label = test), ends, hjust = -0.12, size = 3.1,
       fontface = ifelse(ends$test == labels[n], "bold", "plain"),
-      colour = ifelse(ends$test %in% ends_of_series, colours[["ink"]], colours[["muted"]]), fill = colours[["paper"]], border.colour = NA, label.padding = ggplot2::unit(0.08, "lines")
+      colour = ifelse(ends$test %in% ends_of_series, colours[["ink"]], colours[["muted"]]), fill = colours[["paper"]],
+      border.colour = NA, label.padding = ggplot2::unit(0.08, "lines")
     ) +
     ggplot2::scale_colour_manual(values = stats::setNames(shades, labels), guide = "none") +
     ggplot2::scale_y_continuous(limits = c(0, top), breaks = lactate_breaks(top), expand = c(0, 0)) +

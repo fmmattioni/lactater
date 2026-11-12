@@ -65,8 +65,8 @@ test_that("the checks say when the LT1 or LT2 methods disagree", {
                fixed = TRUE)
   expect_equal(checks$status[checks$check == "LT2"], "ok")
   ## one method of the set is enough to say nothing
-  expect_false("LT1" %in% lactate_checks(lactate_threshold(demo_data, intensity, lactate, method = "Log-log",
-                                                            plot = FALSE))$check)
+  one_method <- lactate_threshold(demo_data, intensity, lactate, method = "Log-log", plot = FALSE)
+  expect_false("LT1" %in% lactate_checks(one_method)$check)
 })
 
 test_that("the report says how far the LT1 and LT2 methods lie apart under the chosen ones", {

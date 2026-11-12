@@ -167,7 +167,9 @@ autoplot.lactate_load <- function(object, ...) {
   }
 
   ggplot2::ggplot(long, ggplot2::aes(minutes, group)) +
-    ggplot2::geom_col(ggplot2::aes(fill = zone), width = 0.66, colour = colours[["paper"]], linewidth = 0.6, alpha = 0.55) +
+    ggplot2::geom_col(
+      ggplot2::aes(fill = zone), width = 0.66, colour = colours[["paper"]], linewidth = 0.6, alpha = 0.55
+    ) +
     ggplot2::geom_text(
       ggplot2::aes(label = text, group = zone), position = ggplot2::position_stack(vjust = 0.5), size = 3,
       colour = colours[["ink"]]

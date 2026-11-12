@@ -41,7 +41,8 @@ zone_colours <- list(
 #' `"LTP2"`, `"IAT"`, `"Stegmann"`, `"Keul"` and `"Simon"` (running), and `"Bsln + 1.5"`, which estimated the MLSS
 #' in two studies; Jamnick et al., 2020).
 #' These are two of the three categories of threshold concepts of Faude et al. (2009); fixed values such as
-#' `"OBLA 4.0"` are the third. Against a measured MLSS these landed from about 40 W below to 40 W above it on average, by
+#' `"OBLA 4.0"` are the third. Against a measured MLSS these landed from about 40 W below to 40 W above it on average,
+#' by
 #' method, protocol and athletes (Hauser et al., 2014; Ploszczyca et al., 2020), and whether the MLSS or the critical
 #' power marks the boundary between the heavy and severe domains is debated (Jones et al., 2019). Different choices
 #' give different zones, so report which ones you used.
@@ -55,7 +56,8 @@ zone_colours <- list(
 #'
 #' @param x The result of [lactate_threshold()].
 #' @param lt1,lt2 The thresholds that mark LT1 and LT2: a method in `x$method`, or an intensity. Default to those
-#' chosen in [lactate_threshold()], which are `"Bsln + 0.5"` and `"Log-Poly-ModDmax"` unless you set them; see `Details`.
+#' chosen in [lactate_threshold()], which are `"Bsln + 0.5"` and `"Log-Poly-ModDmax"` unless you set them; see
+#' `Details`.
 #' @param model The number of zones: `3` (default) or `5`.
 #' @param split How to split the moderate and severe domains in the five-zone model: `"relative"` (default),
 #' `"seiler"`, or two intensities. Ignored with three zones.

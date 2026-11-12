@@ -78,7 +78,9 @@ bootstrap_intervals <- function(data, settings, method, curve, n_rows, n_boot, l
   if(!is.null(seed)) {
     ## seeded locally: the user's random stream continues afterwards as if nothing was drawn
     saved <- get0(".Random.seed", globalenv(), inherits = FALSE)
-    on.exit(if(is.null(saved)) rm(".Random.seed", envir = globalenv()) else assign(".Random.seed", saved, globalenv()))
+    on.exit(
+      if(is.null(saved)) rm(".Random.seed", envir = globalenv()) else assign(".Random.seed", saved, globalenv()) # nolint
+    )
     set.seed(seed)
   }
   in_fit <- if(settings$include_baseline) rep(TRUE, nrow(data)) else data$intensity > 0

@@ -40,9 +40,10 @@ test_that("compare_tests() takes the result as its cv", {
 
 test_that("it runs on lactate_threshold(.by = ) results", {
   set.seed(3)
-  tests <- do.call(rbind, lapply(1:3, function(a) do.call(rbind, lapply(1:2, function(t) {
+  one <- function(a, t) {
     transform(demo_data, athlete = a, test = t, lactate = lactate * exp(rnorm(nrow(demo_data), 0, 0.04)))
-  }))))
+  }
+  tests <- do.call(rbind, Map(one, rep(1:3, each = 2), rep(1:2, 3)))
   results <- lactate_threshold(tests, intensity, lactate, method = "OBLA", plot = FALSE, .by = c("athlete", "test"))
   out <- lactate_reliability(results, "athlete", "test")
   expect_equal(out$method, paste("OBLA", c("2.0", "2.5", "3.0", "3.5", "4.0")))

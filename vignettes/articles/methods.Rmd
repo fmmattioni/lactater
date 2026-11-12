@@ -233,7 +233,8 @@ tribble(
   "[Hauser et al., 2014](https://doi.org/10.1055/s-0033-1353176)",
   "57 men from untrained to 14 h of training a week; 4-min stages of +40 W and 30-min constant-power bouts; earlobe
   blood, Biosen",
-  "OBLA 4.0 was 7.4 +/- 25.1 W below the MLSS and Stegmann's IAT 12.4 +/- 24.6 W above it; LT<sub>ratio</sub> + 1.5 mmol/L,
+  "OBLA 4.0 was 7.4 +/- 25.1 W below the MLSS and Stegmann's IAT 12.4 +/- 24.6 W above it; LT<sub>ratio</sub> + 1.5
+  mmol/L,
   the IAT of lactater, was 37.4 +/- 26.4 W below. Despite correlations of 0.83 to 0.89, single athletes were far off.",
   "Single study",
   "[Heuberger et al., 2018](https://doi.org/10.1371/journal.pone.0206846)",

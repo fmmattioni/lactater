@@ -33,7 +33,8 @@
 #'
 #' @return a `lactate_shape` list with `shift` (intensity units, positive when the curve moved to the right),
 #' `shift_low` and `shift_high`, `f`, `df1`, `df2`, `p_value`, `aicc_shift` and `aicc_free`, `verdict`
-#' (`"shape changed"` when the F test and AICc both prefer the free shape, `"shift"` otherwise: none was detected), the peak lactate of both tests and the two
+#' (`"shape changed"` when the F test and AICc both prefer the free shape, `"shift"` otherwise: none
+#' was detected), the peak lactate of both tests and the two
 #' exponential `curves`. Print it for a summary, and plot it with [autoplot()]: the two fitted curves, and the first one
 #' moved by the shift (dashed).
 #'
@@ -141,7 +142,9 @@ print.lactate_shape <- function(x, ...) {
             shift, unit, interval,
             if(min(nrow(x$curves$before$points), nrow(x$curves$after$points)) < 8) {
               ", but with fewer than 8 stages the test finds few changes of shape"
-            } else "")
+            } else {
+              ""
+            })
   } else {
     sprintf("The shape changed: a shift alone (%s %s) does not describe both tests.\n", shift, unit)
   })

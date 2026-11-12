@@ -24,7 +24,8 @@
 #' predict performances of 1 min or longer inconclusive (Quittmann, 2026). Set `test_duration` to your sprint.
 #'
 #' `vlapeak` is the same rise divided by the whole sprint, with no alactic time,
-#' \eqn{vLa_{peak} = (La_{peak} - La_{pre}) / t_{test}}, so it is lower than `vlamax`. Wackerhage et al. (2025) proposed it
+#' \eqn{vLa_{peak} = (La_{peak} - La_{pre}) / t_{test}}, so it is lower than `vlamax`. Wackerhage et al. (2025)
+#' proposed it
 #' partly because the alactic-time correction is error-prone. In 182 cyclists and triathletes, both gave similar
 #' associations with the lactate thresholds (Röhrs et al., 2026).
 #'

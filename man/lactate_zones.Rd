@@ -18,7 +18,8 @@ lactate_zones(x, lt1 = NULL, lt2 = NULL, model = 3, split = "relative")
 \item{x}{The result of \code{\link[=lactate_threshold]{lactate_threshold()}}.}
 
 \item{lt1, lt2}{The thresholds that mark LT1 and LT2: a method in \code{x$method}, or an intensity. Default to those
-chosen in \code{\link[=lactate_threshold]{lactate_threshold()}}, which are \code{"Bsln + 0.5"} and \code{"Log-Poly-ModDmax"} unless you set them; see \code{Details}.}
+chosen in \code{\link[=lactate_threshold]{lactate_threshold()}}, which are \code{"Bsln + 0.5"} and \code{"Log-Poly-ModDmax"} unless you set them; see
+\code{Details}.}
 
 \item{model}{The number of zones: \code{3} (default) or \code{5}.}
 
@@ -84,7 +85,8 @@ LT2 a threshold aimed at the maximal lactate steady state (MLSS) or the second, 
 \code{"LTP2"}, \code{"IAT"}, \code{"Stegmann"}, \code{"Keul"} and \code{"Simon"} (running), and \code{"Bsln + 1.5"}, which estimated the MLSS
 in two studies; Jamnick et al., 2020).
 These are two of the three categories of threshold concepts of Faude et al. (2009); fixed values such as
-\code{"OBLA 4.0"} are the third. Against a measured MLSS these landed from about 40 W below to 40 W above it on average, by
+\code{"OBLA 4.0"} are the third. Against a measured MLSS these landed from about 40 W below to 40 W above it on average,
+by
 method, protocol and athletes (Hauser et al., 2014; Ploszczyca et al., 2020), and whether the MLSS or the critical
 power marks the boundary between the heavy and severe domains is debated (Jones et al., 2019). Different choices
 give different zones, so report which ones you used.
