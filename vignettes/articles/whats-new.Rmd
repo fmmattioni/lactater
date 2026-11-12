@@ -49,29 +49,32 @@ seconds (measured on a laptop; your numbers will differ, the ratio less so).
 Because the methods are now computed as their authors defined them, a threshold can land a little away from where
 0.3.0 put it. The size of the change depends on the test: on a smooth curve OBLA and Bsln+ move by a watt or two,
 while a Log-log split or an LTP turn point can move more when the stages leave the fit a choice. Here is one
-example, `demo_data`, run with `include_baseline = TRUE` as the 0.3.0 values were computed (the default of 1.0 is
-`FALSE`). It is one test, not a rule: your own tests will differ by other amounts.
+example, `cycling_female` from `lactate_tests`, run with `include_baseline = TRUE` as the 0.3.0 values were computed
+(the default of 1.0 is `FALSE`). It is one test, not a rule: your own tests will differ by other amounts.
 
 ```{r, message = FALSE}
 library(lactater)
 library(dplyr)
 
+## 0.3.0 run on the same test (fit = "3rd degree polynomial", include_baseline = TRUE)
 old <- tibble(
   method = c("Log-log", "OBLA 2.0", "OBLA 2.5", "OBLA 3.0", "OBLA 3.5", "OBLA 4.0",
              "Bsln + 0.5", "Bsln + 1.0", "Bsln + 1.5", "Dmax", "ModDmax", "Exp-Dmax",
              "Log-Poly-ModDmax", "Log-Exp-ModDmax", "LTP1", "LTP2", "LTratio"),
-  version_0.3.0 = c(83.4, 105.4, 118.5, 129.0, 137.0, 145.0, 82.5, 103.6, 116.7,
-                    131.5, 140.1, 134.8, 143.0, 145.7, 88.8, 147.6, 71.2)
+  version_0.3.0 = c(199.1, 237.7, 245.9, 253.1, 260.2, 265.0, 223.1, 235.3, 244.4,
+                    232.0, 254.5, 241.9, 254.1, 260.7, 203.4, 259.9, 190.8)
 )
-new <- lactate_threshold(demo_data, intensity, lactate, include_baseline = TRUE, plot = FALSE)
+test <- lactate_tests |> filter(test == "cycling_female")
+new <- lactate_threshold(test, intensity, lactate, include_baseline = TRUE, plot = FALSE)
 ## the unrounded intensities, to compare at 0.1 W
 unrounded <- attr(new, "lactater")$intensity
 old |>
   inner_join(tibble(method = names(unrounded), version_1.0 = round(unname(unrounded), 1)), by = "method") |>
-  mutate(difference = version_1.0 - version_0.3.0)
+  mutate(difference = version_1.0 - version_0.3.0) |>
+  knitr::kable()
 ```
 
-What moved it here:
+What moved the numbers:
 
 * **OBLA and Bsln+.** The intensity at a target lactate is solved on the fitted curve itself (issue #8, thanks to
   Simon Dierickx).

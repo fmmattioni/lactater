@@ -18,6 +18,8 @@ template:
         plausible.init()
       </script>
   light-switch: true
+  # the formulas of the help pages (the default leaves them as $$ text)
+  math-rendering: katex
   bslib:
     primary: "#183A53"
     link-color: "#1F5FA8"
