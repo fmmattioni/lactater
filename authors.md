@@ -8,7 +8,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/fmmattioni/lactater/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/fmmattioni/lactater/blob/v1.0.0/DESCRIPTION)
 
 Mattioni Maturana F (2026). *lactater: Tools for Analyzing Lactate
 Thresholds*. R package version 1.0.0,

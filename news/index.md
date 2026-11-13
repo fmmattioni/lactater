@@ -2,6 +2,8 @@
 
 ## lactater 1.0.0
 
+CRAN release: 2026-11-13
+
 Every method follows its original paper and is solved exactly; new tools
 check the analysis, build zones, compare tests, predict performance and
 report the test. [What’s new in lactater
