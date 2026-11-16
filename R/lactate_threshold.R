@@ -491,10 +491,12 @@ lactate_threshold <- function(
     if(!is.null(intervals)) {
       ## a threshold that was not found has no interval, even if some replicates found one
       intervals[is.na(rows$intensity), ] <- NA_real_
-      ## rounded outward, so the rounded interval still holds the unrounded one
+      ## rounded outward, so the rounded interval still holds the unrounded one; the plots show these same values
       scale <- 10^intensity_digits(sport)
-      out$intensity_low <- floor(intervals[, "low"] * scale + 1e-9) / scale
-      out$intensity_high <- ceiling(intervals[, "high"] * scale - 1e-9) / scale
+      intervals[, "low"] <- floor(intervals[, "low"] * scale + 1e-9) / scale
+      intervals[, "high"] <- ceiling(intervals[, "high"] * scale - 1e-9) / scale
+      out$intensity_low <- intervals[, "low"]
+      out$intensity_high <- intervals[, "high"]
     }
   }
   if(sport != "cycling") out$pace <- convert_to_pace(rows$intensity, sport)

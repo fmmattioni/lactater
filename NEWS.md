@@ -1,3 +1,8 @@
+# lactater (development version)
+
+* The plots of `lactate_threshold()` show the confidence interval of its table, rounded outward. They rounded it to
+  the nearest value, so a label could show a narrower interval than the table (8.8-14.5 instead of 8.7-14.6 km/h).
+
 # lactater 1.0.0
 
 Every method follows its original paper and is solved exactly; new tools check the analysis, build zones, compare

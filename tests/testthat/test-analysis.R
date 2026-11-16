@@ -13,6 +13,18 @@ test_that("ci adds intervals that contain the estimate", {
   expect_error(lactate_threshold(demo_data, "intensity", "lactate", ci = TRUE, n_boot = 5), "n_boot")
 })
 
+test_that("the plots show the interval of the table, rounded outward", {
+  with_ci <- lactate_threshold(
+    demo_data, "intensity", "lactate", method = "Dmax", plot = TRUE, ci = TRUE, n_boot = 60, seed = 1
+  )
+  intervals <- attr(with_ci, "lactater")$intervals
+  expect_equal(unname(intervals[, "low"]), with_ci$intensity_low)
+  expect_equal(unname(intervals[, "high"]), with_ci$intensity_high)
+  labels <- unlist(lapply(with_ci$plot[[1]]$layers, function(layer) layer$aes_params$label))
+  shown <- sprintf("CI %s-%s", with_ci$intensity_low[1], with_ci$intensity_high[1])
+  expect_true(any(startsWith(labels, shown)))
+})
+
 test_that("a threshold that was not found gets no interval", {
   # nearly straight on log-log: the two Log-log lines cross outside the stages
   straight <- data.frame(
