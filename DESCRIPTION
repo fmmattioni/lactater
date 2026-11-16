@@ -1,6 +1,6 @@
 Package: lactater
 Title: Tools for Analyzing Lactate Thresholds
-Version: 1.0.0
+Version: 1.0.0.9000
 Authors@R: 
     person(given = "Felipe",
            family = "Mattioni Maturana",
